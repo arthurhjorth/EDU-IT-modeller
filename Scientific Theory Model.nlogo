@@ -6,6 +6,7 @@ breed [schools school]
 
 globals [time str-time] ;; global variables
 ;testing woop
+;;Ida testing :)
 people-own [ ;; human attributes
   age
   mental-health
