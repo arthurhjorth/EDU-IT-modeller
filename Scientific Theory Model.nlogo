@@ -5,7 +5,7 @@ breed [workplaces workplace]
 breed [schools school]
 
 globals [time str-time] ;; global variables
-
+;testing woop
 people-own [ ;; human attributes
   age
   mental-health
