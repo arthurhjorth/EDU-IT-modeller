@@ -3,10 +3,13 @@ breed [households household]
 breed [people person]
 breed [workplaces workplace]
 breed [schools school]
+breed [bars bar]
 
-globals [time str-time] ;; global variables
-;testing woop
-;;Ida testing :)
+globals [ ;; global variables
+  time
+  str-time
+]
+
 people-own [ ;; human attributes
   age
   mental-health
@@ -32,6 +35,11 @@ schools-own [
   students
 ]
 
+;;bar attributes
+bars-own [
+  bargoers
+]
+
 to setup
   clear-all
   reset-ticks ; restart clock
@@ -47,6 +55,14 @@ to setup
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor - pycor * 2]
     set employees (turtle-set)
   ]
+  create-bars 10 [
+    set color gray
+    set shape "house ranch" ;;IBH: not sure what's the best shape for these... :P
+    let bar-patches patches with [abs pycor < 6]
+    move-to max-one-of (bar-patches with [not any? turtles-here]) [pxcor]
+    set bargoers (turtle-set)
+  ]
+
 
   create-households 700 [
     set color gray
@@ -133,6 +149,11 @@ to-report infected-rate
   if is-school? self [
     if any? students with [infected?] [
      report count students with [infected?] / count students
+    ]
+  ]
+  if is-bar? self [
+    if any? bargoers with [infected?] [
+      report count bargoers with [infected?] / count bargoers
     ]
   ]
   report 0
@@ -692,6 +713,31 @@ Line -16777216 false 255 105 285 135
 Line -7500403 true 154 195 154 255
 Rectangle -16777216 true false 210 195 255 240
 Rectangle -16777216 true false 135 150 180 180
+
+house efficiency
+false
+0
+Rectangle -7500403 true true 180 90 195 195
+Rectangle -7500403 true true 90 165 210 255
+Rectangle -16777216 true false 165 195 195 255
+Rectangle -16777216 true false 105 202 135 240
+Polygon -7500403 true true 225 165 75 165 150 90
+Line -16777216 false 75 165 225 165
+
+house ranch
+false
+0
+Rectangle -7500403 true true 270 120 285 255
+Rectangle -7500403 true true 15 180 270 255
+Polygon -7500403 true true 0 180 300 180 240 135 60 135 0 180
+Rectangle -16777216 true false 120 195 180 255
+Line -7500403 true 150 195 150 255
+Rectangle -16777216 true false 45 195 105 240
+Rectangle -16777216 true false 195 195 255 240
+Line -7500403 true 75 195 75 240
+Line -7500403 true 225 195 225 240
+Line -16777216 false 270 180 270 255
+Line -16777216 false 0 180 300 180
 
 leaf
 false
