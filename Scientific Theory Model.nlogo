@@ -8,6 +8,7 @@ breed [bars bar]
 globals [ ;; global variables
   time
   str-time
+  total-deaths
 ]
 
 people-own [ ;; human attributes
@@ -17,6 +18,7 @@ people-own [ ;; human attributes
   my-workplace
   my-bar
   infected-at
+  time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
 ]
 ;; household attributes
 households-own [
@@ -76,6 +78,7 @@ to setup
       ht
       set age random 90
       set infected-at -1000
+      set time-of-death random 24
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -99,7 +102,7 @@ to setup
   ask turtles [recolor]
 
 
-  set time ticks mod 23
+  set time ticks mod 24 ;;every tick is one hour
   set str-time (word time ":00")
   if time < 10 [set str-time (word "0" str-time)]
 end
@@ -108,7 +111,7 @@ end
 to go
   every .01 [
     ;; update time
-    set time ticks mod 23
+    set time ticks mod 24
     set str-time (word time ":00")
     if time < 10 [set str-time (word "0" str-time)]
 
@@ -131,10 +134,21 @@ to go
     ]
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
 
-
     ;; ask people who are infected to potentially infect others
     ask people with [infected?] [
-      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]]
+      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
+
+      ;;risk of infected people dying:
+      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
+        let my-destiny random-float 1
+        if my-destiny < my-death-risk [
+          die
+          set total-deaths total-deaths + 1
+        ]
+
+      ]
+
+    ]
 
     ask turtles [recolor]
     if not any? people with [infected?] [stop]
@@ -203,7 +217,22 @@ to-report infected?
   report ticks >= infected-at and ticks <=  infected-at + average-duration * 24
 end
 
-to-report immune?
+to-report days-infected
+  ifelse infected?
+    []
+    [report 0]
+end
+
+to-report my-death-risk
+;;@IBH: can change these probabilities (quite random right now)!
+  ;;DAILY probabilities of dying if infected:
+  if age >= 65 [report 0.2]
+  if age >= 45 and age < 65 [report 0.05]
+  if age >= 25 and age < 45 [report 0.01]
+  if age < 25 [report 0.0005]
+end
+
+to-report immune? ;;@nu antager vi, at alle bliver immune
   report infected-at != -1000 and infected-at + average-duration * 24 < ticks
 end
 
@@ -430,7 +459,7 @@ probability-of-infection
 probability-of-infection
 0
 0.0025
-3.7E-4
+4.3E-4
 0.00001
 1
 / hour
@@ -517,6 +546,28 @@ PENS
 "S" 1.0 0 -13345367 true "" "plot count people with [not immune? and not infected?]"
 "I" 1.0 0 -2674135 true "" "plot count people with [infected?]"
 "R" 1.0 0 -8630108 true "" "plot count people with [immune?]"
+
+MONITOR
+155
+300
+225
+345
+NIL
+total-deaths
+17
+1
+11
+
+MONITOR
+70
+300
+152
+345
+NIL
+count people
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
