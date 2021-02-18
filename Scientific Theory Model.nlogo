@@ -167,8 +167,17 @@ to-report all-students
   report people with [age >= 20]
 end
 
-to-report working-at-home?
+to-report working-at-home? ;;person reporter
  ;;AH: adult and workplaces closed, and between 8 and 16 oclock
+  ifelse time >= 8 and time <= 16 and is-adult? and close-workplaces?
+    [report true]
+    [report false]
+end
+
+to-report is-adult?
+  ifelse is-person? self and [age] of self >= 18
+    [report true]
+    [report false]
 end
 
 to-report infected?
@@ -277,7 +286,7 @@ HORIZONTAL
 MONITOR
 415
 10
-512
+524
 55
 Time of the Day
 str-time
@@ -402,7 +411,7 @@ probability-of-infection
 probability-of-infection
 0
 0.0025
-3.1E-4
+3.7E-4
 0.00001
 1
 / hour
