@@ -160,16 +160,21 @@ to-report infected-rate
 end
 
 to-report workers
-  report people with [age < 20]
+  report people with [age > 20]
 end
 
 to-report all-students
-  report people with [age >= 20]
+  report people with [age <= 20]
 end
 
 to-report working-at-home? ;;person reporter
- ;;AH: adult and workplaces closed, and between 8 and 16 oclock
-  ifelse time >= 8 and time <= 16 and is-adult? and close-workplaces?
+  ifelse time >= 8 and time <= 16 and is-adult? and close-workplaces?  ;;AH: adult and workplaces closed, and between 8 and 16 oclock
+    [report true]
+    [report false]
+end
+
+to-report is-homeschooling? ;;@IBH: tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden - kan evt. gøres lidt mere realistisk
+  ifelse working-at-home? and count people-here with [is-adult? = false] > 0  ;;if adult + it's between 8 and 16 + there are kids in the house
     [report true]
     [report false]
 end
