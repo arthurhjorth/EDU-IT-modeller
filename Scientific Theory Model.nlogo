@@ -15,6 +15,7 @@ people-own [ ;; human attributes
   mental-health
   my-household
   my-workplace
+  my-bar
   infected-at
 ]
 ;; household attributes
@@ -84,9 +85,13 @@ to setup
       if age >= 20 [
         set  my-workplace one-of workplaces
         ask my-workplace [set employees (turtle-set employees myself)]
+
+        set my-bar one-of bars ;;@IBH: nu har alle én stam-bar - mere realistisk, hvis de besøger flere forskellige?
+        ask my-bar [set bargoers (turtle-set bargoers myself)]
+
+        ]
       ]
     ]
-  ]
 
 
   ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24]
@@ -113,9 +118,18 @@ to go
       if not close-schools? [ask all-students [move-to my-workplace]]
     ]
     if time = 17 [ask people [move-to my-household]
-      if not close-bars-and-stores? [ ]
+
+      ;;going to bars/stores:
+      ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
+      if not close-bars-and-stores? [
+        ask people with [is-adult?] [
+          let chance random-float 1 ;;a number between 0 and 1
+          if chance > 0.7 [ move-to my-bar ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+        ]
+
+      ]
     ]
-    if time = 20 [ask people[move-to my-household]]
+    if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
 
 
     ;; ask people who are infected to potentially infect others
@@ -282,7 +296,7 @@ home-productivity
 home-productivity
 0
 200
-57.0
+114.0
 1
 1
 % (of normal)
@@ -456,7 +470,7 @@ average-duration
 average-duration
 0
 25
-5.0
+8.0
 1
 1
 days
