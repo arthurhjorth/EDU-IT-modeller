@@ -222,7 +222,7 @@ to-report is-adult?
 end
 
 
-;; a simple population distribution from Danmarks Statistik, generalizing 3 age groups, corresponding to non-adults, adults and elders
+;; a simple population distribution from Danmarks Statistik, generalizing
 
 to-report age-distribution
   (ifelse
