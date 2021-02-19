@@ -9,6 +9,7 @@ globals [ ;; global variables
   time
   str-time
   total-deaths
+  placeholder
 ]
 
 people-own [ ;; human attributes
@@ -71,12 +72,36 @@ to setup
     set color gray
     move-to min-one-of (patches with [not any? households-here]) [pxcor]
     set shape "house"
-    let household-members (abs random-normal 3 2) + 1
+
+    ;;IBH: landsdækkende statistik om husstandsstørrelse fra http://apps.aalborgkommune.dk/images/teknisk/PLANBYG/BOLIGUNDERSOEGELSE/Del2.pdf (side 13)
+    ;;1 = 39%, 2 = 33%, 3 = 12%, 4 = 11%, 5 = 4%, 6 (eller derover) = 1%
+    ;;@alderssammensætningen er stadig ret tilfældig/forsimplet og ikke baseret på statistik...
+    let probability random-float 1
+    if probability < 0.39                         [set placeholder 1]
+    if probability >= 0.39 and probability < 0.72 [set placeholder 2]
+    if probability >= 0.72 and probability < 0.84 [set placeholder 3]
+    if probability >= 0.84 and probability < 0.95 [set placeholder 4]
+    if probability >= 0.95 and probability < 0.99 [set placeholder 5]
+    if probability >= 0.99                        [set placeholder 6]
+
+    let household-members placeholder
+
+
     set members (turtle-set)
     hatch-people household-members [
       set shape "person"
       hide-turtle
-      set age age-distribution
+
+      ;;@IBH: fix alderssammensætningen: den er stadig ret tilfældig/forsimplet og ikke baseret på statistik...
+      ;;eg. a household of 5 is very likely to consist of 4 adults and a child...
+      ;;(skriv: ask households [show [age-group] of members] i command center efter setup for at få et indblik i sammensætningen...)
+
+      ;;make sure the first person created is always an adult or elder:
+      ifelse count people-here = 0
+        [while [age-group = "child"] [set age age-distribution]]
+        [set age age-distribution]
+
+
       set infected-at -1000
       set time-of-death random 24
       set my-household myself
