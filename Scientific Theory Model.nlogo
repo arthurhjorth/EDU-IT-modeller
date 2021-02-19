@@ -82,15 +82,18 @@ to setup
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
-        set  my-workplace one-of schools
+        set my-workplace one-of schools
         ask my-workplace [set students (turtle-set students myself)]
       ]
+      if age >= 18 [
+        set my-bar one-of bars ;;@IBH: nu har alle én stambar - mere realistisk, hvis de besøger flere forskellige?
+        ask my-bar [set bargoers (turtle-set bargoers myself)]
+      ]
+
       if age >= 20 [
-        set  my-workplace one-of workplaces
+        set my-workplace one-of workplaces
         ask my-workplace [set employees (turtle-set employees myself)]
 
-        set my-bar one-of bars ;;@IBH: nu har alle én stam-bar - mere realistisk, hvis de besøger flere forskellige?
-        ask my-bar [set bargoers (turtle-set bargoers myself)]
 
         ]
       ]
@@ -120,18 +123,23 @@ to go
       if not close-workplaces? [ask workers [move-to my-workplace]]
       if not close-schools? [ask all-students [move-to my-workplace]]
     ]
-    if time = 17 [ask people [move-to my-household]
 
+    if time = 17 [
       ;;going to bars/stores:
       ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
-      if not close-bars-and-stores? [
-        ask people with [is-adult?] [
-          let chance random-float 1 ;;a number between 0 and 1
-          if chance > 0.7 [ move-to my-bar ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+      ifelse close-bars-and-stores?
+        [ ask people [move-to my-household] ] ;;if closed
+        ;;if open:
+        [ ask people [
+          ifelse is-adult? = true
+            [let chance random-float 1 ;a number between 0 and 1
+            ifelse chance < 0.3 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
         ]
+            [move-to my-household] ;;if not adult
+      ]]
 
-      ]
     ]
+
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
 
     ;; ask people who are infected to potentially infect others
@@ -142,8 +150,8 @@ to go
       if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
         let my-destiny random-float 1
         if my-destiny < my-death-risk [
-          die
           set total-deaths total-deaths + 1
+          die
         ]
 
       ]
@@ -310,7 +318,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-35.4
+7.0
 .1
 1
 %
@@ -385,7 +393,7 @@ SWITCH
 218
 close-workplaces?
 close-workplaces?
-0
+1
 1
 -1000
 
@@ -396,7 +404,7 @@ SWITCH
 253
 close-schools?
 close-schools?
-0
+1
 1
 -1000
 
@@ -512,7 +520,7 @@ SWITCH
 288
 close-bars-and-stores?
 close-bars-and-stores?
-0
+1
 1
 -1000
 
