@@ -279,7 +279,7 @@ end
 
 to-report my-death-risk
 ;;@IBH: can change these probabilities (quite random right now), and maybe make more fine-grained!
-  ;;@could add 'deathlyness of virus' to the interface, and a chooser 'depends-on-age?'
+  ;;@could add 'deathliness of virus' to the interface, and a chooser 'depends-on-age?'
   ;;DAILY probabilities of dying if infected:
   if age-group = "child" [report 0.002]
   if age-group = "adult" [report 0.02]
@@ -293,6 +293,44 @@ end
 to-report day
   report floor (ticks / 24)
 end
+
+to-report productivity ;;for productivity plot (sum [productivity] of people)
+  ifelse age-group = "adult" [
+    ifelse working-at-home? [
+      ifelse is-homeschooling? [
+        report (home-productivity / 100) * (productivity-while-homeschooling / 100) ;;if working from home AND homeschooling
+        ;;@IBH idé: skal vi gøre, så hvis skoler er lukkede, bliver folk med børn hjemme og arbejder + homeschooler, selv hvis arbejdspladser ikke er lukket?
+      ]
+      [ ;;if not homeschooling:
+        report home-productivity / 100
+      ]
+    ]
+    [ ;;if adult working in workplace:
+      report 1
+    ]
+  ]
+  [ ;;if age-group != adult:
+    report 0 ;;nu antages det, at børn og ældre ikke bidrager til produktiviteten... ;) @IBH: maybe change this
+  ]
+
+  ;;@working-at-home? og is-homeschooling? beskriver nu, om de CURRENTLY gør det - derfor får productivity plot nu weird bumps uden for arbejdstiden. @IBH: fix det evt
+
+  ;;@include expenses-per-infection somewhere in these calculations?
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 240
@@ -364,7 +402,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-7.0
+13.5
 .1
 1
 %
@@ -379,7 +417,7 @@ home-productivity
 home-productivity
 0
 200
-114.0
+64.0
 1
 1
 % (of normal)
@@ -430,7 +468,7 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot sum [productivity] of people"
 
 SWITCH
 10
@@ -439,7 +477,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-1
+0
 1
 -1000
 
@@ -450,7 +488,7 @@ SWITCH
 188
 close-schools?
 close-schools?
-1
+0
 1
 -1000
 
@@ -513,7 +551,7 @@ probability-of-infection
 probability-of-infection
 0
 0.0025
-2.4E-4
+3.3E-4
 0.00001
 1
 / hour
