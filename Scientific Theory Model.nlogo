@@ -75,7 +75,7 @@ to setup
     set members (turtle-set)
     hatch-people household-members [
       set shape "person"
-      ht
+      hide-turtle
       set age age-distribution
       set infected-at -1000
       set time-of-death random 24
@@ -131,7 +131,7 @@ to go
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
         [ ask people [
-          ifelse is-adult? = true
+          ifelse age-group = "adult"
             [let chance random-float 1 ;a number between 0 and 1
             ifelse chance < 0.3 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
         ]
@@ -204,19 +204,13 @@ to-report all-students
 end
 
 to-report working-at-home? ;;person reporter
-  ifelse time >= 8 and time <= 16 and is-adult? and close-workplaces?  ;;AH: adult and workplaces closed, and between 8 and 16 oclock
+  ifelse time >= 8 and time <= 16 and age-group = "adult" and close-workplaces?  ;;AH: adult and workplaces closed, and between 8 and 16 oclock
     [report true]
     [report false]
 end
 
 to-report is-homeschooling? ;;@IBH: tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden - kan evt. gøres lidt mere realistisk
-  ifelse working-at-home? and count people-here with [is-adult? = false] > 0  ;;if adult + it's between 8 and 16 + there are kids in the house
-    [report true]
-    [report false]
-end
-
-to-report is-adult?
-  ifelse is-person? self and [age] of self >= 18
+  ifelse working-at-home? and count people-here with [age-group = "child"] > 0  ;;if adult + it's between 8 and 16 + there are kids in the house
     [report true]
     [report false]
 end
@@ -228,19 +222,24 @@ to-report age-distribution
   (ifelse
     random-float 1 < 0.72 [ ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
       ;set age 17 + random 57
-      report 17 + random 57
+      report 18 + random 57 ;;IBH: random returns a value between 0 and one less than the number - so I changed 17 to 18 :) (and same down below)
     ]
     random-float 1 > (1 - 0.2) [ ;20% below 18
       ;set age random 17
-      report random 17
+      report random 18
     ]
     ;elders above 74, 8%
     [
       ;set age 74 + random 26
-      report 74 + random 26
+      report 75 + random 26
     ])
 end
 
+to-report age-group ;;IBH: bruger de tre grupper fra DKs Statistik (ret forsimplet, men måske fint at holde det til tre): 0-17, 18-74, 75+
+  if age <= 17 [ report "child" ] ;;initially 20 %
+  if age > 17 and age < 75 [ report "adult" ] ;;initially 72 %
+  if age >= 75 [ report "elder" ] ;;initially 8 %
+end
 
 
 to-report infected?
@@ -254,12 +253,12 @@ to-report days-infected
 end
 
 to-report my-death-risk
-;;@IBH: can change these probabilities (quite random right now)!
+;;@IBH: can change these probabilities (quite random right now), and maybe make more fine-grained!
+  ;;@could add 'deathlyness of virus' to the interface, and a chooser 'depends-on-age?'
   ;;DAILY probabilities of dying if infected:
-  if age >= 65 [report 0.2]
-  if age >= 45 and age < 65 [report 0.05]
-  if age >= 25 and age < 45 [report 0.01]
-  if age < 25 [report 0.0005]
+  if age-group = "child" [report 0.002]
+  if age-group = "adult" [report 0.02]
+  if age-group = "elder" [report 0.2]
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
@@ -271,13 +270,13 @@ to-report day
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-230
-75
-938
-784
+240
+55
+768
+584
 -1
 -1
-21.21212121212121
+15.76
 1
 10
 1
@@ -298,10 +297,10 @@ ticks
 30.0
 
 BUTTON
-40
-120
-102
-153
+50
+60
+112
+93
 NIL
 setup\n
 NIL
@@ -315,10 +314,10 @@ NIL
 1
 
 BUTTON
-105
-120
-170
-153
+115
+60
+180
+93
 NIL
 go
 T
@@ -332,10 +331,10 @@ NIL
 1
 
 SLIDER
-5
-75
-220
-108
+15
+15
+230
+48
 initial-infection-rate
 initial-infection-rate
 0
@@ -347,10 +346,10 @@ initial-infection-rate
 HORIZONTAL
 
 SLIDER
-0
-545
-225
-578
+10
+390
+235
+423
 home-productivity
 home-productivity
 0
@@ -362,9 +361,9 @@ home-productivity
 HORIZONTAL
 
 MONITOR
-415
+470
 10
-524
+579
 55
 Time of the Day
 str-time
@@ -373,10 +372,10 @@ str-time
 11
 
 PLOT
-940
-75
-1545
-280
+775
+10
+1205
+205
 Infection rates
 NIL
 NIL
@@ -391,10 +390,10 @@ PENS
 "% infected" 1.0 0 -16777216 true "" "plot count people with [infected?] / count people"
 
 PLOT
-940
-580
-1545
-785
+775
+400
+1205
+595
 Productivity
 NIL
 NIL
@@ -409,10 +408,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
 
 SWITCH
-0
-185
-225
-218
+10
+120
+235
+153
 close-workplaces?
 close-workplaces?
 1
@@ -420,10 +419,10 @@ close-workplaces?
 -1000
 
 SWITCH
-0
-220
-225
-253
+10
+155
+235
+188
 close-schools?
 close-schools?
 1
@@ -431,10 +430,10 @@ close-schools?
 -1000
 
 SLIDER
-0
-580
-225
-613
+10
+425
+235
+458
 productivity-while-homeschooling
 productivity-while-homeschooling
 0
@@ -446,10 +445,10 @@ productivity-while-homeschooling
 HORIZONTAL
 
 SLIDER
-0
-615
-225
-648
+10
+460
+235
+493
 expenses-per-infection
 expenses-per-infection
 0
@@ -461,55 +460,55 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-35
-520
-185
-538
+45
+365
+195
+383
 Economic Assumptions
 15
 0.0
 1
 
 TEXTBOX
-60
-165
-160
-183
+70
+100
+170
+118
 Interventions
 15
 0.0
 1
 
 SLIDER
-5
-415
-225
-448
+15
+260
+235
+293
 probability-of-infection
 probability-of-infection
 0
 0.0025
-4.3E-4
+2.4E-4
 0.00001
 1
 / hour
 HORIZONTAL
 
 TEXTBOX
-20
-395
-180
-415
+30
+240
+190
+260
 Virological Assumptions
 15
 0.0
 1
 
 SLIDER
-5
-450
-225
-483
+15
+295
+235
+328
 incubation-time
 incubation-time
 0
@@ -521,10 +520,10 @@ hours
 HORIZONTAL
 
 SLIDER
-5
-485
-225
-518
+15
+330
+235
+363
 average-duration
 average-duration
 0
@@ -536,10 +535,10 @@ days
 HORIZONTAL
 
 SWITCH
-0
-255
-225
-288
+10
+190
+235
+223
 close-bars-and-stores?
 close-bars-and-stores?
 1
@@ -547,9 +546,9 @@ close-bars-and-stores?
 -1000
 
 MONITOR
-360
+415
 10
-417
+472
 55
 Day
 Day
@@ -558,10 +557,10 @@ Day
 11
 
 PLOT
-945
-300
-1480
-540
+775
+205
+1205
+400
 SIR Plots
 NIL
 NIL
@@ -578,9 +577,9 @@ PENS
 "R" 1.0 0 -8630108 true "" "plot count people with [immune?]"
 
 MONITOR
-155
+1390
 300
-225
+1465
 345
 NIL
 total-deaths
@@ -589,15 +588,35 @@ total-deaths
 11
 
 MONITOR
-70
+1390
+255
+1465
 300
-152
-345
 NIL
 count people
 17
 1
 11
+
+PLOT
+1210
+40
+1495
+190
+Age distribution over time
+Time
+Count
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Children" 1.0 0 -14439633 true "" "plot count people with [age-group = \"child\"]"
+"Adults" 1.0 0 -13345367 true "" "plot count people with [age-group = \"adult\"]"
+"Elders" 1.0 0 -2674135 true "" "plot count people with [age-group = \"elder\"]"
 
 @#$#@#$#@
 ## WHAT IS IT?
