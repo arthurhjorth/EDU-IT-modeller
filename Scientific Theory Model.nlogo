@@ -77,7 +77,6 @@ to setup
 
     ;;IBH: landsdækkende statistik om husstandsstørrelse fra http://apps.aalborgkommune.dk/images/teknisk/PLANBYG/BOLIGUNDERSOEGELSE/Del2.pdf (side 13)
     ;;1 = 39%, 2 = 33%, 3 = 12%, 4 = 11%, 5 = 4%, 6 (eller derover) = 1%
-    ;;@alderssammensætningen er stadig ret tilfældig/forsimplet og ikke baseret på statistik...
     let probability random-float 1
     if probability < 0.39                         [set placeholder 1]
     if probability >= 0.39 and probability < 0.72 [set placeholder 2]
@@ -87,7 +86,6 @@ to setup
     if probability >= 0.99                        [set placeholder 6]
 
     let household-members placeholder ; Jeg forstår ikke ovenstående og heller ej denne linje -gus
-
 
     set members (turtle-set)
     hatch-people household-members [
@@ -99,7 +97,7 @@ to setup
       ;;(skriv: ask households [show [age-group] of members] i command center efter setup for at få et indblik i sammensætningen...)
 
       ;;make sure the first person created is always an adult or elder:
-      ifelse count people-here = 0
+      ifelse count other people-here = 0
         [while [age-group = "child"] [set age age-distribution]]
         [set age age-distribution]
 
