@@ -14,7 +14,7 @@ globals [ ;; global variables
 
 people-own [ ;; human attributes
   age ;depends on age-distribution
-  ;mental-health ;If we have time - kan evt have indflydelse på kreativity og hvorvidt man får sine social needs opfyldthttps://www.youidraw.com/apps/painter/
+  mental-health
   ;social-needs ;- how much people need to socialize (bars + priv) -gust. It depends on social-needs-distribution
   ;my-social-houses ;not ready yet - Each household has a group of people (which can change over time). if a household solely consists of young then higher chance of gathering + more volume. #my-party-house depends -gust
   my-household
@@ -152,23 +152,23 @@ to go
       if not close-schools? [ask all-students [move-to my-workplace]]
     ]
 
+f(x) = x
+;;socializing -gus
+    if day = 6 [ ;Der skal implementeres at det kun er i weekenden at det er privat fest + bar (torsdag ogs?). Måske noget alla if day = 6+7, 14+15 etc
+      ;;going to bars/stores:
+      ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
+      ifelse close-bars-and-stores?
+        [ ask people [move-to my-household] ] ;;if closed
+        ;;if open:
+        [ ask people [
+          ifelse age-group = "adult" ;&not at privat socialt arrangement? -gus
+            [let chance random-float 1 ;a number between 0 and 1
+            ifelse chance < 0.3 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+        ]
+            [move-to my-household] ;;if not adult
+      ]]
 
-;;;socializing
-;    if day = 6 [ ;Der skal implementeres at det kun er i weekenden at det er privat fest + bar (torsdag ogs?). Måske noget alla if day = 6+7, 14+15 etc
-;      ;;going to bars/stores:
-;      ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
-;      ifelse close-bars-and-stores?
-;        [ ask people [move-to my-household] ] ;;if closed
-;        ;;if open:
-;        [ ask people [
-;          ifelse age-group = "adult" ;
-;            [let chance random-float 1 ;a number between 0 and 1
-;            ifelse chance < 0.3 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
-;        ]
-;            [move-to my-household] ;;if not adult
-;      ]]
-;
-;    ]
+    ]
 
 
     if time = 17 [
@@ -271,7 +271,7 @@ to-report age-distribution ; we need to implement the young age group here aswel
   (ifelse
     random-float 1 < 0.72 [ ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
       ;set age 17 + random 57
-      report 18 + random 58 ;;IBH: random returns a value between 0 and one less than the number - so I changed 17 to 18 :)
+      report 18 + random 57 ;;IBH: random returns a value between 0 and one less than the number - so I changed 17 to 18 :) (and same down below) ;;why random 57? -Gus
     ]
     random-float 1 > (1 - 0.2) [ ;20% below 18
       ;set age random 17
@@ -280,7 +280,7 @@ to-report age-distribution ; we need to implement the young age group here aswel
     ;elders above 74, 8%
     [
       ;set age 74 + random 26
-      report 75 + random 27
+      report 75 + random 26
     ])
 end
 
@@ -294,7 +294,7 @@ end
 
 
 ;to-report social-needs-distribution ; -gus
-;  if age-group = "child" [ report 5 ]
+;  if age-group = "child" [ report 0 ]
 ;  if age-group = "young" [ report random 11 ]
 ;  ifelse age-group = "adult" [
 ;    let chance random-float 1
