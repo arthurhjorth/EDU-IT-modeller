@@ -97,7 +97,7 @@ to setup
       ;;(skriv: ask households [show [age-group] of members] i command center efter setup for at få et indblik i sammensætningen...)
 
       ;;make sure the first person created is always an adult or elder:
-      ifelse count other people-here = 0
+      ifelse not any? other people-here
         [while [age-group = "child"] [set age age-distribution]]
         [set age age-distribution]
 
@@ -132,6 +132,7 @@ to setup
 
 
   set time ticks mod 24 ;;every tick is one hour
+  ask patches [set pcolor patch-color] ;;change colors depending on the time of day (see patch-color reporter)
   set str-time (word time ":00")
   if time < 10 [set str-time (word "0" str-time)]
 end
@@ -141,6 +142,8 @@ to go
   every .01 [
     ;; update time
     set time ticks mod 24
+    ask patches [set pcolor patch-color] ;;change colors depending on the time of day (see patch-color reporter)
+    ;;color-world ;;change colors depending on the time of day
     set str-time (word time ":00")
     if time < 10 [set str-time (word "0" str-time)]
 
@@ -257,7 +260,7 @@ to-report working-at-home? ;;person reporter
 end
 
 to-report is-homeschooling? ;;@IBH: tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden - kan evt. gøres lidt mere realistisk
-  ifelse working-at-home? and count people-here with [age-group = "child"] > 0  ;;if adult + it's between 8 and 16 + there are kids in the house
+  ifelse working-at-home? and any? people-here with [age-group = "child"]  ;;if adult + it's between 8 and 16 + there are kids in the house
     [report true]
     [report false]
 end
@@ -358,7 +361,35 @@ to-report productivity ;;for productivity plot (sum [productivity] of people)
 end
 
 
-
+to-report patch-color ;;depends on the time of day
+  ;;IBH: måske lidt overkill haha, men det ser nice nok ud
+  ;;@OBS: får det jeres model til at køre langsommere? mine patches ser lidt 'splotchy' ud/opdaterer ikke synkront (måske et problem for NetLogo Web?)
+  ;;de præcise farver kan evt. tweakes, feel free til at ændre det :)
+  if time = 0 [ report 100]
+  if time = 1 [ report 101]
+  if time = 2 [ report 101.5]
+  if time = 3 [ report 102]
+  if time = 4 [ report 102.5]
+  if time = 5 [ report 103]
+  if time = 6 [ report 104.5]
+  if time = 7 [ report 95]
+  if time = 8 [ report 96]
+  if time = 9 [ report 96.5]
+  if time = 10 [ report 97]
+  if time = 11 [ report 97.5]
+  if time = 12 [ report 97]
+  if time = 13 [ report 107.5]
+  if time = 14 [ report 107]
+  if time = 15 [ report 106.5]
+  if time = 16 [ report 106]
+  if time = 17 [ report 105.5]
+  if time = 18 [ report 104]
+  if time = 19 [ report 102.5]
+  if time = 20 [ report 102]
+  if time = 21 [ report 101.5]
+  if time = 22 [ report 101]
+  if time = 23 [ report 100.5]
+end
 
 
 
