@@ -334,6 +334,7 @@ to-report my-death-risk
   ;;@could add 'deathliness of virus' to the interface, and a chooser 'depends-on-age?'
   ;;DAILY probabilities of dying if infected:
   if age-group = "child" [report 0.002]
+  if age-group = "young" [report 0.002] ;random probability
   if age-group = "adult" [report 0.02]
   if age-group = "elder" [report 0.2]
 end
