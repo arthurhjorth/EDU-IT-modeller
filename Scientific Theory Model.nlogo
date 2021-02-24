@@ -15,7 +15,7 @@ globals [ ;; global variables
 people-own [ ;; human attributes
   age ;depends on age-distribution
   ;mental-health ;If we have time - kan evt have indflydelse på kreativity og hvorvidt man får sine social needs opfyldthttps://www.youidraw.com/apps/painter/
-  social-needs ;- how much people need to socialize (bars + priv) -gust. It depends on social-needs-distribution
+  social-needs ;- how much people need to socialize (bars + priv) It depends on social-needs-distribution
   ;my-social-houses ;not ready yet - Each household has a group of people (which can change over time). if a household solely consists of young then higher chance of gathering + more volume. #my-party-house depends -gust
   my-household
   my-workplace
@@ -99,11 +99,8 @@ to setup
       ;;(skriv: ask households [show [age-group] of members] i command center efter setup for at få et indblik i sammensætningen...)
 
       ;;make sure the first person created is always an adult or elder:
-<<<<<<< Updated upstream
+
       ifelse not any? other people-here
-=======
-      ifelse count people-here = 0
->>>>>>> Stashed changes
         [while [age-group = "child"] [set age age-distribution]]
         [set age age-distribution]
 
@@ -309,18 +306,16 @@ end
 
 
 to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
-
   if age-group = "child" [ report random-float 1.5 ] ;børn har mindre chance for at tage til et socialt arrangement
   if age-group = "young" [ report random-float 1 ] ; baseline
-  ifelse age-group = "adult" [
+  if age-group = "adult" [
     let chance random-float 1
     ifelse chance < 0.7 [ report random-float 1.5 ] [ report random-float 1 ] ;70% af alle voksne har mindre chance for at tage på bar
   ]
-  ifelse age-group = "elder" [
+  if age-group = "elder" [
     let chance random-float 1
     ifelse chance < 0.9 [ report random-float 1.75 ] [ report random-float 1 ] ;90% af alle ældre har mindre chance for at tage til sociale events
   ]
-
 end
 
 
@@ -405,7 +400,6 @@ to-report patch-color ;;depends on the time of day
   if time = 22 [ report 101]
   if time = 23 [ report 100.5]
 end
-
 
 
 
