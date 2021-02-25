@@ -22,6 +22,9 @@ people-own [ ;; human attributes
   my-bar
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
+
+  my-friends ;;agentset
+  my-friend-nr ;;nr of friends (size of the agentset 'my-friend-group')
 ]
 ;; household attributes
 households-own [
@@ -128,6 +131,9 @@ to setup
       ]
     ]
 
+  ask people [
+    set-friend-group ;;en reporter, der sætter en vennegruppe (agentset) baseret på ens age group
+  ]
 
   ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24]
 
@@ -318,6 +324,37 @@ to-report social-needs-distribution ;Der er noget galt med denne men kan ikke fi
   ]
 end
 
+to set-friend-group ;;people reporter, run in setup
+  ;;@maybe check this link out and make it work instead, would lead to every age group having the same friend number:
+  ;;(men skal tweakes, da populationen varierer... lidt tricky, så indtil videre har jeg bare lavet en simplere måde)
+  ;;https://stackoverflow.com/questions/32967388/netlogo-efficient-way-to-create-fixed-number-of-links
+    ;;(would also optimise the code, right now the 'let candidates' line is a bit slow)
+
+
+  ;;nr of friends (that YOU create links with - more might create links with you, so you have more friends than this nr...):
+  ;;--> fører til forskelligt antal venner. MINIMUM det her tal, men intet max
+    ;;(can check with: show max [my-friend-nr] of people ;;max falls around 8-10 friends)
+
+  if age-group = "child" [set placeholder 1] ;;@tweak these numbers?
+  if age-group = "young" [set placeholder 3]
+  if age-group = "adult" [set placeholder 2]
+  if age-group = "elder" [set placeholder 1]
+
+  let nr-of-friends placeholder
+
+  ;;assumption: man er kun venner med folk i sin egen alder:
+  let candidates other people with [ age-group = [age-group] of self ] ;;@KAN OPTIMERES - setup er langsom lige nu (se evt link ovenfor for alternativ metode)
+
+  ;;randomly choose some of these candidates as friends:
+  create-links-with n-of nr-of-friends candidates [ ;;two-way-link. assumption: vennegrupper er tovejs (hvis du er min ven, er jeg også din ven ;))
+    ;;link commands here
+    hide-link
+  ]
+
+  set my-friend-nr count link-neighbors ;;nr of friends (person variable)
+  set my-friends link-neighbors ;;agentset containing their friends (person variable)
+end
+
 
 to-report infected?
   report ticks >= infected-at and ticks <=  infected-at + average-duration * 24
@@ -401,8 +438,6 @@ to-report patch-color ;;depends on the time of day
   if time = 22 [ report 101]
   if time = 23 [ report 100.5]
 end
-
-
 
 
 
