@@ -10,6 +10,7 @@ globals [ ;; global variables
   str-time
   total-deaths
   placeholder
+  day-names ;;for keeping track of weekdays
 ]
 
 people-own [ ;; human attributes
@@ -52,6 +53,9 @@ bars-own [
 to setup
   clear-all
   reset-ticks ; restart clock
+
+  set day-names ["Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday"]
+
   create-schools  5 [
     set color gray
     set shape "house colonial"
@@ -404,6 +408,11 @@ to-report day
   report floor (ticks / 24)
 end
 
+to-report weekday ;;now the simulation always starts on a Monday
+  let this-weekday day mod 7 ;;sets this-day from 0 to 6 (uses the day-reporter above)
+  report item this-weekday day-names   ;; reports the current weekday name from the 'day-names' list
+end
+
 to-report productivity ;;for productivity plot (sum [productivity] of people)
   ifelse age-group = "adult" [
     ifelse working-at-home? [
@@ -420,7 +429,7 @@ to-report productivity ;;for productivity plot (sum [productivity] of people)
     ]
   ]
   [ ;;if age-group != adult:
-    report 0 ;;nu antages det, at børn og ældre ikke bidrager til produktiviteten... ;) @IBH: maybe change this
+    report 0 ;;nu antages det, at børn, unge og ældre ikke bidrager til produktiviteten...) @IBH: maybe change this
   ]
 
   ;;@working-at-home? og is-homeschooling? beskriver nu, om de CURRENTLY gør det - derfor får productivity plot nu weird bumps uden for arbejdstiden. @IBH: fix det evt
@@ -551,9 +560,9 @@ home-productivity
 HORIZONTAL
 
 MONITOR
-470
+485
 10
-579
+594
 55
 Time of the Day
 str-time
@@ -604,7 +613,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-1
+0
 1
 -1000
 
@@ -736,9 +745,9 @@ close-bars-and-stores?
 -1000
 
 MONITOR
-415
+360
 10
-472
+410
 55
 Day
 Day
@@ -818,6 +827,17 @@ max-5people-restriction?
 1
 1
 -1000
+
+MONITOR
+410
+10
+485
+55
+Weekday
+weekday
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
