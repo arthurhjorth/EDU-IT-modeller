@@ -189,8 +189,8 @@ to go
         ;;if open:
         [ ask people [
           ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement? -gus
-            [let chance random-float -1 ;a number between 0 and 1
-            ifelse chance + social-needs > -0.1 and chance + social-needs < 0.1 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+            [let chance random-float -1 ;a number between -1 and 0
+            ifelse chance + social-needs > 0 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
         ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
            ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
             [move-to my-household] ;;if not adult
@@ -312,15 +312,25 @@ end
 
 
 to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
-  if age-group = "child" [ report random-float 1.5 ] ;børn har mindre chance for at tage til et socialt arrangement
-  if age-group = "young" [ report random-float 1 ] ; baseline
+  ;@ juster parametre
+
+  if age-group = "child" [
+    let chance random-float 1
+    ifelse chance < 0.7 [ report 0.4 ] [ report 0.2 ] ;børn har mindre chance for at tage til et socialt arrangement
+  ]
+
+  if age-group = "young" [
+    let chance random-float 1
+    ifelse chance < 0.7 [ report 0.5 ] [ report 0.3 ] ;baseline
+  ]
+
   if age-group = "adult" [
     let chance random-float 1
-    ifelse chance < 0.7 [ report random-float 1.5 ] [ report random-float 1 ] ;70% af alle voksne har mindre chance for at tage på bar
+    ifelse chance < 0.7 [ report 0.3 ] [ report 0.7 ] ;70% af alle voksne har mindre chance for at tage på bar
   ]
   if age-group = "elder" [
     let chance random-float 1
-    ifelse chance < 0.9 [ report random-float 1.75 ] [ report random-float 1 ] ;90% af alle ældre har mindre chance for at tage til sociale events
+    ifelse chance < 0.9 [ report 0 ] [ report 0.2 ] ;90% af alle ældre har ingen chance for at tage til sociale events
   ]
 end
 
@@ -438,13 +448,6 @@ to-report patch-color ;;depends on the time of day
   if time = 22 [ report 101]
   if time = 23 [ report 100.5]
 end
-
-
-
-
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 240
