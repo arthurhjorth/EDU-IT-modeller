@@ -206,7 +206,7 @@ to go
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
 
     ;; ask people who are infected to potentially infect others
-    ask people with [infected?] [
+    ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
       ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
 
       ;;risk of infected people dying:
@@ -340,7 +340,6 @@ to set-friend-group ;;people reporter, run in setup
   ;;https://stackoverflow.com/questions/32967388/netlogo-efficient-way-to-create-fixed-number-of-links
     ;;(would also optimise the code, right now the 'let candidates' line is a bit slow)
 
-
   ;;nr of friends (that YOU create links with - more might create links with you, so you have more friends than this nr...):
   ;;--> fører til forskelligt antal venner. MINIMUM det her tal, men intet max
     ;;(can check with: show max [my-friend-nr] of people ;;max falls around 8-10 friends)
@@ -370,9 +369,20 @@ to-report infected?
   report ticks >= infected-at and ticks <=  infected-at + average-duration * 24
 end
 
+to-report sick? ;;people reporter. Becomes true after the incubation time (if infected)
+  ;;IBH: let's be careful not to get confused with these different infected? and sick? reporters... maybe there's better names for them?
+  ;;since right now infected people pass on the disease even if the incubation time hasn't passed / they're not sick yet ;;@change that?
+  ;;so 'sick?' is maybe more a reflection of when they show symptoms?
+  ;;@vil vi tilføje karantæne/isolation af husstand? og/eller test-system? for komplekst?
+
+  ifelse infected? and ticks > ( infected-at + incubation-time) ;;incubation-time is measured in hours (the same as ticks)
+    [report true]
+    [report false]
+end
+
 to-report days-infected
   ifelse infected?
-    []
+    [] ;;@
     [report 0]
 end
 
