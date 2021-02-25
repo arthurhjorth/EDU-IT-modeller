@@ -20,7 +20,6 @@ people-own [ ;; human attributes
   ;my-social-houses ;not ready yet - Each household has a group of people (which can change over time). if a household solely consists of young then higher chance of gathering + more volume. #my-party-house depends -gust
   my-household
   my-workplace
-  my-bar
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
 
@@ -121,10 +120,11 @@ to setup
         set my-workplace one-of schools
         ask my-workplace [set students (turtle-set students myself)]
       ]
-      if age >= 18 [
-        set my-bar one-of bars ;;@IBH: nu har alle én stambar - mere realistisk, hvis de besøger flere forskellige?
-        ask my-bar [set bargoers (turtle-set bargoers myself)]
-      ]
+      ;;IBH: har droppet my-bar, i stedet går de altid på en tilfældig bar
+;      if age >= 18 [
+;        set my-bar one-of bars ;;@IBH: nu har alle én stambar - mere realistisk, hvis de besøger flere forskellige?
+;        ask my-bar [set bargoers (turtle-set bargoers myself)]
+;      ]
 
       if age >= 20 [
         set my-workplace one-of workplaces
@@ -193,8 +193,13 @@ to go
         ;;if open:
         [ ask people [
           ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement? -gus
-            [let chance random-float -1 ;a number between -1 and 0
-            ifelse chance + social-needs > 0 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+            [
+            ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
+              [set placeholder random-float -0.75] ;;a number between -0.75 and 0
+              [set placeholder random-float -1] ;a number between -1 and 0]
+            let chance placeholder
+            ifelse chance + social-needs > 0 [ move-to one-of bars] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+            ;;@kan evt gøre, så de går på bar med folk fra deres vennegruppe (brug my-friends)
         ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
            ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
             [move-to my-household] ;;if not adult
