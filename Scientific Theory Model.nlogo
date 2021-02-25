@@ -92,7 +92,7 @@ to setup
     if probability >= 0.95 and probability < 0.99 [set placeholder 5]
     if probability >= 0.99                        [set placeholder 6]
 
-    let household-members placeholder ; Jeg forstår ikke ovenstående og heller ej denne linje -gus
+    let household-members placeholder
 
 
     set members (turtle-set)
@@ -200,8 +200,7 @@ to go
             let chance placeholder
             ifelse chance + social-needs > 0 [ move-to one-of bars] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
             ;;@kan evt gøre, så de går på bar med folk fra deres vennegruppe (brug my-friends)
-        ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
-           ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
+        ]
             [move-to my-household] ;;if not adult
 
 
@@ -298,7 +297,7 @@ to-report age-distribution ;
     ]
     random-float 1 < 0.18 [ ;I just split the adult group percentage wise (not taking into account that young might be more dense)
       ;set age 17 + random 57
-      report 18 + random 9 ;; Unsure if it should be 9 or 10 -gus
+      report 18 + random 9 ;; Unsure if it should be 9 or 10 @
     ]
     random-float 1 > (1 - 0.2) [ ;20% below 18
       ;set age random 17
@@ -320,7 +319,7 @@ end
 
 
 
-to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
+to-report social-needs-distribution
   ;@ juster parametre
 
   if age-group = "child" [
