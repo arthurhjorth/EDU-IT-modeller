@@ -61,7 +61,7 @@ to setup
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor + pycor]
     set students (turtle-set)
   ]
-  create-workplaces 10 [
+  create-workplaces 10 [ ;@add more, to decrease number of agents in one spot? for meaningful max-here slider
     set color gray
     set shape "factory"
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor - pycor * 2]
@@ -92,7 +92,7 @@ to setup
     if probability >= 0.95 and probability < 0.99 [set placeholder 5]
     if probability >= 0.99                        [set placeholder 6]
 
-    let household-members placeholder
+    let household-members placeholder ; Jeg forstår ikke ovenstående og heller ej denne linje -gus
 
 
     set members (turtle-set)
@@ -112,8 +112,7 @@ to setup
 
 
       set social-needs social-needs-distribution
-      set infected-at -1000 ;hvorfor -1000? -gus
-      set time-of-death random 24
+      set infected-at -1000
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -141,6 +140,7 @@ to setup
 
   ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
 
+
   ask turtles [recolor]
 
 
@@ -148,6 +148,9 @@ to setup
   ask patches [set pcolor patch-color] ;;change colors depending on the time of day (see patch-color reporter)
   set str-time (word time ":00")
   if time < 10 [set str-time (word "0" str-time)]
+
+  update-productivity-plot ;;initialize the productivity plot, plot the starting productivity value
+
 end
 
 
@@ -162,8 +165,8 @@ to go
 
     ;;; move people to jobs and schools
     if time = 8 [
-      if not close-workplaces? [ask workers [move-to my-workplace]]
-      if not close-schools? [ask all-students [move-to my-workplace]]
+      if not weekend? and not close-workplaces? [ask workers [move-to my-workplace]]
+      if not weekend? and not close-schools? [ask all-students [move-to my-workplace]]
     ]
 
 
@@ -200,7 +203,8 @@ to go
             let chance placeholder
             ifelse chance + social-needs > 0 [ move-to one-of bars] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
             ;;@kan evt gøre, så de går på bar med folk fra deres vennegruppe (brug my-friends)
-        ]
+        ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
+           ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
             [move-to my-household] ;;if not adult
 
 
@@ -212,24 +216,42 @@ to go
 
 
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
-
     ;; ask people who are infected to potentially infect others
-    ask people with [infected?] [ ;;people who are sick pass it on - so after incubation time.
+    ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
       ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
 
       ;;risk of infected people dying:
-      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
+
+      ;the reporter my-survival-rate (prev. my-death-rate) reports probabilities for the whole duration of the infection
+      ;we transform this value into per hour in the 10 days using the formula:
+      ;                (1 - x)^n = %          or           1 - %^1/n = x
+      ; in which % is survival rate for the whole period, n is iterations (240h)
+      ; x is the value we're looking for: probability of dying per iteration
+
+
+      ask people with [infected?] [
         let my-destiny random-float 1
-        if my-destiny < my-death-risk [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / 240 ) [
           set total-deaths total-deaths + 1
           die
         ]
-
       ]
+
+
+
+;      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
+;        let my-destiny random-float 1
+;        if my-destiny < my-death-risk [
+;          set total-deaths total-deaths + 1
+;          die
+;        ]
+;
+;      ]
 
     ]
 
     ask turtles [recolor]
+    if time = 12 [update-productivity-plot] ;;the productivity plot only updates once a day (see the reporter, using manual plot commands)
     if not any? people with [infected?] [stop]
     tick
   ]
@@ -275,13 +297,37 @@ to-report all-students
 end
 
 to-report working-at-home? ;;person reporter
-  ifelse time >= 8 and time <= 16 and age-group = "adult" and close-workplaces?  ;;AH: adult and workplaces closed, and between 8 and 16 oclock
+  ;;IBH: if schools close, all adults in a household with kids also work from home, even if their workplace is open
+  ifelse work-time? and age-group = "adult" and (close-workplaces? or is-homeschooling?)
     [report true]
     [report false]
 end
 
-to-report is-homeschooling? ;;@IBH: tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden - kan evt. gøres lidt mere realistisk
-  ifelse working-at-home? and any? people-here with [age-group = "child"]  ;;if adult + it's between 8 and 16 + there are kids in the house
+to-report is-homeschooling? ;;person reporter
+  ;;tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden
+  ifelse age-group = "adult" and work-time? and close-schools? and kids-in-my-household? ;;if adult + work-time + kids in the households, ALL adults there work from home
+    [report true]
+    [report false]
+end
+;;@IBH OBS: nu tager vi ikke højde for husholdninger med børn, men ingen adults! (hvis de kun bor med elders...) skal vi måske helt fjerne den sammensætning?
+
+
+;;simple reporters to make code more readable:
+
+to-report kids-in-my-household? ;;person reporter
+  ifelse any? [members with [age-group = "child"]] of my-household ;;OBS: also returns true if the caller is themselves a child
+    [report true]
+    [report false]
+end
+
+to-report work-time? ;;reports true if it's a weekday and the time is between 8 and 16 (so people should be at work and school)
+  ifelse time >= 8 and time <= 16 and weekday != "Saturday" and weekday != "Sunday"
+    [report true]
+    [report false]
+end
+
+to-report weekend?
+  ifelse weekday = "Saturday" or weekday = "Sunday"
     [report true]
     [report false]
 end
@@ -297,7 +343,7 @@ to-report age-distribution ;
     ]
     random-float 1 < 0.18 [ ;I just split the adult group percentage wise (not taking into account that young might be more dense)
       ;set age 17 + random 57
-      report 18 + random 9 ;; Unsure if it should be 9 or 10 @
+      report 18 + random 9 ;; Unsure if it should be 9 or 10 -gus
     ]
     random-float 1 > (1 - 0.2) [ ;20% below 18
       ;set age random 17
@@ -319,7 +365,7 @@ end
 
 
 
-to-report social-needs-distribution
+to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
   ;@ juster parametre
 
   if age-group = "child" [
@@ -388,14 +434,18 @@ to-report days-infected
     [report 0]
 end
 
-to-report my-death-risk
-;;@IBH: can change these probabilities (quite random right now), and maybe make more fine-grained!
+to-report my-survival-rate
   ;;@could add 'deathliness of virus' to the interface, and a chooser 'depends-on-age?'
-  ;;DAILY probabilities of dying if infected:
-  if age-group = "child" [report 0.0002]
-  if age-group = "young" [report 0.0002] ;random probability
-  if age-group = "adult" [report 0.002]
-  if age-group = "elder" [report 0.1]
+
+  ;; Probability of surviving the whole duration of infection
+  ;;LSG: From what I've managed to find, the mortality rates in all groups except for elder is very low - <1% - do we want to add a low value?
+  ;; https://www.ssi.dk/aktuelt/nyheder/2020/9500-danske-covid-19-patienter-kortlagt-for-forste-gang
+  ;@revisit probabilities
+
+  if age-group = "child" [report 1 - 0] ;subtracting from 1 to get survival rate rather than mortality rate
+  if age-group = "young" [report 1 - 0]
+  if age-group = "adult" [report 1 - 0.013]
+  if age-group = "elder" [report 1 - 0.25]
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
@@ -403,7 +453,7 @@ to-report immune? ;;@nu antager vi, at alle bliver immune
 end
 
 to-report has-been-infected?
-  report infected-at != -1000
+  report infected-at != -1000 and infected-at + average-duration * 24 < ticks
 end
 
 to-report day
@@ -412,7 +462,7 @@ end
 
 to-report weekday ;;now the simulation always starts on a Monday
   let this-weekday day mod 7 ;;sets this-day from 0 to 6 (uses the day-reporter above)
-  report item this-weekday day-names   ;; reports the current weekday name from the 'day-names' list
+  report item this-weekday day-names   ;;reports the current weekday name from the 'day-names' list
 end
 
 to-report productivity ;;for productivity plot (sum [productivity] of people)
@@ -420,9 +470,8 @@ to-report productivity ;;for productivity plot (sum [productivity] of people)
     ifelse working-at-home? [
       ifelse is-homeschooling? [
         report (home-productivity / 100) * (productivity-while-homeschooling / 100) ;;if working from home AND homeschooling
-        ;;@IBH idé: skal vi gøre, så hvis skoler er lukkede, bliver folk med børn hjemme og arbejder + homeschooler, selv hvis arbejdspladser ikke er lukket?
       ]
-      [ ;;if not homeschooling:
+      [ ;;if working from home but not homeschooling:
         report home-productivity / 100
       ]
     ]
@@ -434,40 +483,24 @@ to-report productivity ;;for productivity plot (sum [productivity] of people)
     report 0 ;;nu antages det, at børn, unge og ældre ikke bidrager til produktiviteten...) @IBH: maybe change this
   ]
 
-  ;;@working-at-home? og is-homeschooling? beskriver nu, om de CURRENTLY gør det - derfor får productivity plot nu weird bumps uden for arbejdstiden. @IBH: fix det evt
 
   ;;@include expenses-per-infection somewhere in these calculations?
 end
 
 
+to update-productivity-plot ;;run only at 12 every day! (see go procedure where this is called)
+  set-current-plot "Productivity"
+  set-current-plot-pen "productivity"
+  plot sum [productivity] of people ;;uses the productivity reporter above, sums for all people
+end
+
+
+
 to-report patch-color ;;depends on the time of day
-  ;;IBH: måske lidt overkill haha, men det ser nice nok ud
-  ;;@OBS: får det jeres model til at køre langsommere? mine patches ser lidt 'splotchy' ud/opdaterer ikke synkront (måske et problem for NetLogo Web?)
-  ;;de præcise farver kan evt. tweakes, feel free til at ændre det :)
-  if time = 0 [ report 100]
-  if time = 1 [ report 101]
-  if time = 2 [ report 101.5]
-  if time = 3 [ report 102]
-  if time = 4 [ report 102.5]
-  if time = 5 [ report 103]
-  if time = 6 [ report 104.5]
-  if time = 7 [ report 95]
-  if time = 8 [ report 96]
-  if time = 9 [ report 96.5]
-  if time = 10 [ report 97]
-  if time = 11 [ report 97.5]
-  if time = 12 [ report 97]
-  if time = 13 [ report 107.5]
-  if time = 14 [ report 107]
-  if time = 15 [ report 106.5]
-  if time = 16 [ report 106]
-  if time = 17 [ report 105.5]
-  if time = 18 [ report 104]
-  if time = 19 [ report 102.5]
-  if time = 20 [ report 102]
-  if time = 21 [ report 101.5]
-  if time = 22 [ report 101]
-  if time = 23 [ report 100.5]
+  if time = 0 or time >= 23 or time <= 4 [report 100] ;;nat
+  if time >= 5 and time <= 10 [report 97] ;;morgen
+  if time >= 11 and time <= 16 [report 95] ;;dag
+  if time >= 17 and time <= 22 [report 103] ;;aften
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -540,7 +573,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-15.5
+10.5
 .1
 1
 %
@@ -603,10 +636,10 @@ NIL
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot sum [productivity] of people"
+"productivity" 1.0 0 -16777216 true "" ""
 
 SWITCH
 10
@@ -714,7 +747,7 @@ incubation-time
 incubation-time
 0
 240
-34.0
+27.0
 1
 1
 hours
@@ -840,6 +873,31 @@ weekday
 17
 1
 11
+
+SLIDER
+15
+550
+212
+583
+max-people-restriction
+max-people-restriction
+0
+1000
+25.0
+1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+1210
+475
+1310
+510
+Productivity updates every day at 12:00.
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
