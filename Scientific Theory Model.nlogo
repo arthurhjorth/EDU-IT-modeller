@@ -61,7 +61,7 @@ to setup
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor + pycor]
     set students (turtle-set)
   ]
-  create-workplaces 10 [ ;@add more, to decrease number of agents in one spot? for meaningful max-here slider
+  create-workplaces 10 [
     set color gray
     set shape "factory"
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor - pycor * 2]
@@ -92,7 +92,7 @@ to setup
     if probability >= 0.95 and probability < 0.99 [set placeholder 5]
     if probability >= 0.99                        [set placeholder 6]
 
-    let household-members placeholder ; Jeg forstår ikke ovenstående og heller ej denne linje -gus
+    let household-members placeholder
 
 
     set members (turtle-set)
@@ -112,7 +112,8 @@ to setup
 
 
       set social-needs social-needs-distribution
-      set infected-at -1000
+      set infected-at -1000 ;hvorfor -1000? -gus
+      set time-of-death random 24
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -138,7 +139,7 @@ to setup
     set-friend-group ;;en reporter, der sætter en vennegruppe (agentset) baseret på ens age group
   ]
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24]
+  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ; ??? -gus
 
   ask turtles [recolor]
 
@@ -190,7 +191,7 @@ to go
       ifelse close-bars-and-stores?
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
-        [ ask people [
+      [ ask people with [no-symptoms?] [ ;I made it into no-sympoms because i don't know how to do "without" instead of "with" -gus. Do we rather want it in the line below? and no-symptoms
           ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement? -gus
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
@@ -199,8 +200,7 @@ to go
             let chance placeholder
             ifelse chance + social-needs > 0 [ move-to one-of bars] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
             ;;@kan evt gøre, så de går på bar med folk fra deres vennegruppe (brug my-friends)
-        ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
-           ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
+        ]
             [move-to my-household] ;;if not adult
 
 
@@ -214,38 +214,18 @@ to go
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
 
     ;; ask people who are infected to potentially infect others
-    ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
-      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
-
-
-
+    ask people with [sick?] [ ;;people who are sick pass it on - so after incubation time.
+      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks] ;With our current max value of prob-of-inf it means that if someone spend 24hrs together with a sick person there is 6% chance for spreading the virus -gus
+;Kan i vise mig igen hvordan man tjekker outputtet af fx. denne ovenfor? "set infected-at ticks" -gus
       ;;risk of infected people dying:
-
-      ;the reporter my-survival-rate (prev. my-death-rate) reports probabilities for the whole duration of the infection
-      ;we transform this value into per hour in the 10 days using the formula:
-      ;                (1 - x)^n = %          or           1 - %^1/n = x
-      ; in which % is survival rate for the whole period, n is iterations (240h)
-      ; x is the value we're looking for: probability of dying per iteration
-
-
-      ask people with [infected?] [
+      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / 240 ) [
+        if my-destiny < my-death-risk [
           set total-deaths total-deaths + 1
           die
         ]
+
       ]
-
-
-
-;      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
-;        let my-destiny random-float 1
-;        if my-destiny < my-death-risk [
-;          set total-deaths total-deaths + 1
-;          die
-;        ]
-;
-;      ]
 
     ]
 
@@ -317,7 +297,7 @@ to-report age-distribution ;
     ]
     random-float 1 < 0.18 [ ;I just split the adult group percentage wise (not taking into account that young might be more dense)
       ;set age 17 + random 57
-      report 18 + random 9 ;; Unsure if it should be 9 or 10 -gus
+      report 18 + random 9 ;; Unsure if it should be 9 or 10 @
     ]
     random-float 1 > (1 - 0.2) [ ;20% below 18
       ;set age random 17
@@ -339,7 +319,7 @@ end
 
 
 
-to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
+to-report social-needs-distribution
   ;@ juster parametre
 
   if age-group = "child" [
@@ -408,28 +388,31 @@ to-report sick? ;;people reporter. Becomes true after the incubation time (if in
     [report false]
 end
 
+
+to-report no-symptoms? ;; skal people-own have symptoms før end at den kan bruges til fx. barer? -gus
+  ifelse sick? and random-float 1 < 0.70 ;; 30% chance for symptoms
+    [report false]
+    [report true]
+end
+
 to-report days-infected
   ifelse infected?
     [] ;;@
     [report 0]
 end
 
-to-report my-survival-rate
+to-report my-death-risk
+;;@IBH: can change these probabilities (quite random right now), and maybe make more fine-grained!
   ;;@could add 'deathliness of virus' to the interface, and a chooser 'depends-on-age?'
-
-  ;; Probability of surviving the whole duration of infection
-  ;;LSG: From what I've managed to find, the mortality rates in all groups except for elder is very low - <1% - do we want to add a low value?
-  ;; https://www.ssi.dk/aktuelt/nyheder/2020/9500-danske-covid-19-patienter-kortlagt-for-forste-gang
-  ;@revisit probabilities
-
-  if age-group = "child" [report 1 - 0] ;subtracting from 1 to get survival rate rather than mortality rate
-  if age-group = "young" [report 1 - 0]
-  if age-group = "adult" [report 1 - 0.013]
-  if age-group = "elder" [report 1 - 0.25]
+  ;;DAILY probabilities of dying if infected:
+  if age-group = "child" [report 0.0002]
+  if age-group = "young" [report 0.0002] ;random probability
+  if age-group = "adult" [report 0.002]
+  if age-group = "elder" [report 0.1]
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
-  report infected-at != -1000 and infected-at + average-duration * 24 < ticks
+  report infected-at != -1000 and infected-at + average-duration * 24 < ticks ;Jeg forstår ikke hvordan denne virker -gus
 end
 
 to-report day
@@ -543,7 +526,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-10.5
+15.5
 .1
 1
 %
@@ -717,7 +700,7 @@ incubation-time
 incubation-time
 0
 240
-27.0
+34.0
 1
 1
 hours
@@ -829,7 +812,7 @@ SWITCH
 263
 max-5people-restriction?
 max-5people-restriction?
-0
+1
 1
 -1000
 
@@ -843,21 +826,6 @@ weekday
 17
 1
 11
-
-SLIDER
-15
-550
-212
-583
-max-people-restriction
-max-people-restriction
-0
-1000
-25.0
-1
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
