@@ -164,8 +164,8 @@ to go
 
     ;;; move people to jobs and schools
     if time = 8 [
-      if not close-workplaces? [ask workers [move-to my-workplace]]
-      if not close-schools? [ask all-students [move-to my-workplace]]
+      if not weekend? and not close-workplaces? [ask workers [move-to my-workplace]]
+      if not weekend? and not close-schools? [ask all-students [move-to my-workplace]]
     ]
 
 
@@ -299,13 +299,37 @@ to-report all-students
 end
 
 to-report working-at-home? ;;person reporter
-  ifelse time >= 8 and time <= 16 and age-group = "adult" and close-workplaces?  ;;AH: adult and workplaces closed, and between 8 and 16 oclock
+  ;;IBH: if schools close, all adults in a household with kids also work from home, even if their workplace is open
+  ifelse work-time? and age-group = "adult" and (close-workplaces? or is-homeschooling?)
     [report true]
     [report false]
 end
 
-to-report is-homeschooling? ;;@IBH: tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden - kan evt. gøres lidt mere realistisk
-  ifelse working-at-home? and any? people-here with [age-group = "child"]  ;;if adult + it's between 8 and 16 + there are kids in the house
+to-report is-homeschooling? ;;person reporter
+  ;;tager ikke hensyn til antal (eller alder) af børn og voksne i husstanden
+  ifelse age-group = "adult" and work-time? and close-schools? and kids-in-my-household? ;;if adult + work-time + kids in the households, ALL adults there work from home
+    [report true]
+    [report false]
+end
+;;@IBH OBS: nu tager vi ikke højde for husholdninger med børn, men ingen adults! (hvis de kun bor med elders...) skal vi måske helt fjerne den sammensætning?
+
+
+;;simple reporters to make code more readable:
+
+to-report kids-in-my-household? ;;person reporter
+  ifelse any? [members with [age-group = "child"]] of my-household ;;OBS: also returns true if the caller is themselves a child
+    [report true]
+    [report false]
+end
+
+to-report work-time? ;;reports true if it's a weekday and the time is between 8 and 16 (so people should be at work and school)
+  ifelse time >= 8 and time <= 16 and weekday != "Saturday" and weekday != "Sunday"
+    [report true]
+    [report false]
+end
+
+to-report weekend?
+  ifelse weekday = "Saturday" or weekday = "Sunday"
     [report true]
     [report false]
 end
@@ -450,9 +474,8 @@ to-report productivity ;;for productivity plot (sum [productivity] of people)
     ifelse working-at-home? [
       ifelse is-homeschooling? [
         report (home-productivity / 100) * (productivity-while-homeschooling / 100) ;;if working from home AND homeschooling
-        ;;@IBH idé: skal vi gøre, så hvis skoler er lukkede, bliver folk med børn hjemme og arbejder + homeschooler, selv hvis arbejdspladser ikke er lukket?
       ]
-      [ ;;if not homeschooling:
+      [ ;;if working from home but not homeschooling:
         report home-productivity / 100
       ]
     ]
@@ -464,7 +487,6 @@ to-report productivity ;;for productivity plot (sum [productivity] of people)
     report 0 ;;nu antages det, at børn, unge og ældre ikke bidrager til produktiviteten...) @IBH: maybe change this
   ]
 
-  ;;@working-at-home? og is-homeschooling? beskriver nu, om de CURRENTLY gør det - derfor får productivity plot nu weird bumps uden for arbejdstiden. @IBH: fix det evt
 
   ;;@include expenses-per-infection somewhere in these calculations?
 end
