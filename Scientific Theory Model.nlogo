@@ -113,7 +113,6 @@ to setup
 
       set social-needs social-needs-distribution
       set infected-at -1000
-      set time-of-death random 24
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -217,15 +216,35 @@ to go
     ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
       ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
 
+
+
       ;;risk of infected people dying:
-      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
+
+      ;the reporter my-survival-rate (prev. my-death-rate) reports probabilities for the whole duration of the infection
+      ;we transform this value into per hour in the 10 days using the formula:
+      ;                (1 - x)^n = %          or           1 - %^1/n = x
+      ; in which % is survival rate for the whole period, n is iterations (240h)
+      ; x is the value we're looking for: probability of dying per iteration
+
+
+      ask people with [infected?] [
         let my-destiny random-float 1
-        if my-destiny < my-death-risk [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / 240 ) [
           set total-deaths total-deaths + 1
           die
         ]
-
       ]
+
+
+
+;      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
+;        let my-destiny random-float 1
+;        if my-destiny < my-death-risk [
+;          set total-deaths total-deaths + 1
+;          die
+;        ]
+;
+;      ]
 
     ]
 
@@ -394,14 +413,18 @@ to-report days-infected
     [report 0]
 end
 
-to-report my-death-risk
-;;@IBH: can change these probabilities (quite random right now), and maybe make more fine-grained!
+to-report my-survival-rate
   ;;@could add 'deathliness of virus' to the interface, and a chooser 'depends-on-age?'
-  ;;DAILY probabilities of dying if infected:
-  if age-group = "child" [report 0.002]
-  if age-group = "young" [report 0.002] ;random probability
-  if age-group = "adult" [report 0.02]
-  if age-group = "elder" [report 0.2]
+
+  ;; Probability of surviving the whole duration of infection
+  ;;LSG: From what I've managed to find, the mortality rates in all groups except for elder is very low - <1% - do we want to add a low value?
+  ;; https://www.ssi.dk/aktuelt/nyheder/2020/9500-danske-covid-19-patienter-kortlagt-for-forste-gang
+  ;@revisit probabilities
+
+  if age-group = "child" [report 1 - 0] ;subtracting from 1 to get survival rate rather than mortality rate
+  if age-group = "young" [report 1 - 0]
+  if age-group = "adult" [report 1 - 0.013]
+  if age-group = "elder" [report 1 - 0.25]
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
@@ -542,7 +565,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-13.5
+10.5
 .1
 1
 %
@@ -617,7 +640,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-0
+1
 1
 -1000
 
@@ -628,7 +651,7 @@ SWITCH
 188
 close-schools?
 close-schools?
-0
+1
 1
 -1000
 
@@ -828,7 +851,7 @@ SWITCH
 263
 max-5people-restriction?
 max-5people-restriction?
-1
+0
 1
 -1000
 
