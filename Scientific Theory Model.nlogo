@@ -22,7 +22,7 @@ people-own [ ;; human attributes
   my-workplace
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
-
+  symptomous? ;not rdy yet
   my-friends ;;agentset
   my-friend-nr ;;nr of friends (size of the agentset 'my-friend-group')
 ]
@@ -139,7 +139,7 @@ to setup
     set-friend-group ;;en reporter, der sætter en vennegruppe (agentset) baseret på ens age group
   ]
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ; ??? -gus
+  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
 
   ask turtles [recolor]
 
@@ -191,11 +191,11 @@ to go
       ifelse close-bars-and-stores?
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
-      [ ask people with [no-symptoms?] [ ;I made it into no-sympoms because i don't know how to do "without" instead of "with" -gus. Do we rather want it in the line below? and no-symptoms
-          ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement? -gus
+        [ ask people with [symptoms?] [ ;I don't know how to do without symptoms -gus. @@@@@
+          ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
-              [set placeholder random-float -0.75] ;;a number between -0.75 and 0
+              [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays. @@@ - do we care though
               [set placeholder random-float -1] ;a number between -1 and 0]
             let chance placeholder
             ifelse chance + social-needs > 0 [ move-to one-of bars] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
@@ -214,9 +214,9 @@ to go
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
 
     ;; ask people who are infected to potentially infect others
-    ask people with [sick?] [ ;;people who are sick pass it on - so after incubation time.
-      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks] ;With our current max value of prob-of-inf it means that if someone spend 24hrs together with a sick person there is 6% chance for spreading the virus -gus
-;Kan i vise mig igen hvordan man tjekker outputtet af fx. denne ovenfor? "set infected-at ticks" -gus
+    ask people with [infected?] [ ;;people who are sick pass it on - so after incubation time.
+      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
+
       ;;risk of infected people dying:
       if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
         let my-destiny random-float 1
@@ -374,25 +374,12 @@ end
 
 
 to-report infected?
-  report ticks >= infected-at and ticks <=  infected-at + average-duration * 24
-end
-
-to-report sick? ;;people reporter. Becomes true after the incubation time (if infected)
-  ;;IBH: let's be careful not to get confused with these different infected? and sick? reporters... maybe there's better names for them?
-  ;;since right now infected people pass on the disease even if the incubation time hasn't passed / they're not sick yet ;;@change that?
-  ;;so 'sick?' is maybe more a reflection of when they show symptoms?
-  ;;@vil vi tilføje karantæne/isolation af husstand? og/eller test-system? for komplekst?
-
-  ifelse infected? and ticks > ( infected-at + incubation-time) ;;incubation-time is measured in hours (the same as ticks)
-    [report true]
-    [report false]
+  report ticks >= infected-at and ticks <= infected-at + average-duration * 24
 end
 
 
-to-report no-symptoms? ;; skal people-own have symptoms før end at den kan bruges til fx. barer? -gus
-  ifelse sick? and random-float 1 < 0.70 ;; 30% chance for symptoms
-    [report false]
-    [report true]
+to-report symptoms? ;
+report ticks > ( infected-at + incubation-time) and random-float 1 < 0.30 and ticks < (infected-at + incubation-time + average-duration);30% chance for symptoms after incubation time. symptoms stop after average duration
 end
 
 to-report days-infected
@@ -412,7 +399,11 @@ to-report my-death-risk
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
-  report infected-at != -1000 and infected-at + average-duration * 24 < ticks ;Jeg forstår ikke hvordan denne virker -gus
+  report has-been-infected? and infected-at + average-duration * 24 < ticks
+end
+
+to-report has-been-infected?
+  report infected-at != -1000
 end
 
 to-report day
@@ -697,8 +688,8 @@ SLIDER
 probability-of-infection
 probability-of-infection
 0
-0.0025
-3.3E-4
+0.02
+0.01649
 0.00001
 1
 / hour
