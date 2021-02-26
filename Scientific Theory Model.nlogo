@@ -438,7 +438,7 @@ end
 
 to-report weekday ;;now the simulation always starts on a Monday
   let this-weekday day mod 7 ;;sets this-day from 0 to 6 (uses the day-reporter above)
-  report item this-weekday day-names   ;; reports the current weekday name from the 'day-names' list
+  report item this-weekday day-names   ;;reports the current weekday name from the 'day-names' list
 end
 
 to-report productivity ;;for productivity plot (sum [productivity] of people)
@@ -467,33 +467,10 @@ end
 
 
 to-report patch-color ;;depends on the time of day
-  ;;IBH: måske lidt overkill haha, men det ser nice nok ud
-  ;;@OBS: får det jeres model til at køre langsommere? mine patches ser lidt 'splotchy' ud/opdaterer ikke synkront (måske et problem for NetLogo Web?)
-  ;;de præcise farver kan evt. tweakes, feel free til at ændre det :)
-  if time = 0 [ report 100]
-  if time = 1 [ report 101]
-  if time = 2 [ report 101.5]
-  if time = 3 [ report 102]
-  if time = 4 [ report 102.5]
-  if time = 5 [ report 103]
-  if time = 6 [ report 104.5]
-  if time = 7 [ report 95]
-  if time = 8 [ report 96]
-  if time = 9 [ report 96.5]
-  if time = 10 [ report 97]
-  if time = 11 [ report 97.5]
-  if time = 12 [ report 97]
-  if time = 13 [ report 107.5]
-  if time = 14 [ report 107]
-  if time = 15 [ report 106.5]
-  if time = 16 [ report 106]
-  if time = 17 [ report 105.5]
-  if time = 18 [ report 104]
-  if time = 19 [ report 102.5]
-  if time = 20 [ report 102]
-  if time = 21 [ report 101.5]
-  if time = 22 [ report 101]
-  if time = 23 [ report 100.5]
+  if time = 0 or time >= 23 or time <= 4 [report 100] ;;nat
+  if time >= 5 and time <= 10 [report 97] ;;morgen
+  if time >= 11 and time <= 16 [report 95] ;;dag
+  if time >= 17 and time <= 22 [report 103] ;;aften
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -641,7 +618,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-1
+0
 1
 -1000
 
@@ -652,7 +629,7 @@ SWITCH
 188
 close-schools?
 close-schools?
-1
+0
 1
 -1000
 
