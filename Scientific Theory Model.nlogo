@@ -61,7 +61,7 @@ to setup
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor + pycor]
     set students (turtle-set)
   ]
-  create-workplaces 10 [ ;@add more, to decrease number of agents in one spot? for meaningful max-here slider
+  create-workplaces 10 [
     set color gray
     set shape "factory"
     move-to max-one-of (patches with [not any? turtles-here]) [pxcor - pycor * 2]
@@ -866,21 +866,6 @@ weekday
 17
 1
 11
-
-SLIDER
-15
-550
-212
-583
-max-people-restriction
-max-people-restriction
-0
-1000
-25.0
-1
-1
-NIL
-HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
