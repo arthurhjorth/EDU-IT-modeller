@@ -225,13 +225,13 @@ to go
       ;the reporter my-survival-rate (prev. my-death-rate) reports probabilities for the whole duration of the infection
       ;we transform this value into per hour in the 10 days using the formula:
       ;                (1 - x)^n = %          or           1 - %^1/n = x
-      ; in which % is survival rate for the whole period, n is iterations (240h)
+      ; in which % is survival rate for the whole period, n is iterations (duration of infection in days * 24 hours)
       ; x is the value we're looking for: probability of dying per iteration
 
 
       ask people with [infected?] [
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / 240 ) [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / average-duration * 24 ) [
           set total-deaths total-deaths + 1
           die
         ]
@@ -420,12 +420,13 @@ end
 
 
 to-report infected?
-  report ticks >= infected-at and ticks <= infected-at + average-duration * 24
+  report ticks >= infected-at and ticks <= infected-at + incubation-time + average-duration * 24 ;infected-duration er sum af inkubationstid og sygetid (average duration)
 end
 
 
-to-report symptoms? ;
-report ticks > ( infected-at + incubation-time) and random-float 1 < 0.30 and ticks < (infected-at + incubation-time + average-duration);30% chance for symptoms after incubation time. symptoms stop after average duration
+to-report symptoms? ;andel af inficerede med symptomer justeres på slider. Symptomer efter inkubationstid
+report ticks > ( infected-at + incubation-time) and random-float 1 < (has-symptoms / 100) and ticks < (infected-at + incubation-time + average-duration)
+symptoms stop after average duration
 end
 
 to-report days-infected
@@ -581,14 +582,14 @@ HORIZONTAL
 
 SLIDER
 5
-430
+480
 230
-463
+513
 home-productivity
 home-productivity
 0
 200
-64.0
+200.0
 1
 1
 % (of normal)
@@ -665,14 +666,14 @@ close-schools?
 
 SLIDER
 5
-465
+515
 230
-498
+548
 productivity-while-homeschooling
 productivity-while-homeschooling
 0
 100
-50.0
+78.0
 1
 1
 %
@@ -680,9 +681,9 @@ HORIZONTAL
 
 SLIDER
 5
-500
+550
 230
-533
+583
 expenses-per-infection
 expenses-per-infection
 0
@@ -695,9 +696,9 @@ HORIZONTAL
 
 TEXTBOX
 40
-405
+455
 190
-423
+473
 Economic Assumptions
 15
 0.0
@@ -747,7 +748,7 @@ incubation-time
 incubation-time
 0
 240
-27.0
+69.0
 1
 1
 hours
@@ -876,9 +877,9 @@ weekday
 
 SLIDER
 15
-550
+600
 212
-583
+633
 max-people-restriction
 max-people-restriction
 0
@@ -898,6 +899,21 @@ Productivity updates every day at 12:00.
 11
 0.0
 1
+
+SLIDER
+10
+415
+227
+448
+has-symptoms
+has-symptoms
+0
+100
+90.0
+1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
