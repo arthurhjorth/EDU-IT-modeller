@@ -160,28 +160,28 @@ end
 
 to go
   every .01 [
+
     ;; update time
     set time ticks mod 24
     ask patches [set pcolor patch-color] ;;change colors depending on the time of day (see patch-color reporter)
-    ;;color-world ;;change colors depending on the time of day
     set str-time (word time ":00")
     if time < 10 [set str-time (word "0" str-time)]
 
-    ;;; move people to jobs and schools
+    ;;; move people to jobs and schools:
     if time = 8 [
       if not weekend? and not close-workplaces? [
         ask workers [
           if not isolating? [ move-to my-workplace ]
-      ]
+        ]
       ]
 
       if not weekend? and not close-schools? [
           ask all-students [
-            if not isolating? [move-to my-workplace]
+            if not isolating? [ move-to my-workplace ]
           ]
          ]
-    ]
-  ]
+    ] ;;end of if time = 8
+
 
 ;;;socializing
 ;    if day = 6 [ ;Der skal implementeres at det kun er i weekenden at det er privat fest + bar (torsdag ogs?). Måske noget alla if day = 6+7, 14+15 etc
@@ -222,36 +222,40 @@ if time = 17 [
 
       ]
      ]
-
-    ]
-
+    ] ;;end of if time = 17
 
 
-    if time = 20 [
-      ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
+
+    if time = 20 [ ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
+      ask people [ move-to my-household ]
+    ] ;;end of if time = 20
 
 
-    ;;SKER HVERT TICK:
+    ;;SKER HVERT TICK (no matter the time):
 
-    ;; ask people who are infected to potentially infect others
-    ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
-      ifelse isolating?
-        [
-        ask other people-here with [random-float 1 < (0.2 * probability-of-infection) and not immune?] [ ;if isolating then people here have a lower chance of getting infected @
+    ;; ask people who are infected to potentially infect others:
+
+    ask people with [infected?] [
+
+      ifelse isolating? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
+        [ ;;if isolating:
+        ask other people-here with [random-float 1 < (0.2 * probability-of-infection) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
           set infected-at ticks
+          ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
           ifelse random-float 1 < (has-symptoms / 100)
            [set will-show-symptoms? true]
            [set will-show-symptoms? false]
         ]
-        ][
-        ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ ; else
+      ]
+      [ ;;if not isolating:
+        ask other people-here with [random-float 1 < probability-of-infection and not immune? and not infected?] [ ;;normal risk of infection if not isolating
           set infected-at ticks
           ifelse random-float 1 < (has-symptoms / 100)
            [set will-show-symptoms? true]
            [set will-show-symptoms? false]
       ]
      ]
-    ]
+
 
       ;;risk of infected people dying:
 
@@ -261,32 +265,18 @@ if time = 17 [
       ; in which % is survival rate for the whole period, n is iterations (duration of infection in days * 24 hours)
       ; x is the value we're looking for: probability of dying per iteration
 
-
         let my-destiny random-float 1
         if my-destiny < 1 - (my-survival-rate) ^ ( 1 / average-duration * 24 ) [
           set total-deaths total-deaths + 1
           die
         ]
-
-    ]
-
-
-
-;      if time = time-of-death [ ;;so every person only checks if they die ONCE every day (if it was every hour, the risk would be inflated...)
-;        let my-destiny random-float 1
-;        if my-destiny < my-death-risk [
-;          set total-deaths total-deaths + 1
-;          die
-;        ]
-;
-;      ]
-
-    ]
+    ] ;;end of ask people with infected?
 
     ask turtles [recolor]
     if time = 12 [update-productivity-plot] ;;the productivity plot only updates once a day (see the reporter, using manual plot commands)
-    if not any? people with [infected?] [stop]
+    if not any? people with [infected?] [stop] ;;model run stops if noone is infected
     tick
+  ] ;;end of 'every .01' (the whole go procedure)
 end
 
 to recolor
@@ -480,7 +470,7 @@ end
 
 
 to-report infected?
-  report ticks >= infected-at and ticks <= infected-at + incubation-time + average-duration * 24 ;infected-duration er sum af inkubationstid og sygetid (average duration)
+  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-duration * 24) ;infected-duration er sum af inkubationstid og sygetid (average duration)
 end
 
 
@@ -523,7 +513,7 @@ to-report immune? ;;@nu antager vi, at alle bliver immune
 end
 
 to-report has-been-infected?
-  report infected-at != -1000 and infected-at + average-duration * 24 < ticks
+  report infected-at != -1000
 end
 
 to-report day
@@ -792,7 +782,7 @@ probability-of-infection
 probability-of-infection
 0
 0.02
-0.01987
+0.02
 0.00001
 1
 / hour
