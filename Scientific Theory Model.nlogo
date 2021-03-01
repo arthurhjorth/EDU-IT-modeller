@@ -23,6 +23,7 @@ people-own [ ;; human attributes
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
   symptomous? ;not rdy yet
+
   my-friends ;;agentset
   my-friend-nr ;;nr of friends (size of the agentset 'my-friend-group')
 ]
@@ -134,9 +135,7 @@ to setup
       ]
     ]
 
-  ask people [
-    set-friend-group ;;en reporter, der sætter en vennegruppe (agentset) baseret på ens age group
-  ]
+  set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
 
   ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
 
@@ -388,34 +387,56 @@ to-report social-needs-distribution ;Der er noget galt med denne men kan ikke fi
   ]
 end
 
-to set-friend-group ;;people reporter, run in setup
-  ;;@maybe check this link out and make it work instead, would lead to every age group having the same friend number:
-  ;;(men skal tweakes, da populationen varierer... lidt tricky, så indtil videre har jeg bare lavet en simplere måde)
+to set-friend-group ;;run in setup
+  ;;IBH: jeg har tweaket koden fra det her link, så den virker med ny NetLogo-syntaks + vores populations-struktur:
   ;;https://stackoverflow.com/questions/32967388/netlogo-efficient-way-to-create-fixed-number-of-links
-    ;;(would also optimise the code, right now the 'let candidates' line is a bit slow)
+  ;;det er lidt komplekst, men burde virke
 
-  ;;nr of friends (that YOU create links with - more might create links with you, so you have more friends than this nr...):
-  ;;--> fører til forskelligt antal venner. MINIMUM det her tal, men intet max
-    ;;(can check with: show max [my-friend-nr] of people ;;max falls around 8-10 friends)
-
-  if age-group = "child" [set placeholder 1] ;;@tweak these numbers?
-  if age-group = "young" [set placeholder 3]
-  if age-group = "adult" [set placeholder 2]
-  if age-group = "elder" [set placeholder 1]
-
-  let nr-of-friends placeholder
-
-  ;;assumption: man er kun venner med folk i sin egen alder:
-  let candidates other people with [ age-group = [age-group] of self ] ;;@KAN OPTIMERES - setup er langsom lige nu (se evt link ovenfor for alternativ metode)
-
-  ;;randomly choose some of these candidates as friends:
-  create-links-with n-of nr-of-friends candidates [ ;;two-way-link. assumption: vennegrupper er tovejs (hvis du er min ven, er jeg også din ven ;))
-    ;;link commands here
-    hide-link
+  ask people [ ;;my-friend-nr is a person variable showing (@HALF OF!) how many friends this person will end up with
+    if age-group = "child" [set my-friend-nr 1] ;;@tweak these numbers? (can make it vary within the age-groups with random-float - but maybe not needed?)
+    if age-group = "young" [set my-friend-nr 3]
+    if age-group = "adult" [set my-friend-nr 2]
+    if age-group = "elder" [set my-friend-nr 1]
+    ;;@IBH: for some reason, it looks like everybody ends up with an agentset of friends DOUBLE this number... instead of hunting down the cause, let's just roll with it for now :P
   ]
 
-  set my-friend-nr count link-neighbors ;;nr of friends (person variable)
-  set my-friends link-neighbors ;;agentset containing their friends (person variable)
+  ;;assumption: people are only friends with people in their own age group. Therefore we need to repeat this method once for each age group:
+
+  foreach ["child" "young" "adult" "elder"] [ a -> ;;the loops goes through the code below once for each age category, replacing 'a' with the age group
+
+    let pairs [] ;; pairs will hold the pairs of turtles to be linked
+    while [ pairs = [] ] [ ;; we might mess up creating these pairs (by making self loops), so we might need to try a couple of times
+      let half-pairs reduce sentence [ n-values my-friend-nr [ self ] ] of people with [age-group = a] ;; create a big list where each turtle appears once for each friend it wants to have
+      set pairs (map list half-pairs shuffle half-pairs) ;; pair off the items of half-pairs with a randomized version of half-pairs
+      ;;so we end up with a list like: [[ person 0 person 5 ] [ person 0 person 376 ] ... [ person 1 person 18 ]]
+      ;;make sure that no turtle is paired with itself:
+      if not empty? filter [ i -> first i = last i ] pairs [
+        ;;print word "failure " a ;;this line used to troubleshoot (you can see how many times it needs repeating)
+        set pairs [] ;;so if this list of self-pairs is not empty, we start over and try again (since some people were paired with themselves)
+      ]
+    ] ;;end of while pairs = []
+
+    ;; now that we have pairs that we know work, create the links:
+    foreach pairs [
+      x -> ;;x is each item in the nested 'pairs'-list, i.e. each pair such as [person 1 person 7]
+      ask first x [
+        create-link-with last x [ ;;create-link-with is undirected
+        hide-link ;;we don't want to visualise the links
+        ]
+      ]
+    ]
+    ;;print word "success " a ;;this line used to troubleshoot
+
+  ] ;;end of the foreach loop
+
+  ;;ask turtles to add their links to their friends!:
+  ask people [
+    set my-friends link-neighbors ;;my-friends is an agentset containing their friends (person variable)
+    ;;link-neighbors assumption: if I'm your friend, you're also my friend :))
+
+    set my-friend-nr (2 * my-friend-nr) ;;@OBS: right now a botchy way, for some reason the agentset becomes double the size of the original my-friend-nr...
+  ]
+
 end
 
 
@@ -425,8 +446,8 @@ end
 
 
 to-report symptoms? ;andel af inficerede med symptomer justeres på slider. Symptomer efter inkubationstid
-report ticks > ( infected-at + incubation-time) and random-float 1 < (has-symptoms / 100) and ticks < (infected-at + incubation-time + average-duration)
-symptoms stop after average duration
+  report ticks > ( infected-at + incubation-time) and random-float 1 < (has-symptoms / 100) and ticks < (infected-at + incubation-time + average-duration)
+  ;;symptoms stop after average duration
 end
 
 to-report days-infected
@@ -748,7 +769,7 @@ incubation-time
 incubation-time
 0
 240
-69.0
+64.0
 1
 1
 hours
