@@ -119,6 +119,7 @@ to setup
 
       set social-needs social-needs-distribution
       set infected-at -1000
+      set will-show-symptoms? false
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -450,7 +451,8 @@ end
 
 ;;should I go out?
 to-report isolating? ;;people reporter
-  ifelse currently-symptomous? or ( any? [members] of my-household with [currently-symptomous?] )
+  ;;ifelse currently-symptomous? or ( any? [members] of my-household with [currently-symptomous?] )
+  ifelse currently-symptomous? or ( any? [members with [currently-symptomous?]] of my-household )
     [report true]
     [report false]
 end
