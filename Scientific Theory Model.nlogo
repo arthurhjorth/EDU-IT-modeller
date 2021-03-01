@@ -107,7 +107,7 @@ to setup
 
       ;;make sure the first person created is always an adult or elder:
 
-      ifelse not any? other people-here
+      ifelse not any? other people-here ;;hvis det er det første member
         [while [age-group = "child"] [set age age-distribution]]
         [set age age-distribution]
 
@@ -336,13 +336,9 @@ end
 
 to-report age-distribution ;
   (ifelse
-    random-float 1 < 0.54 [ ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
+    random-float 1 < 0.72 [ ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
       ;set age 17 + random 57
-      report 28 + random 48 ;;IBH: random returns a value between 0 and one less than the number - so I changed 17 to 18 :)
-    ]
-    random-float 1 < 0.18 [ ;I just split the adult group percentage wise (not taking into account that young might be more dense)
-      ;set age 17 + random 57
-      report 18 + random 9 ;; Unsure if it should be 9 or 10 -gus
+      report 18 + random 58 ;;IBH: random returns a value between 0 and one less than the number - so I changed 17 to 18 :)
     ]
     random-float 1 > (1 - 0.2) [ ;20% below 18
       ;set age random 17
@@ -361,7 +357,6 @@ to-report age-group ;;IBH: bruger de tre grupper fra DKs Statistik (ret forsimpl
   if age >= 28 and age < 75 [report "adult" ]
   if age >= 75 [ report "elder" ] ;;initially 8 %
 end
-
 
 
 to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
