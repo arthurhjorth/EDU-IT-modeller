@@ -94,7 +94,6 @@ to setup
 
     let household-members placeholder ; Jeg forstår ikke ovenstående og heller ej denne linje -gus
 
-
     set members (turtle-set)
     hatch-people household-members [
       set shape "person"
@@ -219,7 +218,6 @@ if time = 17 [
         ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
            ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
             [move-to my-household] ;;if not adult
-
 
       ]
      ]
@@ -357,21 +355,32 @@ end
 
 ;; a simple population distribution from Danmarks Statistik, generalizing 3 age groups, corresponding to non-adults, adults and elders
 
-to-report age-distribution ;
-  (ifelse
-    random-float 1 < 0.72 [ ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
-      ;set age 17 + random 57
-      report 18 + random 58 ;;IBH: random returns a value between 0 and one less than the number - so I changed 17 to 18 :)
-    ]
-    random-float 1 > (1 - 0.2) [ ;20% below 18
-      ;set age random 17
-      report random 18
-    ]
-    ;elders above 74, 8%
-    [
-      ;set age 74 + random 26
-      report 75 + random 27
-    ])
+to-report age-distribution
+  ;oprindelig statistik:
+  ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
+  ;20% below 18
+  ;elders above 74, 8%
+
+  ;@OBS det her giver for mange børn lige nu! (@Lisa fixer hacky hack hack)
+
+  ;;OBS: de her følgende procentsatser har regnet med, at de første 700 IKKE er børn (konsekvens af hatch-people-koden lige nu...) hacky hack hack
+
+  let this-number random-float 1
+
+  ;;children:
+  if this-number < 0.38 [ ;;38% after hacky hack
+    report random 18
+  ]
+
+  ;;adults and young:
+  if this-number >= 0.38 and this-number < 0.94 [ ;56% after hacky hack
+    report 18 + random 57
+  ]
+
+  ;;elders:
+  if this-number >= 0.94 [ ;;6% after hacky hack
+    report 75 + random 26
+  ]
 end
 
 to-report age-group ;;IBH: bruger de tre grupper fra DKs Statistik (ret forsimplet, men måske fint at holde det til tre): 0-17, 18-74, 75+
