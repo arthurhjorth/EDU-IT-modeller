@@ -171,13 +171,18 @@ to go
 
     ;;; move people to jobs and schools
     if time = 8 [
-      if not weekend? and not close-workplaces? [ask workers [move-to my-workplace]]
-      if not weekend? and not close-schools? [ask all-students [move-to my-workplace]]
+      if not weekend? and not close-workplaces? [
+        ask workers [
+          if not isolating? [ move-to my-workplace ]
+      ]
+      ]
+
+      if not weekend? and not close-schools? [
+          ask all-students [
+            if not isolating? [move-to my-workplace]
+          ]
          ]
-  ]
-
-
-
+    ]
 
 ;;;socializing
 ;    if day = 6 [ ;Der skal implementeres at det kun er i weekenden at det er privat fest + bar (torsdag ogs?). Måske noget alla if day = 6+7, 14+15 etc
@@ -224,18 +229,20 @@ if time = 17 [
 
 
 
-    if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
+    if time = 20 [
+      ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
+
+
+    ;;SKER HVERT TICK:
+
     ;; ask people who are infected to potentially infect others
     ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
-    ask other people-here with [random-float 1 < probability-of-infection and not immune?] [
-      set infected-at ticks
-      ifelse random-float 1 < (has-symptoms / 100)
-      [set will-show-symptoms? true]
-      [set will-show-symptoms? false]
-    ]
-
-
-
+      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [
+        set infected-at ticks
+        ifelse random-float 1 < (has-symptoms / 100)
+         [set will-show-symptoms? true]
+         [set will-show-symptoms? false]
+      ]
       ;;risk of infected people dying:
 
       ;the reporter my-survival-rate (prev. my-death-rate) reports probabilities for the whole duration of the infection
@@ -245,13 +252,13 @@ if time = 17 [
       ; x is the value we're looking for: probability of dying per iteration
 
 
-      ask people with [infected?] [
         let my-destiny random-float 1
         if my-destiny < 1 - (my-survival-rate) ^ ( 1 / average-duration * 24 ) [
           set total-deaths total-deaths + 1
           die
         ]
-      ]
+
+    ]
 
 
 
@@ -436,7 +443,15 @@ end
 
 
 to-report currently-symptomous? ;andel af inficerede med symptomer justeres på slider. Symptomer kommer efter inkubationstid, og stopper ved slutning af sygdomsforløb
-report ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-duration)
+  report infected-at != -1000 and ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-duration)
+end
+
+
+;;should I go out?
+to-report isolating? ;;people reporter
+  ifelse currently-symptomous? or ( any? [members] of my-household with [currently-symptomous?] )
+    [report true]
+    [report false]
 end
 
 
