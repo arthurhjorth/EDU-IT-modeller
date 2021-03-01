@@ -384,27 +384,28 @@ end
 
 
 to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
-  ;@ juster parametre
+  ;@LSG: Jeg har justeret parametrene til at være mere repræsentable OG mere simple (50/50 chance for hver gruppe - bortset fra unge, som alle er ens)
+  ; @LSG: Evt. læg en smule random-float ind, så ikke alle agenter i samme gruppe er HELT ens
 
   if age-group = "child" [
     let chance random-float 1
-    ifelse chance < 0.7 [ report 0.4 ] [ report 0.2 ] ;børn har mindre chance for at tage til et socialt arrangement
+    ifelse chance < 0.5 [ report 0.2 ] [ report 0.4] ;børn tager enten ud 20% eller 40% af tiden
   ]
 
   if age-group = "young" [
-    let chance random-float 1
-    ifelse chance < 0.7 [ report 0.5 ] [ report 0.3 ] ;baseline
-  ]
+    report 0.5 ] ;unge tager ud halvdelen af tiden
 
   if age-group = "adult" [
     let chance random-float 1
-    ifelse chance < 0.7 [ report 0.3 ] [ report 0.7 ] ;70% af alle voksne har mindre chance for at tage på bar
+    ifelse chance < 0.5 [ report 0.2 ] [ report 0.5 ] ; voksne tager enten ud 20% af tiden eller halvdelen af tiden
   ]
+
   if age-group = "elder" [
     let chance random-float 1
-    ifelse chance < 0.9 [ report 0 ] [ report 0.2 ] ;90% af alle ældre har ingen chance for at tage til sociale events
+    ifelse chance < 0.5 [ report 0 ] [ report 0.2 ] ; ældre tager enten ud 20% af gange eller 0%
   ]
 end
+
 
 to set-friend-group ;;people reporter, run in setup
   ;;@maybe check this link out and make it work instead, would lead to every age group having the same friend number:
