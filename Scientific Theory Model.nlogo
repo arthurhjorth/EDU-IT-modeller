@@ -184,6 +184,7 @@ to go
           ]
          ]
     ]
+  ]
 
 ;;;socializing
 ;    if day = 6 [ ;Der skal implementeres at det kun er i weekenden at det er privat fest + bar (torsdag ogs?). Måske noget alla if day = 6+7, 14+15 etc
@@ -209,8 +210,8 @@ if time = 17 [
       ifelse close-bars-and-stores?
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
-        [ ask people with [currently-symptomous?] [ ;I don't know how to do without symptoms -gus. @@@@@
-          ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement?
+        [ ask people [
+          ifelse age-group = "adult" or age-group = "young" and not isolating? ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
               [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays. @@@ - do we care though
@@ -238,12 +239,24 @@ if time = 17 [
 
     ;; ask people who are infected to potentially infect others
     ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
-      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [
-        set infected-at ticks
-        ifelse random-float 1 < (has-symptoms / 100)
-         [set will-show-symptoms? true]
-         [set will-show-symptoms? false]
+      ifelse isolating?
+        [
+        ask other people-here with [random-float 1 < (0.2 * probability-of-infection) and not immune?] [ ;if isolating then people here have a lower chance of getting infected @
+          set infected-at ticks
+          ifelse random-float 1 < (has-symptoms / 100)
+           [set will-show-symptoms? true]
+           [set will-show-symptoms? false]
+        ]
+        ][
+        ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ ; else
+          set infected-at ticks
+          ifelse random-float 1 < (has-symptoms / 100)
+           [set will-show-symptoms? true]
+           [set will-show-symptoms? false]
       ]
+     ]
+    ]
+
       ;;risk of infected people dying:
 
       ;the reporter my-survival-rate (prev. my-death-rate) reports probabilities for the whole duration of the infection
