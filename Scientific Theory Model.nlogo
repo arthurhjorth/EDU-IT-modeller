@@ -231,7 +231,7 @@ to go
 
       ask people with [infected?] [
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / 240 ) [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / average-duration * 24 ) [
           set total-deaths total-deaths + 1
           die
         ]
