@@ -266,7 +266,7 @@ if time = 17 [
       ; x is the value we're looking for: probability of dying per iteration
 
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / average-duration * 24 ) [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-duration * 24 ) ) [
           set total-deaths total-deaths + 1
           die
         ]
@@ -502,8 +502,8 @@ to-report my-survival-rate
   ;; https://www.ssi.dk/aktuelt/nyheder/2020/9500-danske-covid-19-patienter-kortlagt-for-forste-gang
   ;@revisit probabilities
 
-  if age-group = "child" [report 1 - 0] ;subtracting from 1 to get survival rate rather than mortality rate
-  if age-group = "young" [report 1 - 0]
+  if age-group = "child" [report 1 - 0.0005] ;subtracting from 1 to get survival rate rather than mortality rate
+  if age-group = "young" [report 1 - 0.0005]
   if age-group = "adult" [report 1 - 0.013]
   if age-group = "elder" [report 1 - 0.25]
 end
@@ -633,7 +633,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-43.0
+17.5
 .1
 1
 %
@@ -708,7 +708,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-1
+0
 1
 -1000
 
@@ -782,7 +782,7 @@ probability-of-infection
 probability-of-infection
 0
 0.02
-0.02
+0.00117
 0.00001
 1
 / hour
