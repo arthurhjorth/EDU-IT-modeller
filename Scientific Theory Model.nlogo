@@ -22,8 +22,7 @@ people-own [ ;; human attributes
   my-workplace
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
-  symptomous? ;not rdy yet
-
+  will-show-symptoms? ;not rdy yet
   my-friends ;;agentset
   my-friend-nr ;;nr of friends (size of the agentset 'my-friend-group')
 ]
@@ -107,6 +106,11 @@ to setup
 
       ;;make sure the first person created is always an adult or elder:
 
+    ;  if household-member = 0
+
+     ; if not any? other people-here
+      ;[set
+
       ifelse not any? other people-here
         [while [age-group = "child"] [set age age-distribution]]
         [set age age-distribution]
@@ -135,7 +139,9 @@ to setup
       ]
     ]
 
-  set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
+  ask people [
+    set-friend-group ;;en reporter, der sætter en vennegruppe (agentset) baseret på ens age group
+  ]
 
   ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
 
@@ -166,7 +172,10 @@ to go
     if time = 8 [
       if not weekend? and not close-workplaces? [ask workers [move-to my-workplace]]
       if not weekend? and not close-schools? [ask all-students [move-to my-workplace]]
-    ]
+         ]
+  ]
+
+
 
 
 ;;;socializing
@@ -187,13 +196,13 @@ to go
 ;    ]
 
 
-    if time = 17 [
+if time = 17 [
       ;;going to bars/stores:
       ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
       ifelse close-bars-and-stores?
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
-        [ ask people with [symptoms?] [ ;I don't know how to do without symptoms -gus. @@@@@
+        [ ask people with [currently-symptomous?] [ ;I don't know how to do without symptoms -gus. @@@@@
           ifelse age-group = "adult" or age-group = "young" ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
@@ -217,7 +226,14 @@ to go
     if time = 20 [ask people [move-to my-household] ] ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
     ;; ask people who are infected to potentially infect others
     ask people with [infected?] [ ;;@IBH: can change this to people who are SICK (so they only pass on the disease after the incubation time?)
-      ask other people-here with [random-float 1 < probability-of-infection and not immune?] [ set infected-at ticks]
+    ask other people-here with [random-float 1 < probability-of-infection and not immune?] [
+      set infected-at ticks
+      ifelse random-float 1 < (has-symptoms / 100)
+      [set will-show-symptoms? true]
+      [set will-show-symptoms? false]
+    ]
+
+
 
       ;;risk of infected people dying:
 
@@ -253,7 +269,6 @@ to go
     if time = 12 [update-productivity-plot] ;;the productivity plot only updates once a day (see the reporter, using manual plot commands)
     if not any? people with [infected?] [stop]
     tick
-  ]
 end
 
 to recolor
@@ -286,6 +301,7 @@ to-report infected-rate
   ]
   report 0
 end
+
 
 to-report workers
   report people with [age > 20]
@@ -387,56 +403,34 @@ to-report social-needs-distribution ;Der er noget galt med denne men kan ikke fi
   ]
 end
 
-to set-friend-group ;;run in setup
-  ;;IBH: jeg har tweaket koden fra det her link, så den virker med ny NetLogo-syntaks + vores populations-struktur:
+to set-friend-group ;;people reporter, run in setup
+  ;;@maybe check this link out and make it work instead, would lead to every age group having the same friend number:
+  ;;(men skal tweakes, da populationen varierer... lidt tricky, så indtil videre har jeg bare lavet en simplere måde)
   ;;https://stackoverflow.com/questions/32967388/netlogo-efficient-way-to-create-fixed-number-of-links
-  ;;det er lidt komplekst, men burde virke
+    ;;(would also optimise the code, right now the 'let candidates' line is a bit slow)
 
-  ask people [ ;;my-friend-nr is a person variable showing (@HALF OF!) how many friends this person will end up with
-    if age-group = "child" [set my-friend-nr 1] ;;@tweak these numbers? (can make it vary within the age-groups with random-float - but maybe not needed?)
-    if age-group = "young" [set my-friend-nr 3]
-    if age-group = "adult" [set my-friend-nr 2]
-    if age-group = "elder" [set my-friend-nr 1]
-    ;;@IBH: for some reason, it looks like everybody ends up with an agentset of friends DOUBLE this number... instead of hunting down the cause, let's just roll with it for now :P
+  ;;nr of friends (that YOU create links with - more might create links with you, so you have more friends than this nr...):
+  ;;--> fører til forskelligt antal venner. MINIMUM det her tal, men intet max
+    ;;(can check with: show max [my-friend-nr] of people ;;max falls around 8-10 friends)
+
+  if age-group = "child" [set placeholder 1] ;;@tweak these numbers?
+  if age-group = "young" [set placeholder 3]
+  if age-group = "adult" [set placeholder 2]
+  if age-group = "elder" [set placeholder 1]
+
+  let nr-of-friends placeholder
+
+  ;;assumption: man er kun venner med folk i sin egen alder:
+  let candidates other people with [ age-group = [age-group] of self ] ;;@KAN OPTIMERES - setup er langsom lige nu (se evt link ovenfor for alternativ metode)
+
+  ;;randomly choose some of these candidates as friends:
+  create-links-with n-of nr-of-friends candidates [ ;;two-way-link. assumption: vennegrupper er tovejs (hvis du er min ven, er jeg også din ven ;))
+    ;;link commands here
+    hide-link
   ]
 
-  ;;assumption: people are only friends with people in their own age group. Therefore we need to repeat this method once for each age group:
-
-  foreach ["child" "young" "adult" "elder"] [ a -> ;;the loops goes through the code below once for each age category, replacing 'a' with the age group
-
-    let pairs [] ;; pairs will hold the pairs of turtles to be linked
-    while [ pairs = [] ] [ ;; we might mess up creating these pairs (by making self loops), so we might need to try a couple of times
-      let half-pairs reduce sentence [ n-values my-friend-nr [ self ] ] of people with [age-group = a] ;; create a big list where each turtle appears once for each friend it wants to have
-      set pairs (map list half-pairs shuffle half-pairs) ;; pair off the items of half-pairs with a randomized version of half-pairs
-      ;;so we end up with a list like: [[ person 0 person 5 ] [ person 0 person 376 ] ... [ person 1 person 18 ]]
-      ;;make sure that no turtle is paired with itself:
-      if not empty? filter [ i -> first i = last i ] pairs [
-        ;;print word "failure " a ;;this line used to troubleshoot (you can see how many times it needs repeating)
-        set pairs [] ;;so if this list of self-pairs is not empty, we start over and try again (since some people were paired with themselves)
-      ]
-    ] ;;end of while pairs = []
-
-    ;; now that we have pairs that we know work, create the links:
-    foreach pairs [
-      x -> ;;x is each item in the nested 'pairs'-list, i.e. each pair such as [person 1 person 7]
-      ask first x [
-        create-link-with last x [ ;;create-link-with is undirected
-        hide-link ;;we don't want to visualise the links
-        ]
-      ]
-    ]
-    ;;print word "success " a ;;this line used to troubleshoot
-
-  ] ;;end of the foreach loop
-
-  ;;ask turtles to add their links to their friends!:
-  ask people [
-    set my-friends link-neighbors ;;my-friends is an agentset containing their friends (person variable)
-    ;;link-neighbors assumption: if I'm your friend, you're also my friend :))
-
-    set my-friend-nr (2 * my-friend-nr) ;;@OBS: right now a botchy way, for some reason the agentset becomes double the size of the original my-friend-nr...
-  ]
-
+  set my-friend-nr count link-neighbors ;;nr of friends (person variable)
+  set my-friends link-neighbors ;;agentset containing their friends (person variable)
 end
 
 
@@ -445,10 +439,10 @@ to-report infected?
 end
 
 
-to-report symptoms? ;andel af inficerede med symptomer justeres på slider. Symptomer efter inkubationstid
-  report ticks > ( infected-at + incubation-time) and random-float 1 < (has-symptoms / 100) and ticks < (infected-at + incubation-time + average-duration)
-  ;;symptoms stop after average duration
+to-report currently-symptomous? ;andel af inficerede med symptomer justeres på slider. Symptomer kommer efter inkubationstid, og stopper ved slutning af sygdomsforløb
+report ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-duration)
 end
+
 
 to-report days-infected
   ifelse infected?
@@ -595,7 +589,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-10.5
+43.0
 .1
 1
 %
@@ -670,7 +664,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-0
+1
 1
 -1000
 
@@ -681,7 +675,7 @@ SWITCH
 188
 close-schools?
 close-schools?
-0
+1
 1
 -1000
 
@@ -694,7 +688,7 @@ productivity-while-homeschooling
 productivity-while-homeschooling
 0
 100
-78.0
+75.0
 1
 1
 %
@@ -709,7 +703,7 @@ expenses-per-infection
 expenses-per-infection
 0
 100
-58.0
+64.0
 1
 1
 NIL
@@ -744,7 +738,7 @@ probability-of-infection
 probability-of-infection
 0
 0.02
-0.01649
+0.01987
 0.00001
 1
 / hour
@@ -769,7 +763,7 @@ incubation-time
 incubation-time
 0
 240
-64.0
+69.0
 1
 1
 hours
@@ -874,17 +868,6 @@ PENS
 "Adults" 1.0 0 -13345367 true "" "plot count people with [age-group = \"adult\"]"
 "Elders" 1.0 0 -2674135 true "" "plot count people with [age-group = \"elder\"]"
 
-SWITCH
-10
-230
-202
-263
-max-5people-restriction?
-max-5people-restriction?
-1
-1
--1000
-
 MONITOR
 410
 10
@@ -897,14 +880,14 @@ weekday
 11
 
 SLIDER
-15
-600
-212
-633
+10
+225
+235
+258
 max-people-restriction
 max-people-restriction
 0
-1000
+100
 25.0
 1
 1
@@ -923,14 +906,14 @@ Productivity updates every day at 12:00.
 
 SLIDER
 10
-415
-227
-448
+407
+232
+440
 has-symptoms
 has-symptoms
 0
 100
-90.0
+73.0
 1
 1
 %
