@@ -222,7 +222,7 @@ if time = 17 [
 
       ifelse isolating? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
         [ ;;if isolating:
-        ask other people-here with [random-float 1 < (0.2 * probability-of-infection) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
+        ask other people-here with [random-float 1 < (0.2 * probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
           set infected-at ticks
           ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
           ifelse random-float 1 < (has-symptoms / 100)
@@ -231,7 +231,7 @@ if time = 17 [
         ]
       ]
       [ ;;if not isolating:
-        ask other people-here with [random-float 1 < probability-of-infection and not immune? and not infected?] [ ;;normal risk of infection if not isolating
+        ask other people-here with [random-float 1 < ( probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;normal risk of infection if not isolating
           set infected-at ticks
           ifelse random-float 1 < (has-symptoms / 100)
            [set will-show-symptoms? true]
@@ -807,15 +807,15 @@ SLIDER
 10
 300
 230
-333
+334
 probability-of-infection
 probability-of-infection
 0
-0.02
-0.00117
-0.00001
+2.0
+0.117
+0.001
 1
-/ hour
+% / hour
 HORIZONTAL
 
 TEXTBOX
@@ -846,7 +846,7 @@ HORIZONTAL
 SLIDER
 10
 370
-257
+232
 404
 average-infection-duration
 average-infection-duration
