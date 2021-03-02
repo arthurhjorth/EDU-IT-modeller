@@ -295,7 +295,7 @@ end
 
 
 to-report workers
-  report people with [age-group = "young" or age-group = "adult"]
+  report people with [age >= 20 and age <= 74]
 end
 
 to-report all-students
@@ -585,7 +585,6 @@ end
 to-report people-at-visit
   report 0 ;;at a household, but not their own
 end
-
 
 
 
