@@ -685,10 +685,10 @@ home-productivity
 HORIZONTAL
 
 MONITOR
-485
-10
-594
-55
+419
+12
+528
+57
 Time of the Day
 str-time
 0
@@ -696,10 +696,10 @@ str-time
 11
 
 PLOT
-775
-10
-1180
-205
+776
+12
+1148
+208
 Infection rate
 hours since start
 % infected
@@ -714,10 +714,10 @@ PENS
 "% infected" 1.0 0 -16777216 true "" "plot ( count people with [infected?] / count people ) * 100"
 
 PLOT
-775
-400
-1180
-595
+776
+402
+1146
+598
 Productivity (average per person and baseline = 1)
 days since start
 NIL
@@ -870,10 +870,10 @@ close-bars-and-stores?
 -1000
 
 MONITOR
-360
-10
-410
-55
+294
+12
+344
+57
 Day
 Day
 17
@@ -881,10 +881,10 @@ Day
 11
 
 PLOT
-775
-205
-1180
-400
+776
+207
+1146
+403
 SIR plot
 hours since start
 n people
@@ -901,10 +901,10 @@ PENS
 "Recovered" 1.0 0 -8630108 true "" "plot count people with [immune?]"
 
 MONITOR
-690
-10
-765
-55
+653
+12
+728
+57
 NIL
 total-deaths
 17
@@ -912,10 +912,10 @@ total-deaths
 11
 
 MONITOR
-615
-10
-690
-55
+578
+12
+653
+57
 NIL
 count people
 17
@@ -923,13 +923,13 @@ count people
 11
 
 PLOT
-1210
-10
-1495
-160
+1146
+12
+1508
+208
 Age distribution over time
-Time
-Count
+hours since start
+n people
 0.0
 10.0
 0.0
@@ -943,10 +943,10 @@ PENS
 "Elders" 1.0 0 -2674135 true "" "plot count people with [age-group = \"elder\"]"
 
 MONITOR
-410
-10
-485
-55
+344
+12
+419
+57
 Weekday
 weekday
 17
@@ -969,10 +969,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1185
-485
-1285
-526
+1157
+543
+1257
+584
 Productivity updates every weekday at 12:00.
 11
 0.0
@@ -994,13 +994,13 @@ has-symptoms
 HORIZONTAL
 
 PLOT
-1185
-205
-1495
-400
+1145
+207
+1510
+403
 Where are people currently?
-Tid
-Antal
+hours since start
+n people
 0.0
 10.0
 0.0
