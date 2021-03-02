@@ -701,17 +701,17 @@ PLOT
 1180
 205
 Infection rates
-NIL
-NIL
+hours since start
+% infected
 0.0
 10.0
 0.0
-1.0
+100.0
 true
-true
+false
 "" ""
 PENS
-"% infected" 1.0 0 -16777216 true "" "plot count people with [infected?] / count people"
+"% infected" 1.0 0 -16777216 true "" "plot ( count people with [infected?] / count people ) * 100"
 
 PLOT
 775
