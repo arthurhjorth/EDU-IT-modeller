@@ -92,7 +92,7 @@ to setup
     if probability >= 0.95 and probability < 0.99 [set placeholder 5]
     if probability >= 0.99                        [set placeholder 6]
 
-    let household-members placeholder ; Jeg forstår ikke ovenstående og heller ej denne linje -gus
+    let household-members placeholder
 
     set members (turtle-set)
     hatch-people household-members [
@@ -226,9 +226,13 @@ if time = 17 [
 
 
 
-    if time = 20 [ ;;@IBH: nu er folk kun på bar kl 17-20 - gør evt, så de kan have late night parties :)
-      ask people [ move-to my-household ]
-    ] ;;end of if time = 20
+    ifelse weekday = "Friday" or weekday = "Saturday"
+                [if time = 24 [ask people [ move-to my-household]
+     ]
+    ] ;
+                [if time = 20 [ask people [ move-to my-household]
+     ]
+    ]
 
 
     ;;SKER HVERT TICK (no matter the time):
