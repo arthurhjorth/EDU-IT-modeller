@@ -137,7 +137,7 @@ to setup
   set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
   set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration * 24] ;
+  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration] ;
 
 
   ask turtles [recolor]
@@ -249,7 +249,7 @@ if time = 17 [
       ; x is the value we're looking for: probability of dying per iteration
 
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-infection-duration * 24 ) ) [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-infection-duration ) ) [
           set total-deaths total-deaths + 1
           die
         ]
@@ -468,7 +468,7 @@ end
 
 
 to-report infected?
-  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-infection-duration * 24) ;infected-duration er sum af inkubationstid og sygetid (average duration)
+  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-infection-duration) ;infected-duration er sum af inkubationstid og sygetid (average duration)
 end
 
 
@@ -507,7 +507,7 @@ to-report my-survival-rate
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
-  report has-been-infected? and infected-at + average-infection-duration * 24 < ticks
+  report has-been-infected? and infected-at + average-infection-duration < ticks
 end
 
 to-report has-been-infected?
@@ -846,16 +846,16 @@ HORIZONTAL
 SLIDER
 10
 370
-232
+234
 404
 average-infection-duration
 average-infection-duration
 0
-25
-5.0
+240
+120.0
 1
 1
-days
+hours
 HORIZONTAL
 
 SWITCH
