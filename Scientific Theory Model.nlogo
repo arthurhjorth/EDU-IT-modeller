@@ -295,7 +295,7 @@ end
 
 
 to-report workers
-  report people with [age > 20]
+  report people with [age-group = "young" or age-group = "adult"]
 end
 
 to-report all-students
@@ -551,8 +551,8 @@ to update-productivity-plot ;;run only at 12 every weekday! (see go procedure wh
   set-current-plot-pen "productivity"
 
   ;; AH: only calculating this for people who work
-  let total-productivity sum [productivity] of people with [age > 20] ;;uses the productivity reporter above, sums for all people
-  plot total-productivity / count people with [age > 20] ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
+  let total-productivity sum [productivity] of workers ;;uses the productivity reporter above, sums for all people
+  plot total-productivity / count workers ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
 end
 
 
