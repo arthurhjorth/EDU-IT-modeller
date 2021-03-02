@@ -176,22 +176,7 @@ to go
     ] ;;end of if time = 8
 
 
-;;;socializing
-;    if day = 6 [ ;Der skal implementeres at det kun er i weekenden at det er privat fest + bar (torsdag ogs?). Måske noget alla if day = 6+7, 14+15 etc
-;      ;;going to bars/stores:
-;      ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
-;      ifelse close-bars-and-stores?
-;        [ ask people [move-to my-household] ] ;;if closed
-;        ;;if open:
-;        [ ask people [
-;          ifelse age-group = "adult" ;
-;            [let chance random-float 1 ;a number between 0 and 1
-;            ifelse chance < 0.3 [ move-to my-bar ] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
-;        ]
-;            [move-to my-household] ;;if not adult
-;      ]]
-;
-;    ]
+;;socializing:
 
 
 if time = 17 [
@@ -219,12 +204,11 @@ if time = 17 [
 
 
 
-    ifelse weekday = "Friday" or weekday = "Saturday"
-                [if time = 24 [ask people [ move-to my-household]
-     ]
-    ] ;
-                [if time = 20 [ask people [ move-to my-household]
-     ]
+    ifelse weekday = "Friday" or weekday = "Saturday" [
+      if time = 24 [ ask people [ move-to my-household] ]
+    ]
+    [
+      if time = 20 [ ask people [ move-to my-household] ]
     ]
 
 
@@ -270,7 +254,7 @@ if time = 17 [
     ] ;;end of ask people with infected?
 
     ask turtles [recolor]
-    if time = 12 [update-productivity-plot] ;;the productivity plot only updates once a day (see the reporter, using manual plot commands)
+    if not weekend? and time = 12 [update-productivity-plot] ;;the productivity plot only updates once every weekday (see the reporter, using manual plot commands)
     if not any? people with [infected?] [stop] ;;model run stops if noone is infected
     tick
   ] ;;end of 'every .01' (the whole go procedure)
@@ -525,28 +509,28 @@ end
 
 to-report productivity ;;for productivity plot (sum [productivity] of people)
   ifelse age-group = "adult" or age-group = "young" [
-    ifelse working-at-home? [
-      ifelse is-homeschooling? [
-        report (home-productivity / 100) * (productivity-while-homeschooling / 100) ;;if working from home AND homeschooling
+
+    ifelse is-homeschooling? [
+      report productivity-while-homeschooling / 100 ;;even if working from home AND homeschooling, we only calculate the homeschooling productivity
+    ]
+    [ ;;if not homeschooling:
+      ifelse working-at-home? [
+        report home-productivity / 100 ;;if working from home
       ]
-      [ ;;if working from home but not homeschooling:
-        report home-productivity / 100
+      [ ;;if not working at home and not homeschooling (and adult or young):
+        report 1
       ]
     ]
-    [ ;;if adult working in workplace:
-      report 1
-    ]
   ]
-  [ ;;if age-group != adult:
-    report 0 ;;nu antages det, at børn, unge og ældre ikke bidrager til produktiviteten...) @IBH: maybe change this
+  [ ;;if not adult or young:
+    report 0 ;;assumption: nu antages det, at børn og ældre ikke bidrager til produktiviteten...)
   ]
 
-
-  ;;@include expenses-per-infection somewhere in these calculations?
+  ;;@include expenses-per-infection somewhere in these calculations? or in another economy plot?
 end
 
 
-to update-productivity-plot ;;run only at 12 every day! (see go procedure where this is called)
+to update-productivity-plot ;;run only at 12 every weekday! (see go procedure where this is called)
   set-current-plot "Productivity"
   set-current-plot-pen "productivity"
   plot sum [productivity] of people ;;uses the productivity reporter above, sums for all people
@@ -971,8 +955,8 @@ TEXTBOX
 1185
 485
 1285
-520
-Productivity updates every day at 12:00.
+526
+Productivity updates every weekday at 12:00.
 11
 0.0
 1
