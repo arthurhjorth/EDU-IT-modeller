@@ -507,7 +507,7 @@ to-report weekday ;;now the simulation always starts on a Monday
   report item this-weekday day-names   ;;reports the current weekday name from the 'day-names' list
 end
 
-to-report productivity ;;for productivity plot (sum [productivity] of people)
+to-report productivity ;;people reporter for productivity plot (this reports the productivity of a single agent)
   ifelse age-group = "adult" or age-group = "young" [
 
     ifelse is-homeschooling? [
@@ -533,7 +533,9 @@ end
 to update-productivity-plot ;;run only at 12 every weekday! (see go procedure where this is called)
   set-current-plot "Productivity"
   set-current-plot-pen "productivity"
-  plot sum [productivity] of people ;;uses the productivity reporter above, sums for all people
+
+  let total-productivity sum [productivity] of people ;;uses the productivity reporter above, sums for all people
+  plot total-productivity / count people ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
 end
 
 
@@ -661,7 +663,7 @@ home-productivity
 home-productivity
 0
 200
-200.0
+83.0
 1
 1
 % (of normal)
@@ -701,13 +703,13 @@ PLOT
 400
 1180
 595
-Productivity
+Productivity (average per person)
 NIL
 NIL
 0.0
 10.0
 0.0
-10.0
+2.0
 true
 false
 "" ""
@@ -835,7 +837,7 @@ average-duration
 average-duration
 0
 25
-1.0
+5.0
 1
 1
 days
