@@ -1015,17 +1015,6 @@ PENS
 "Skole" 1.0 0 -955883 true "" "plot people-at-school"
 "Bar" 1.0 0 -13840069 true "" "plot people-at-bar"
 
-MONITOR
-1345
-410
-1432
-455
-NIL
-people-at-bar
-17
-1
-11
-
 @#$#@#$#@
 ## WHAT IS IT?
 
