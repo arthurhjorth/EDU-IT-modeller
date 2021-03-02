@@ -700,7 +700,7 @@ PLOT
 10
 1180
 205
-Infection rates
+Infection rate
 hours since start
 % infected
 0.0
@@ -885,9 +885,9 @@ PLOT
 205
 1180
 400
-SIR Plots
-NIL
-NIL
+SIR plot
+hours since start
+n people
 0.0
 10.0
 0.0
@@ -896,9 +896,9 @@ true
 true
 "" ""
 PENS
-"S" 1.0 0 -13345367 true "" "plot count people with [not immune? and not infected?]"
-"I" 1.0 0 -2674135 true "" "plot count people with [infected?]"
-"R" 1.0 0 -8630108 true "" "plot count people with [immune?]"
+"Susceptible" 1.0 0 -13345367 true "" "plot count people with [not immune? and not infected?]"
+"Infected" 1.0 0 -2674135 true "" "plot count people with [infected?]"
+"Recovered" 1.0 0 -8630108 true "" "plot count people with [immune?]"
 
 MONITOR
 690
