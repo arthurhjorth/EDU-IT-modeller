@@ -137,7 +137,7 @@ to setup
   set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
   set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
+  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration * 24] ;
 
 
   ask turtles [recolor]
@@ -249,7 +249,7 @@ if time = 17 [
       ; x is the value we're looking for: probability of dying per iteration
 
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-duration * 24 ) ) [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-infection-duration * 24 ) ) [
           set total-deaths total-deaths + 1
           die
         ]
@@ -468,12 +468,12 @@ end
 
 
 to-report infected?
-  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-duration * 24) ;infected-duration er sum af inkubationstid og sygetid (average duration)
+  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-infection-duration * 24) ;infected-duration er sum af inkubationstid og sygetid (average duration)
 end
 
 
 to-report currently-symptomous? ;andel af inficerede med symptomer justeres på slider. Symptomer kommer efter inkubationstid, og stopper ved slutning af sygdomsforløb
-  report infected-at != -1000 and ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-duration)
+  report infected-at != -1000 and ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-infection-duration)
 end
 
 
@@ -507,7 +507,7 @@ to-report my-survival-rate
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
-  report has-been-infected? and infected-at + average-duration * 24 < ticks
+  report has-been-infected? and infected-at + average-infection-duration * 24 < ticks
 end
 
 to-report has-been-infected?
@@ -846,10 +846,10 @@ HORIZONTAL
 SLIDER
 10
 370
-230
-403
-average-duration
-average-duration
+257
+404
+average-infection-duration
+average-infection-duration
 0
 25
 5.0
