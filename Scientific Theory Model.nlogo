@@ -550,8 +550,9 @@ to update-productivity-plot ;;run only at 12 every weekday! (see go procedure wh
   set-current-plot "Productivity (average per person)"
   set-current-plot-pen "productivity"
 
-  let total-productivity sum [productivity] of people ;;uses the productivity reporter above, sums for all people
-  plot total-productivity / count people ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
+  ;; AH: only calculating this for people who work
+  let total-productivity sum [productivity] of people with [age > 20] ;;uses the productivity reporter above, sums for all people
+  plot total-productivity / count people with [age > 20] ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
 end
 
 
@@ -584,7 +585,6 @@ end
 to-report people-at-visit
   report 0 ;;at a household, but not their own
 end
-
 
 
 
