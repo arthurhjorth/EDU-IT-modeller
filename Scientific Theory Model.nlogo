@@ -103,17 +103,15 @@ to setup
       ;;eg. a household of 5 is very likely to consist of 4 adults and a child...
       ;;(skriv: ask households [show [age-group] of members] i command center efter setup for at få et indblik i sammensætningen...)
 
+
+
       ;;make sure the first person created is always an adult or elder:
-
-    ;  if household-member = 0
-
-     ; if not any? other people-here
-      ;[set
-
-
-       ifelse not any? other people-here ;;hvis det er det første member
-        [while [age-group = "child"] [set age age-distribution]]
-        [set age age-distribution]
+      ifelse not any? [members] of myself [
+        while [age-group = "child"] [ set age age-distribution ]
+      ]
+      [
+        set age age-distribution
+      ]
 
 
       set social-needs social-needs-distribution
@@ -125,11 +123,6 @@ to setup
         set my-workplace one-of schools
         ask my-workplace [set students (turtle-set students myself)]
       ]
-      ;;IBH: har droppet my-bar, i stedet går de altid på en tilfældig bar
-;      if age >= 18 [
-;        set my-bar one-of bars ;;@IBH: nu har alle én stambar - mere realistisk, hvis de besøger flere forskellige?
-;        ask my-bar [set bargoers (turtle-set bargoers myself)]
-;      ]
 
       if age >= 20 [
         set my-workplace one-of workplaces
