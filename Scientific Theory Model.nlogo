@@ -524,7 +524,7 @@ to-report weekday ;;now the simulation always starts on a Monday
 end
 
 to-report productivity ;;for productivity plot (sum [productivity] of people)
-  ifelse age-group = "adult" [
+  ifelse age-group = "adult" or age-group = "young" [
     ifelse working-at-home? [
       ifelse is-homeschooling? [
         report (home-productivity / 100) * (productivity-while-homeschooling / 100) ;;if working from home AND homeschooling
