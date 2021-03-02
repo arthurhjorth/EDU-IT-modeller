@@ -24,7 +24,8 @@ people-own [ ;; human attributes
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
   will-show-symptoms? ;not rdy yet
   my-friends ;;agentset
-  my-friend-nr ;;nr of friends (size of the agentset 'my-friend-group')
+
+  my-relatives ;;2-4 extra connections outside the agent's age group
 ]
 ;; household attributes
 households-own [
@@ -133,7 +134,8 @@ to setup
       ]
     ]
 
-    set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
+  set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
+  set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
   ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
 
@@ -399,20 +401,23 @@ to-report social-needs-distribution ;Der er noget galt med denne men kan ikke fi
   ]
 end
 
+to-report my-friend-nr ;;people reporter. nr of friends (size of the agentset 'my-friend-group')
+
+  if age-group = "child" [report 1] ;;@tweak these numbers? (can make it vary within the age-groups with random-float - but maybe not needed?)
+  if age-group = "young" [report 3]
+  if age-group = "adult" [report 2]
+  if age-group = "elder" [report 1]
+  ;;@IBH: for some reason, it looks like everybody ends up with an agentset of friends DOUBLE this number... instead of hunting down the cause, let's just roll with it for now :P
+end
+
 
 to set-friend-group ;;run in setup
   ;;IBH: jeg har tweaket koden fra det her link, så den virker med ny NetLogo-syntaks + vores populations-struktur:
   ;;https://stackoverflow.com/questions/32967388/netlogo-efficient-way-to-create-fixed-number-of-links
-
   ;;det er lidt komplekst, men burde virke
 
-  ask people [ ;;my-friend-nr is a person variable showing (@HALF OF!) how many friends this person will end up with
-    if age-group = "child" [set my-friend-nr 1] ;;@tweak these numbers? (can make it vary within the age-groups with random-float - but maybe not needed?)
-    if age-group = "young" [set my-friend-nr 3]
-    if age-group = "adult" [set my-friend-nr 2]
-    if age-group = "elder" [set my-friend-nr 1]
-    ;;@IBH: for some reason, it looks like everybody ends up with an agentset of friends DOUBLE this number... instead of hunting down the cause, let's just roll with it for now :P
-  ]
+  ;;my-friend-nr is a reporter showing (@HALF OF!) how many friends this person will end up with
+
 
   ;;assumption: people are only friends with people in their own age group. Therefore we need to repeat this method once for each age group:
 
@@ -443,10 +448,21 @@ to set-friend-group ;;run in setup
 
   ;;ask turtles to add their links to their friends!:
   ask people [
-    set my-friends link-neighbors ;;my-friends is an agentset containing their friends (person variable)
+    set my-friends link-neighbors with [age-group = [age-group] of self] ;;my-friends is an agentset containing their friends (person variable)
     ;;link-neighbors assumption: if I'm your friend, you're also my friend :))
+  ]
+end
 
-    set my-friend-nr (2 * my-friend-nr) ;;@OBS: right now a botchy way, for some reason the agentset becomes double the size of the original my-friend-nr...
+to set-relatives ;;run in setup
+  let relative-nr 2 ;;udover deres vennegruppe, laver hver agent TO random forbindelser til folk fra andre aldersgrupper
+    ;;(siden alle gør det, giver det hver agent MINDST to ekstra forbindelser uden for husholdningen på tværs af aldersgrupper (ekstra familie or whatever)
+    ;;@no upper bound... but should be okay? the random max seems to lie around 8 relatives
+
+  ;;everyone creates two random connections:
+  ask people [
+    let candidates other people with [age-group != [age-group] of myself]
+    create-links-with n-of relative-nr other candidates [ hide-link ]
+    set my-relatives link-neighbors with [age-group != [age-group] of myself]
   ]
 end
 
@@ -531,7 +547,7 @@ end
 
 
 to update-productivity-plot ;;run only at 12 every weekday! (see go procedure where this is called)
-  set-current-plot "Productivity"
+  set-current-plot "Productivity (average per person)"
   set-current-plot-pen "productivity"
 
   let total-productivity sum [productivity] of people ;;uses the productivity reporter above, sums for all people
