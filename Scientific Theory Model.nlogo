@@ -998,7 +998,7 @@ PLOT
 205
 1495
 400
-Hvor er folk?
+Where are people currently?
 Tid
 Antal
 0.0
@@ -1009,9 +1009,9 @@ true
 true
 "" ""
 PENS
-"Hjemme" 1.0 0 -13345367 true "" "plot people-at-home"
-"Arbejde" 1.0 0 -2674135 true "" "plot people-at-work"
-"Skole" 1.0 0 -955883 true "" "plot people-at-school"
+"Home" 1.0 0 -13345367 true "" "plot people-at-home"
+"Work" 1.0 0 -2674135 true "" "plot people-at-work"
+"School" 1.0 0 -955883 true "" "plot people-at-school"
 "Bar" 1.0 0 -13840069 true "" "plot people-at-bar"
 
 @#$#@#$#@
