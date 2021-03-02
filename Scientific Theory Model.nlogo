@@ -718,8 +718,8 @@ PLOT
 400
 1180
 595
-Productivity (average per person)
-NIL
+Productivity (average per person and baseline = 1)
+days since start
 NIL
 0.0
 10.0
