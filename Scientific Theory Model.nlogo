@@ -111,7 +111,7 @@ to setup
       ;[set
 
 
-      ifelse not any? other people-here ;;hvis det er det første member
+       ifelse not any? other people-here ;;hvis det er det første member
         [while [age-group = "child"] [set age age-distribution]]
         [set age age-distribution]
 
@@ -363,28 +363,29 @@ to-report age-distribution
   ;72% is the percentage of the population in Denmark above 17 and below 75 anno 2021 (DKs Statistik)
   ;20% below 18
   ;elders above 74, 8%
-
-  ;@OBS det her giver for mange børn lige nu! (@Lisa fixer hacky hack hack)
-
-  ;;OBS: de her følgende procentsatser har regnet med, at de første 700 IKKE er børn (konsekvens af hatch-people-koden lige nu...) hacky hack hack
+  ; lige nu vil der være omkring 30% af husholdninger med børn. Statistikken siger 28%, men måske det er tæt nok på. :)
+  ; tjek med (count households with [ any? members with [ age < 18 ] ] ) / 700
 
   let this-number random-float 1
 
-  ;;children:
-  if this-number < 0.38 [ ;;38% after hacky hack
+  ;children:
+
+  if this-number < 0.24 [ ;;this way, around 20% of the population is below age 18
     report random 18
+    report 1
   ]
 
   ;;adults and young:
-  if this-number >= 0.38 and this-number < 0.94 [ ;56% after hacky hack
+  if this-number >= 0.24 and this-number < 0.925 [ ; this way, around 72% of the population is above 18 and below 75
     report 18 + random 57
   ]
 
   ;;elders:
-  if this-number >= 0.94 [ ;;6% after hacky hack
+  if this-number >= 0.925 [ ;this way, around 8% of the population above 74
     report 75 + random 26
   ]
 end
+
 
 to-report age-group ;;IBH: bruger de tre grupper fra DKs Statistik (ret forsimplet, men måske fint at holde det til tre): 0-17, 18-74, 75+
   if age <= 17 [ report "child" ] ;;initially 20 %
@@ -822,7 +823,7 @@ average-duration
 average-duration
 0
 25
-6.0
+1.0
 1
 1
 days
@@ -835,7 +836,7 @@ SWITCH
 223
 close-bars-and-stores?
 close-bars-and-stores?
-1
+0
 1
 -1000
 
