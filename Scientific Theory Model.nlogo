@@ -560,6 +560,37 @@ to-report patch-color ;;depends on the time of day
   if time >= 11 and time <= 16 [report 95] ;;dag
   if time >= 17 and time <= 22 [report 103] ;;aften
 end
+
+
+;;plot reporters (hvor er folk?):
+to-report people-at-home
+  report count people-on households
+end
+
+to-report people-at-work
+  report count people-on workplaces
+end
+
+to-report people-at-school
+  report count people-on schools
+end
+
+to-report people-at-bar
+  report count people-on bars
+end
+
+to-report people-at-visit
+  report 0 ;;at a household, but not their own
+end
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 240
@@ -666,7 +697,7 @@ str-time
 PLOT
 775
 10
-1205
+1180
 205
 Infection rates
 NIL
@@ -684,7 +715,7 @@ PENS
 PLOT
 775
 400
-1205
+1180
 595
 Productivity
 NIL
@@ -706,7 +737,7 @@ SWITCH
 153
 close-workplaces?
 close-workplaces?
-0
+1
 1
 -1000
 
@@ -833,7 +864,7 @@ SWITCH
 223
 close-bars-and-stores?
 close-bars-and-stores?
-0
+1
 1
 -1000
 
@@ -851,7 +882,7 @@ Day
 PLOT
 775
 205
-1205
+1180
 400
 SIR Plots
 NIL
@@ -869,10 +900,10 @@ PENS
 "R" 1.0 0 -8630108 true "" "plot count people with [immune?]"
 
 MONITOR
-1390
-300
-1465
-345
+690
+10
+765
+55
 NIL
 total-deaths
 17
@@ -880,10 +911,10 @@ total-deaths
 11
 
 MONITOR
-1390
-255
-1465
-300
+615
+10
+690
+55
 NIL
 count people
 17
@@ -892,9 +923,9 @@ count people
 
 PLOT
 1210
-40
+10
 1495
-190
+160
 Age distribution over time
 Time
 Count
@@ -937,10 +968,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1210
-475
-1310
-510
+1185
+485
+1285
+520
 Productivity updates every day at 12:00.
 11
 0.0
@@ -960,6 +991,38 @@ has-symptoms
 1
 %
 HORIZONTAL
+
+PLOT
+1185
+205
+1495
+400
+Hvor er folk?
+Tid
+Antal
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Hjemme" 1.0 0 -13345367 true "" "plot people-at-home"
+"Arbejde" 1.0 0 -2674135 true "" "plot people-at-work"
+"Skole" 1.0 0 -955883 true "" "plot people-at-school"
+"Bar" 1.0 0 -13840069 true "" "plot people-at-bar"
+
+MONITOR
+1345
+410
+1432
+455
+NIL
+people-at-bar
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
