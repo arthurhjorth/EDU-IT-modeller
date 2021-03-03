@@ -137,7 +137,7 @@ to setup
   set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
   set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-duration * 24] ;
+  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration] ;
 
 
   ask turtles [recolor]
@@ -188,7 +188,7 @@ if time = 17 [
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
         [ ask people [
-          ifelse age-group = "adult" or age-group = "young" and not isolating? ;&not at privat socialt arrangement?
+          ifelse age-group != "child" and not isolating? ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
               [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays. @@@ - do we care though
@@ -222,7 +222,7 @@ if time = 17 [
 
       ifelse isolating? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
         [ ;;if isolating:
-        ask other people-here with [random-float 1 < (0.2 * probability-of-infection) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
+        ask other people-here with [random-float 1 < (0.2 * probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
           set infected-at ticks
           ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
           ifelse random-float 1 < (has-symptoms / 100)
@@ -231,7 +231,7 @@ if time = 17 [
         ]
       ]
       [ ;;if not isolating:
-        ask other people-here with [random-float 1 < probability-of-infection and not immune? and not infected?] [ ;;normal risk of infection if not isolating
+        ask other people-here with [random-float 1 < ( probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;normal risk of infection if not isolating
           set infected-at ticks
           ifelse random-float 1 < (has-symptoms / 100)
            [set will-show-symptoms? true]
@@ -249,7 +249,7 @@ if time = 17 [
       ; x is the value we're looking for: probability of dying per iteration
 
         let my-destiny random-float 1
-        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-duration * 24 ) ) [
+        if my-destiny < 1 - (my-survival-rate) ^ ( 1 / (average-infection-duration ) ) [
           set total-deaths total-deaths + 1
           die
         ]
@@ -295,7 +295,7 @@ end
 
 
 to-report workers
-  report people with [age-group = "young" or age-group = "adult"]
+  report people with [age >= 20 and age <= 74]
 end
 
 to-report all-students
@@ -453,6 +453,7 @@ to set-friend-group ;;run in setup
   ]
 end
 
+
 to set-relatives ;;run in setup
   let relative-nr 2 ;;udover deres vennegruppe, laver hver agent TO random forbindelser til folk fra andre aldersgrupper
     ;;(siden alle gør det, giver det hver agent MINDST to ekstra forbindelser uden for husholdningen på tværs af aldersgrupper (ekstra familie or whatever)
@@ -468,12 +469,12 @@ end
 
 
 to-report infected?
-  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-duration * 24) ;infected-duration er sum af inkubationstid og sygetid (average duration)
+  report ticks >= infected-at and ticks <= infected-at + incubation-time + (average-infection-duration) ;infected-duration er sum af inkubationstid og sygetid (average duration)
 end
 
 
 to-report currently-symptomous? ;andel af inficerede med symptomer justeres på slider. Symptomer kommer efter inkubationstid, og stopper ved slutning af sygdomsforløb
-  report infected-at != -1000 and ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-duration)
+  report infected-at != -1000 and ticks > ( infected-at + incubation-time) and will-show-symptoms? and ticks < (infected-at + incubation-time + average-infection-duration)
 end
 
 
@@ -507,7 +508,7 @@ to-report my-survival-rate
 end
 
 to-report immune? ;;@nu antager vi, at alle bliver immune
-  report has-been-infected? and infected-at + average-duration * 24 < ticks
+  report has-been-infected? and infected-at + average-infection-duration < ticks
 end
 
 to-report has-been-infected?
@@ -547,7 +548,7 @@ end
 
 
 to update-productivity-plot ;;run only at 12 every weekday! (see go procedure where this is called)
-  set-current-plot "Productivity (average per person)"
+  set-current-plot "Productivity (average per person and baseline = 1)"
   set-current-plot-pen "productivity"
 
   ;; AH: only calculating this for people who work
@@ -585,8 +586,6 @@ end
 to-report people-at-visit
   report 0 ;;at a household, but not their own
 end
-
-
 
 
 
@@ -686,10 +685,10 @@ home-productivity
 HORIZONTAL
 
 MONITOR
-485
-10
-594
-55
+419
+12
+528
+57
 Time of the Day
 str-time
 0
@@ -697,30 +696,30 @@ str-time
 11
 
 PLOT
-775
-10
-1180
-205
-Infection rates
-NIL
-NIL
+776
+12
+1148
+208
+Infection rate
+hours since start
+% infected
 0.0
 10.0
 0.0
-1.0
+100.0
 true
-true
+false
 "" ""
 PENS
-"% infected" 1.0 0 -16777216 true "" "plot count people with [infected?] / count people"
+"% infected" 1.0 0 -16777216 true "" "plot ( count people with [infected?] / count people ) * 100"
 
 PLOT
-775
-400
-1180
-595
-Productivity (average per person)
-NIL
+776
+402
+1146
+598
+Productivity (average per person and baseline = 1)
+days since start
 NIL
 0.0
 10.0
@@ -812,11 +811,11 @@ SLIDER
 probability-of-infection
 probability-of-infection
 0
-0.02
-0.00117
-0.00001
+2.0
+0.117
+0.001
 1
-/ hour
+% / hour
 HORIZONTAL
 
 TEXTBOX
@@ -838,7 +837,7 @@ incubation-time
 incubation-time
 0
 240
-69.0
+110.0
 1
 1
 hours
@@ -847,16 +846,16 @@ HORIZONTAL
 SLIDER
 10
 370
-230
+234
 403
-average-duration
-average-duration
+average-infection-duration
+average-infection-duration
 0
-25
-5.0
+240
+120.0
 1
 1
-days
+hours
 HORIZONTAL
 
 SWITCH
@@ -871,10 +870,10 @@ close-bars-and-stores?
 -1000
 
 MONITOR
-360
-10
-410
-55
+294
+12
+344
+57
 Day
 Day
 17
@@ -882,13 +881,13 @@ Day
 11
 
 PLOT
-775
-205
-1180
-400
-SIR Plots
-NIL
-NIL
+776
+207
+1146
+403
+SIR plot
+hours since start
+n people
 0.0
 10.0
 0.0
@@ -897,15 +896,15 @@ true
 true
 "" ""
 PENS
-"S" 1.0 0 -13345367 true "" "plot count people with [not immune? and not infected?]"
-"I" 1.0 0 -2674135 true "" "plot count people with [infected?]"
-"R" 1.0 0 -8630108 true "" "plot count people with [immune?]"
+"Susceptible" 1.0 0 -13345367 true "" "plot count people with [not immune? and not infected?]"
+"Infected" 1.0 0 -2674135 true "" "plot count people with [infected?]"
+"Recovered" 1.0 0 -8630108 true "" "plot count people with [immune?]"
 
 MONITOR
-690
-10
-765
-55
+653
+12
+728
+57
 NIL
 total-deaths
 17
@@ -913,10 +912,10 @@ total-deaths
 11
 
 MONITOR
-615
-10
-690
-55
+578
+12
+653
+57
 NIL
 count people
 17
@@ -924,13 +923,13 @@ count people
 11
 
 PLOT
-1210
-10
-1495
-160
+1146
+12
+1508
+208
 Age distribution over time
-Time
-Count
+hours since start
+n people
 0.0
 10.0
 0.0
@@ -944,10 +943,10 @@ PENS
 "Elders" 1.0 0 -2674135 true "" "plot count people with [age-group = \"elder\"]"
 
 MONITOR
-410
-10
-485
-55
+344
+12
+419
+57
 Weekday
 weekday
 17
@@ -970,10 +969,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1185
-485
-1285
-526
+1157
+543
+1257
+584
 Productivity updates every weekday at 12:00.
 11
 0.0
@@ -995,13 +994,13 @@ has-symptoms
 HORIZONTAL
 
 PLOT
-1185
-205
-1495
-400
-Hvor er folk?
-Tid
-Antal
+1145
+207
+1510
+403
+Where are people currently?
+hours since start
+n people
 0.0
 10.0
 0.0
@@ -1010,21 +1009,10 @@ true
 true
 "" ""
 PENS
-"Hjemme" 1.0 0 -13345367 true "" "plot people-at-home"
-"Arbejde" 1.0 0 -2674135 true "" "plot people-at-work"
-"Skole" 1.0 0 -955883 true "" "plot people-at-school"
+"Home" 1.0 0 -13345367 true "" "plot people-at-home"
+"Work" 1.0 0 -2674135 true "" "plot people-at-work"
+"School" 1.0 0 -955883 true "" "plot people-at-school"
 "Bar" 1.0 0 -13840069 true "" "plot people-at-bar"
-
-MONITOR
-1345
-410
-1432
-455
-NIL
-people-at-bar
-17
-1
-11
 
 @#$#@#$#@
 ## WHAT IS IT?
