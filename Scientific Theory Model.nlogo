@@ -188,7 +188,7 @@ if time = 17 [
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
         [ ask people [
-          ifelse age-group = "adult" or age-group = "young" and not isolating? ;&not at privat socialt arrangement?
+          ifelse age-group != "child" and not isolating? ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
               [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays. @@@ - do we care though
@@ -453,6 +453,7 @@ to set-friend-group ;;run in setup
   ]
 end
 
+
 to set-relatives ;;run in setup
   let relative-nr 2 ;;udover deres vennegruppe, laver hver agent TO random forbindelser til folk fra andre aldersgrupper
     ;;(siden alle gør det, giver det hver agent MINDST to ekstra forbindelser uden for husholdningen på tværs af aldersgrupper (ekstra familie or whatever)
@@ -585,7 +586,6 @@ end
 to-report people-at-visit
   report 0 ;;at a household, but not their own
 end
-
 
 
 
@@ -807,7 +807,7 @@ SLIDER
 10
 300
 230
-334
+333
 probability-of-infection
 probability-of-infection
 0
@@ -837,7 +837,7 @@ incubation-time
 incubation-time
 0
 240
-69.0
+110.0
 1
 1
 hours
@@ -847,7 +847,7 @@ SLIDER
 10
 370
 234
-404
+403
 average-infection-duration
 average-infection-duration
 0
