@@ -548,7 +548,7 @@ end
 
 
 to update-productivity-plot ;;run only at 12 every weekday! (see go procedure where this is called)
-  set-current-plot "Productivity (average per person)"
+  set-current-plot "Productivity (average per person and baseline = 1)"
   set-current-plot-pen "productivity"
 
   ;; AH: only calculating this for people who work
