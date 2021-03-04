@@ -1,17 +1,20 @@
-
-
 to setup
   import-pcolors "stthomas.png"
-  ask patches with [shade-of? pcolor sky] [set pcolor red]
+ ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [shade-of? pcolor turquoise] [set pcolor green]
-
+  ask patches with [shade-of? pcolor white] [set pcolor green]
+  ask patches with [ shade-of? pcolor blue ] [set pcolor red]
+  ask patches with [pcolor != green and pcolor != red] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = red ] >= 7 ] [set pcolor red]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-944
-356
+940
+357
 -1
 -1
 2.0
@@ -33,6 +36,23 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+50
+45
+116
+78
+NIL
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
