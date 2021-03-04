@@ -1,17 +1,58 @@
+extensions [fetch csv table]
 
+globals [
+  whole-file
+  test-list
+]
 
 to setup
+  clear-all
+
+  import-csv
+
   import-pcolors "stthomas.png"
   ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [shade-of? pcolor turquoise] [set pcolor green]
 
+  reset-ticks
 end
+
+
+
+;@---IBH testing csv import and table stuff:
+
+;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
+;;sheets link: https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/edit?usp=sharing
+;;downloadable sheets link (the one I use here): https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv
+
+;;we can always change this url if/when we find a better way to host the csv files online
+
+to import-csv
+  fetch:url-async "https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv" [
+    text ->
+    ;;set whole-file (csv:from-file text ";") ;;csv:from-file not working when it's from the url... :(
+    set whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
+
+    ;;now to convert it:
+    set test-list []
+    set test-list ( map [i -> csv:from-row reduce word i] whole-file )
+    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
+    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+    show "success! here's test-list:"
+    show test-list
+  ]
+end
+
+;;... and THEN next step: look at how to turn it into a table?!:
+;;item 0 test-list is the key!
+;;the 'header', shows what all the indexes mean in the other items!
+;;and also item 0 item 1, item 0 item 2 etc... all the languages are also a kind of key for that nested list itself
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-944
-356
+940
+357
 -1
 -1
 2.0
@@ -33,6 +74,30 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+29
+43
+92
+76
+NIL
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+978
+63
+1446
+347
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
