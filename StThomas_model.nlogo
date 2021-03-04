@@ -10,9 +10,16 @@ to setup
 
   import-csv
 
+
   import-pcolors "stthomas.png"
-  ask patches with [shade-of? pcolor sky] [set pcolor red]
+ ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [shade-of? pcolor turquoise] [set pcolor green]
+  ask patches with [shade-of? pcolor white] [set pcolor green]
+  ask patches with [ shade-of? pcolor blue ] [set pcolor red]
+  ask patches with [pcolor != green and pcolor != red] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = red ] >= 7 ] [set pcolor red]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
 
   reset-ticks
 end
