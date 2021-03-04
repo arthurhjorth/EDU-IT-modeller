@@ -1,18 +1,34 @@
 extensions [fetch csv table]
 
+
 globals [
   whole-file
   test-list
+  sea-patches
+  land-patches
 ]
+
 
 to setup
   clear-all
 
   import-csv
 
-
   import-pcolors "stthomas.png"
- ask patches with [shade-of? pcolor sky] [set pcolor red]
+  streamline-map
+  set sea-patches patches with [pcolor = red] ; defining the global variables
+  set land-patches patches with [pcolor = green]
+  color-map
+
+
+
+  reset-ticks
+end
+
+
+
+to streamline-map ; this is manipulating the map into 2 colors
+ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [shade-of? pcolor turquoise] [set pcolor green]
   ask patches with [shade-of? pcolor white] [set pcolor green]
   ask patches with [ shade-of? pcolor blue ] [set pcolor red]
@@ -20,9 +36,15 @@ to setup
   ask patches with [ count neighbors with [ pcolor = red ] >= 7 ] [set pcolor red]
   ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
   ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
-
-  reset-ticks
 end
+
+
+to color-map
+  ask patches with [pcolor = red] [set pcolor blue - 3 + random-float 2]
+  ask patches with [pcolor = green] [set pcolor green + 0.2 + random-float 0.3]
+end
+
+
 
 
 
