@@ -1,31 +1,105 @@
 extensions [fetch csv table]
 
-
 globals [
-  whole-file
   test-list
+  header-list
+  feature-list
+  wals-table
+
   sea-patches
   land-patches
 ]
+
+breed [africans african]
+
+africans-own [
+  my-start-lang
+  my-lang-vec
+]
+
 
 
 to setup
   clear-all
 
-  import-csv
-
+  ;;create the map:
   import-pcolors "stthomas.png"
   streamline-map
   set sea-patches patches with [pcolor = red] ; defining the global variables
   set land-patches patches with [pcolor = green]
   color-map
 
+  ;;get the data files:
+  import-csv ;;gets WALS data from url, makes it into a table
 
 
   reset-ticks
 end
 
 
+to go
+
+  tick
+end
+
+
+
+to make-person [language] ;;function that creates a person and takes their starting language as input
+  create-africans 1 [
+    set shape "person" set size 6 set color black
+    set my-start-lang language
+    set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+    move-to one-of land-patches ;;@just random position right now
+  ]
+end
+
+
+;;---IMPORTING DATA FILES:
+
+;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
+;;sheets link: https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/edit?usp=sharing
+;;downloadable sheets link (the one I use here): https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv
+
+;;we can always change this url if/when we find a better way to host the csv files online
+
+to import-csv
+  fetch:url-async "https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv" [
+    text ->
+    let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
+    ;;now to convert it:
+    set test-list []
+    set test-list ( map [i -> csv:from-row reduce word i] whole-file )
+    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
+    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+  ]
+
+  set header-list item 0 test-list ;;the headers from the csv ('ID' followed by feature names) (matching the values in test-list) ;;probably don't need this?
+  set feature-list but-first header-list ;;only the feature names (matching the positions for values in wals-table)
+  set test-list remove-item 0 test-list ;;now test-list only contains languages with associated feature lists (and not the headers)
+
+  ;;now to make the table:
+  set wals-table table:make ;;initialize the empty table
+
+  foreach test-list [ ;;test-list is a list of lists
+    x -> ;;x is each sublist in the form ["cSANo" 1 9 8 3 2 ... ]
+    let key item 0 x ;;item 0 in this sublist is the language - what we want to be the table key
+    let value but-first x ;;the table value should be just the numbered feature list, ie without the item 0 language identifier
+    table:put wals-table key value ;;table:put adds this key-value combination to the table
+  ]
+end
+
+
+;;@Ida's notes about how to handle the data:
+
+;;- how to get a particular feature value for a particular language from the table:
+  ;;let lang-vec table:get wals-table "cSANo" ;;write the language code here
+  ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
+
+
+
+
+;;---GRAPHICS:
 
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
@@ -38,44 +112,10 @@ ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
 end
 
-
 to color-map
-  ask patches with [pcolor = red] [set pcolor blue - 3 + random-float 2]
-  ask patches with [pcolor = green] [set pcolor green + 0.2 + random-float 0.3]
+  ask patches with [pcolor = red] [set pcolor blue - 2 + random-float 2]
+  ask patches with [pcolor = green] [set pcolor green + 0.2 + random-float 0.8]
 end
-
-
-
-
-
-;@---IBH testing csv import and table stuff:
-
-;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
-;;sheets link: https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/edit?usp=sharing
-;;downloadable sheets link (the one I use here): https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv
-
-;;we can always change this url if/when we find a better way to host the csv files online
-
-to import-csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv" [
-    text ->
-    ;;set whole-file (csv:from-file text ";") ;;csv:from-file not working when it's from the url... :(
-    set whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
-
-    ;;now to convert it:
-    set test-list []
-    set test-list ( map [i -> csv:from-row reduce word i] whole-file )
-    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
-    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
-    show "success! here's test-list:"
-    show test-list
-  ]
-end
-
-;;... and THEN next step: look at how to turn it into a table?!:
-;;item 0 test-list is the key!
-;;the 'header', shows what all the indexes mean in the other items!
-;;and also item 0 item 1, item 0 item 2 etc... all the languages are also a kind of key for that nested list itself
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -91,8 +131,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -180
 180
@@ -105,10 +145,10 @@ ticks
 30.0
 
 BUTTON
-29
-43
-92
-76
+25
+30
+88
+63
 NIL
 setup
 NIL
@@ -127,6 +167,23 @@ OUTPUT
 1446
 347
 11
+
+BUTTON
+95
+30
+158
+63
+NIL
+go
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -487,5 +544,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@
