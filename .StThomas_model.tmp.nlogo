@@ -44,9 +44,9 @@ to setup
 
   create-plantations  10 [
     set color gray
-    set shape "house" ;@ do we want another shape?
+    set shape "house"
     move-to one-of land-patches
-    set size 15
+    set size
     ;move-to max-one-of (patches with [not any? turtles-here]) [pxcor + pycor]
     ;set students (turtle-set)
   ]
