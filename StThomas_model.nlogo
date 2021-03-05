@@ -2,8 +2,6 @@ extensions [fetch csv table]
 
 
 globals [
-  time
-  month-names
   whole-file
   test-list
   sea-patches
@@ -13,7 +11,6 @@ globals [
 
 to setup
   clear-all
-  reset-ticks
 
   import-csv
 
@@ -25,23 +22,10 @@ to setup
 
 
 
-  set month-names ["Dec" "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
-
-
+  reset-ticks
 end
 
-to go
-  tick
-  every .01 [ ; (this bracket is closed at the end of the to go procedure)
 
-    ;; update time
-    set time ticks mod 12
-
-
- if year = 1940 [stop]
-
-  ] ;;end of 'every .01' (the whole go procedure)
-end
 
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
@@ -92,31 +76,12 @@ end
 ;;item 0 test-list is the key!
 ;;the 'header', shows what all the indexes mean in the other items!
 ;;and also item 0 item 1, item 0 item 2 etc... all the languages are also a kind of key for that nested list itself
-
-
-
-
-
-
-
-to-report year
-  report floor (ticks / 12) + 1600
-end
-
-to-report month
-  report floor ticks
-end
-to-report this-month ;reporting month-names
-  let m month mod 12 ;;sets this-month from 0 to 11 (uses the day-reporter above)
-  report item m month-names   ;;reports the current month name from the 'day-names' list
-end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
-211
-70
-941
-417
+210
+10
+940
+357
 -1
 -1
 2.0
@@ -161,45 +126,6 @@ OUTPUT
 63
 1446
 347
-11
-
-BUTTON
-114
-46
-177
-79
-NIL
-go
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-361
-18
-418
-63
-NIL
-year
-17
-1
-11
-
-MONITOR
-428
-17
-500
-62
-NIL
-this-month
-17
-1
 11
 
 @#$#@#$#@
