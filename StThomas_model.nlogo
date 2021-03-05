@@ -1,5 +1,6 @@
 extensions [fetch csv table]
 
+<<<<<<< HEAD
 breed [plantations plantation]
 breed [slaves slave]
 breed [colonists colonist]
@@ -26,6 +27,16 @@ globals [
   land-patches
 ]
 
+=======
+
+globals [
+  whole-file
+  test-list
+  sea-patches
+  land-patches
+]
+
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
 to setup
   clear-all
@@ -33,14 +44,22 @@ to setup
 
   import-csv
 
+<<<<<<< HEAD
   ;changing layout of stthomas
+=======
+  import-csv
+
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
   import-pcolors "stthomas.png"
   streamline-map
   set sea-patches patches with [pcolor = red] ; defining the global variables
   set land-patches patches with [pcolor = green]
   color-map
 
+<<<<<<< HEAD
   set month-names ["Dec" "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
+=======
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
   create-plantations  10 [
     set color gray
@@ -52,18 +71,42 @@ to setup
   ]
 end
 
+<<<<<<< HEAD
 to go
   tick
   every .01 [ ; (this bracket is closed at the end of the to go procedure)
+=======
+
+
+to streamline-map ; this is manipulating the map into 2 colors
+ask patches with [shade-of? pcolor sky] [set pcolor red]
+  ask patches with [shade-of? pcolor turquoise] [set pcolor green]
+  ask patches with [shade-of? pcolor white] [set pcolor green]
+  ask patches with [ shade-of? pcolor blue ] [set pcolor red]
+  ask patches with [pcolor != green and pcolor != red] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = red ] >= 7 ] [set pcolor red]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+end
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
     ;; update time
     set time ticks mod 12
 
+to color-map
+  ask patches with [pcolor = red] [set pcolor blue - 3 + random-float 2]
+  ask patches with [pcolor = green] [set pcolor green + 0.2 + random-float 0.3]
+end
 
+
+<<<<<<< HEAD
  if year = 1940 [stop]
 
   ] ;;end of 'every .01' (the whole go procedure)
 end
+=======
+
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
@@ -84,8 +127,11 @@ end
 
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 ;@---IBH testing csv import and table stuff:
 
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
@@ -108,6 +154,7 @@ to import-csv
     show "success! here's test-list:"
     show test-list
   ]
+<<<<<<< HEAD
 end
 
 ;;... and THEN next step: look at how to turn it into a table?!:
@@ -133,6 +180,14 @@ to-report this-month ;reporting month-names
   report item m month-names   ;;reports the current month name from the 'day-names' list
 end
 
+=======
+end
+
+;;... and THEN next step: look at how to turn it into a table?!:
+;;item 0 test-list is the key!
+;;the 'header', shows what all the indexes mean in the other items!
+;;and also item 0 item 1, item 0 item 2 etc... all the languages are also a kind of key for that nested list itself
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 @#$#@#$#@
 GRAPHICS-WINDOW
 211
@@ -185,6 +240,7 @@ OUTPUT
 347
 11
 
+<<<<<<< HEAD
 BUTTON
 114
 46
@@ -224,6 +280,8 @@ this-month
 1
 11
 
+=======
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 @#$#@#$#@
 ## WHAT IS IT?
 
