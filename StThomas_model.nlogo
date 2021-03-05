@@ -1,6 +1,7 @@
 extensions [fetch csv table]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 breed [plantations plantation]
 breed [slaves slave]
 breed [colonists colonist]
@@ -21,12 +22,17 @@ colonists-own [
 globals [
   time
   month-names
+=======
+
+globals [
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
   whole-file
   test-list
   sea-patches
   land-patches
 ]
 
+<<<<<<< HEAD
 =======
 
 globals [
@@ -37,6 +43,8 @@ globals [
 ]
 
 >>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
+=======
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
 to setup
   clear-all
@@ -45,7 +53,12 @@ to setup
   import-csv
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   ;changing layout of stthomas
+=======
+  import-csv
+
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 =======
   import-csv
 
@@ -56,6 +69,7 @@ to setup
   set land-patches patches with [pcolor = green]
   color-map
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   set month-names ["Dec" "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
 =======
@@ -77,6 +91,8 @@ to go
   every .01 [ ; (this bracket is closed at the end of the to go procedure)
 =======
 
+=======
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
@@ -100,14 +116,28 @@ end
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
  if year = 1940 [stop]
 
   ] ;;end of 'every .01' (the whole go procedure)
+=======
+
+to streamline-map ; this is manipulating the map into 2 colors
+ask patches with [shade-of? pcolor sky] [set pcolor red]
+  ask patches with [shade-of? pcolor turquoise] [set pcolor green]
+  ask patches with [shade-of? pcolor white] [set pcolor green]
+  ask patches with [ shade-of? pcolor blue ] [set pcolor red]
+  ask patches with [pcolor != green and pcolor != red] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = red ] >= 7 ] [set pcolor red]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+  ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 end
 =======
 
 >>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 
+<<<<<<< HEAD
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [shade-of? pcolor turquoise] [set pcolor green]
@@ -132,6 +162,17 @@ end
 
 =======
 >>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
+=======
+to color-map
+  ask patches with [pcolor = red] [set pcolor blue - 3 + random-float 2]
+  ask patches with [pcolor = green] [set pcolor green + 0.2 + random-float 0.3]
+end
+
+
+
+
+
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 ;@---IBH testing csv import and table stuff:
 
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
@@ -154,6 +195,7 @@ to import-csv
     show "success! here's test-list:"
     show test-list
   ]
+<<<<<<< HEAD
 <<<<<<< HEAD
 end
 
@@ -183,10 +225,17 @@ end
 =======
 end
 
+=======
+end
+
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 ;;... and THEN next step: look at how to turn it into a table?!:
 ;;item 0 test-list is the key!
 ;;the 'header', shows what all the indexes mean in the other items!
 ;;and also item 0 item 1, item 0 item 2 etc... all the languages are also a kind of key for that nested list itself
+<<<<<<< HEAD
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
+=======
 >>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -241,6 +290,7 @@ OUTPUT
 11
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 BUTTON
 114
 46
@@ -280,6 +330,8 @@ this-month
 1
 11
 
+=======
+>>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 =======
 >>>>>>> parent of 0eb5e38 (WALS table + create agent with a given language + general code re-organising)
 @#$#@#$#@
