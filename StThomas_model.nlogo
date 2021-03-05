@@ -8,11 +8,16 @@ globals [
 
   sea-patches
   land-patches
+
+  time
+  month-names
 ]
 
-breed [africans african]
+breed [plantations plantation]
+breed [colonists colonist]
+breed [slaves slave]
 
-africans-own [
+slaves-own [
   my-start-lang
   my-lang-vec
 ]
@@ -21,6 +26,7 @@ africans-own [
 
 to setup
   clear-all
+  reset-ticks
 
   ;;create the map:
   import-pcolors "stthomas.png"
@@ -32,26 +38,61 @@ to setup
   ;;get the data files:
   import-csv ;;gets WALS data from url, makes it into a table
 
+  ;;initialize variables:
+  set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
 
-  reset-ticks
+  ;;layout the world:
+  create-plantations 10 [
+    set color white set shape "house" set size 6
+    move-to one-of land-patches ;;@randomly placed right now
+  ]
+
+  populate ;;create starting population
+
 end
 
 
 to go
+  every 0.2 [
 
+  set time ticks mod 12 ;;update time
+
+  if year = 1940 [stop]
   tick
+
+  ]
 end
 
 
+to populate ;;run in setup. Create starting population
+  ;;@IBH: these are just a few random people to show how it could work :P
+  make-person "cSANo"
+  make-person "cTOKe"
+  make-person "eweKWA"
 
-to make-person [language] ;;function that creates a person and takes their starting language as input
-  create-africans 1 [
+end
+
+
+to make-person [language] ;;function that creates a person and takes their starting language ID as input
+  create-slaves 1 [
     set shape "person" set size 6 set color black
     set my-start-lang language
     set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
     move-to one-of land-patches ;;@just random position right now
   ]
+end
+
+
+;;---REPORTERS:
+
+to-report year
+  report floor (ticks / 12) + 1600
+end
+
+to-report this-month ;reporting month-names
+  let month ticks mod 12 ;;sets this-month from 0 to 11
+  report item month month-names ;;reports the current month name from the 'month-names' list
 end
 
 
@@ -89,9 +130,7 @@ to import-csv
   ]
 end
 
-
 ;;@Ida's notes about how to handle the data:
-
 ;;- how to get a particular feature value for a particular language from the table:
   ;;let lang-vec table:get wals-table "cSANo" ;;write the language code here
   ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
@@ -175,7 +214,7 @@ BUTTON
 63
 NIL
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -184,6 +223,28 @@ NIL
 NIL
 NIL
 1
+
+MONITOR
+435
+375
+492
+420
+Month
+this-month
+17
+1
+11
+
+MONITOR
+495
+375
+552
+420
+Year
+year
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
