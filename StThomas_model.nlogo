@@ -22,6 +22,11 @@ slaves-own [
   my-lang-vec
 ]
 
+colonists-own [
+  my-start-lang
+  my-lang-vec
+]
+
 
 
 to setup
@@ -76,6 +81,13 @@ end
 to make-person [language] ;;function that creates a person and takes their starting language ID as input
   create-slaves 1 [
     set shape "person" set size 6 set color black
+    set my-start-lang language
+    set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+    move-to one-of land-patches ;;@just random position right now
+  ]
+  create-colonists 1 [
+    set shape "person" set size 6 set color white
     set my-start-lang language
     set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
