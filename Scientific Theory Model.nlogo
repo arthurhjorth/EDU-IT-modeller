@@ -26,6 +26,9 @@ people-own [ ;; human attributes
   my-friends ;;agentset
 
   my-relatives ;;2-4 extra connections outside the agent's age group
+
+  people-i-infected
+  place-infected
 ]
 ;; household attributes
 households-own [
@@ -117,6 +120,7 @@ to setup
 
       set social-needs social-needs-distribution
       set infected-at -1000
+
       set will-show-symptoms? false
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
@@ -131,13 +135,16 @@ to setup
 
 
         ]
+
+      set people-i-infected (turtle-set)
+
       ]
     ]
 
   set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
   set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration] ;
+  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration set place-infected "Initial"] ;
 
 
   ask turtles [recolor]
@@ -222,21 +229,25 @@ if time = 17 [
 
       ifelse isolating? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
         [ ;;if isolating:
-        ask other people-here with [random-float 1 < (0.2 * probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
-          set infected-at ticks
-          ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
-          ifelse random-float 1 < (has-symptoms / 100)
-           [set will-show-symptoms? true]
-           [set will-show-symptoms? false]
-        ]
+          ask other people-here with [random-float 1 < (0.2 * probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
+            set infected-at ticks
+            ask myself [set people-i-infected (turtle-set people-i-infected myself)] ;ask the person who infected me to remember that.
+            set place-infected determine-place-of-infection
+            ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
+            ifelse random-float 1 < (has-symptoms / 100)
+            [set will-show-symptoms? true]
+            [set will-show-symptoms? false]
+          ]
       ]
       [ ;;if not isolating:
         ask other people-here with [random-float 1 < ( probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;normal risk of infection if not isolating
           set infected-at ticks
+          ask myself [set people-i-infected (turtle-set people-i-infected myself)]
+          set place-infected determine-place-of-infection
           ifelse random-float 1 < (has-symptoms / 100)
-           [set will-show-symptoms? true]
-           [set will-show-symptoms? false]
-      ]
+            [set will-show-symptoms? true]
+          [set will-show-symptoms? false]
+        ]
      ]
 
 
@@ -293,6 +304,15 @@ to-report infected-rate
   report 0
 end
 
+to-report determine-place-of-infection
+  if member? my-household  turtles-here [report "Home"]
+  if member? my-workplace turtles-here [
+    if is-school? my-workplace [report "School"]
+    if is-workplace? my-workplace [report "Work"]
+  ]
+  if any? bars-here [report "Bar/Restaurant"]
+
+end
 
 to-report workers
   report people with [age >= 20 and age <= 74]
@@ -589,9 +609,6 @@ end
 
 
 
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 240
@@ -622,9 +639,9 @@ ticks
 
 BUTTON
 50
-60
+50
 112
-93
+83
 NIL
 setup\n
 NIL
@@ -639,9 +656,9 @@ NIL
 
 BUTTON
 115
-60
+50
 180
-93
+83
 NIL
 go
 T
@@ -663,7 +680,7 @@ initial-infection-rate
 initial-infection-rate
 0
 100
-17.5
+6.0
 .1
 1
 %
@@ -671,9 +688,9 @@ HORIZONTAL
 
 SLIDER
 5
-480
+425
 230
-513
+458
 home-productivity
 home-productivity
 0
@@ -696,28 +713,10 @@ str-time
 11
 
 PLOT
-776
-12
-1148
-208
-Infection rate
-hours since start
-% infected
-0.0
-10.0
-0.0
-100.0
-true
-false
-"" ""
-PENS
-"% infected" 1.0 0 -16777216 true "" "plot ( count people with [infected?] / count people ) * 100"
-
-PLOT
-776
-402
-1146
-598
+1145
+400
+1505
+585
 Productivity (average per person and baseline = 1)
 days since start
 NIL
@@ -732,10 +731,10 @@ PENS
 "productivity" 1.0 0 -16777216 true "" ""
 
 SWITCH
-10
-120
-235
-153
+5
+105
+230
+138
 close-workplaces?
 close-workplaces?
 1
@@ -743,10 +742,10 @@ close-workplaces?
 -1000
 
 SWITCH
-10
-155
-235
-188
+5
+140
+230
+173
 close-schools?
 close-schools?
 1
@@ -755,9 +754,9 @@ close-schools?
 
 SLIDER
 5
-515
+460
 230
-548
+493
 productivity-while-homeschooling
 productivity-while-homeschooling
 0
@@ -770,9 +769,9 @@ HORIZONTAL
 
 SLIDER
 5
-550
+495
 230
-583
+528
 expenses-per-infection
 expenses-per-infection
 0
@@ -784,55 +783,55 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-40
-455
-190
-473
+5
+405
+155
+423
 Economic Assumptions
 15
 0.0
 1
 
 TEXTBOX
-70
-100
-170
-118
+5
+85
+105
+103
 Interventions
 15
 0.0
 1
 
 SLIDER
-10
-300
-230
-333
+5
+265
+225
+298
 probability-of-infection
 probability-of-infection
 0
-2.0
-0.117
-0.001
+100
+0.98
+0.01
 1
 % / hour
 HORIZONTAL
 
 TEXTBOX
-25
-280
-185
-300
+5
+245
+165
+265
 Virological Assumptions
 15
 0.0
 1
 
 SLIDER
-10
-335
-230
-368
+5
+300
+225
+333
 incubation-time
 incubation-time
 0
@@ -844,10 +843,10 @@ hours
 HORIZONTAL
 
 SLIDER
-10
-370
-234
-403
+5
+335
+229
+368
 average-infection-duration
 average-infection-duration
 0
@@ -859,10 +858,10 @@ hours
 HORIZONTAL
 
 SWITCH
-10
-190
-235
-223
+5
+175
+230
+208
 close-bars-and-stores?
 close-bars-and-stores?
 1
@@ -881,10 +880,10 @@ Day
 11
 
 PLOT
-776
-207
-1146
-403
+775
+15
+1145
+211
 SIR plot
 hours since start
 n people
@@ -923,10 +922,10 @@ count people
 11
 
 PLOT
-1146
-12
-1508
-208
+1145
+15
+1507
+211
 Age distribution over time
 hours since start
 n people
@@ -954,10 +953,10 @@ weekday
 11
 
 SLIDER
-10
-225
-235
-258
+5
+210
+230
+243
 max-people-restriction
 max-people-restriction
 0
@@ -968,21 +967,11 @@ max-people-restriction
 NIL
 HORIZONTAL
 
-TEXTBOX
-1157
-543
-1257
-584
-Productivity updates every weekday at 12:00.
-11
-0.0
-1
-
 SLIDER
-10
-407
-232
-440
+5
+372
+227
+405
 has-symptoms
 has-symptoms
 0
@@ -995,9 +984,9 @@ HORIZONTAL
 
 PLOT
 1145
-207
+210
 1510
-403
+400
 Where are people currently?
 hours since start
 n people
@@ -1013,6 +1002,70 @@ PENS
 "Work" 1.0 0 -2674135 true "" "plot people-at-work"
 "School" 1.0 0 -955883 true "" "plot people-at-school"
 "Bar" 1.0 0 -13840069 true "" "plot people-at-bar"
+
+TEXTBOX
+5
+530
+160
+548
+Behavioral Assumptions
+15
+0.0
+1
+
+SLIDER
+5
+550
+230
+583
+self-isolating
+self-isolating
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+775
+210
+1145
+400
+Where were people infected?
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Home" 1.0 0 -13345367 true "" "plot count people with [place-infected = \"Home\"]"
+"Work" 1.0 0 -2674135 true "" "plot count people with [place-infected = \"Work\"]"
+"School" 1.0 0 -955883 true "" "plot count people with [place-infected = \"School\"]"
+"Bar" 1.0 0 -13840069 true "" "plot count people with [place-infected = \"Bar/Restaurant\"]"
+
+PLOT
+775
+400
+1145
+580
+How many people did one individual infect?
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 1 -16777216 true "" "histogram [count people-i-infected] of people with [has-been-infected?]"
 
 @#$#@#$#@
 ## WHAT IS IT?
