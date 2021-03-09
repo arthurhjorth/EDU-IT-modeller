@@ -1,7 +1,7 @@
 extensions [fetch csv table]
 
 globals [
-  test-list
+  wals-list
   header-list
   feature-list
   wals-table
@@ -18,7 +18,7 @@ breed [colonists colonist]
 breed [slaves slave]
 
 slaves-own [
-  my-start-lang
+  my-start-lang ;;starting language (ID code)
   my-lang-vec
 ]
 
@@ -78,16 +78,9 @@ to populate ;;run in setup. Create starting population
 end
 
 
-to make-person [language] ;;function that creates a person and takes their starting language ID as input
+to make-person [language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
   create-slaves 1 [
     set shape "person" set size 6 set color black
-    set my-start-lang language
-    set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
-
-    move-to one-of land-patches ;;@just random position right now
-  ]
-  create-colonists 1 [
-    set shape "person" set size 6 set color white
     set my-start-lang language
     set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
@@ -111,33 +104,36 @@ end
 ;;---IMPORTING DATA FILES:
 
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
-;;sheets link: https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/edit?usp=sharing
-;;downloadable sheets link (the one I use here): https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv
 
+;;link to the sheets: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/edit?usp=sharing
+;;downloadable link used here to import: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv
 ;;we can always change this url if/when we find a better way to host the csv files online
 
 to import-csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/192JegGkaUlkcKpHGIdTy7FR2uSWhS6g-jRL11uFLUwo/gviz/tq?tqx=out:csv" [
+  fetch:url-async "https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
     ;;now to convert it:
-    set test-list []
-    set test-list ( map [i -> csv:from-row reduce word i] whole-file )
+    set wals-list []
+    set wals-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
     ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
     ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
   ]
 
-  set header-list item 0 test-list ;;the headers from the csv ('ID' followed by feature names) (matching the values in test-list) ;;probably don't need this?
-  set feature-list but-first header-list ;;only the feature names (matching the positions for values in wals-table)
-  set test-list remove-item 0 test-list ;;now test-list only contains languages with associated feature lists (and not the headers)
+  set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
+  set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
+
+ ;; set list-with-af remove-item 0 wals-list ;;list with affiliation, language ID, and feature lists
+  set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
 
   ;;now to make the table:
   set wals-table table:make ;;initialize the empty table
 
-  foreach test-list [ ;;test-list is a list of lists
-    x -> ;;x is each sublist in the form ["cSANo" 1 9 8 3 2 ... ]
-    let key item 0 x ;;item 0 in this sublist is the language - what we want to be the table key
-    let value but-first x ;;the table value should be just the numbered feature list, ie without the item 0 language identifier
+  ;;loop to create the wals table based on the list:
+  foreach wals-list [ ;;wals-list is a list of lists
+    x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
+    let key item 1 x ;;item 0 in this sublist is the language - what we want to be the table key
+    let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
     table:put wals-table key value ;;table:put adds this key-value combination to the table
   ]
 end
