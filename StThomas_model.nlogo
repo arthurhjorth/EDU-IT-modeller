@@ -18,13 +18,15 @@ breed [colonists colonist]
 breed [slaves slave]
 
 slaves-own [
-  my-start-lang ;;starting language (ID code)
-  my-lang-vec
+  start-lang ;;starting language (ID code)
+  start-lang-vec ;;the feature values for their starting language @maybe doesn't need to be saved? although maybe for later comparison...
+  my-lang-table ;;their language table! 50 entries, one for each WALS feature. The value is a nested list of their known values for this feature + associated odds
 ]
 
 colonists-own [
-  my-start-lang
-  my-lang-vec
+  start-lang
+  start-lang-vec
+  my-lang-table
 ]
 
 
@@ -81,8 +83,10 @@ end
 to make-person [language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
   create-slaves 1 [
     set shape "person" set size 6 set color black
-    set my-start-lang language
-    set my-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+    set start-lang language
+    set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+    initialize-my-table ;;creates their language table
 
     move-to one-of land-patches ;;@just random position right now
   ]
@@ -123,7 +127,6 @@ to import-csv
   set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
   set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
 
- ;; set list-with-af remove-item 0 wals-list ;;list with affiliation, language ID, and feature lists
   set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
 
   ;;now to make the table:
@@ -132,18 +135,39 @@ to import-csv
   ;;loop to create the wals table based on the list:
   foreach wals-list [ ;;wals-list is a list of lists
     x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
-    let key item 1 x ;;item 0 in this sublist is the language - what we want to be the table key
+    let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
     let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
     table:put wals-table key value ;;table:put adds this key-value combination to the table
   ]
 end
 
 ;;@Ida's notes about how to handle the data:
-;;- how to get a particular feature value for a particular language from the table:
-  ;;let lang-vec table:get wals-table "cSANo" ;;write the language code here
+;;- how to get a particular feature value for a particular language from the WALS table:
+  ;;let lang-vec table:get wals-table "cSANo" ;;write the language ID code here
   ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
 
 
+to initialize-my-table ;;agent procedure, used in make-person
+  ;;every agent has ONE table! With 50 entries!
+  ;;important: every table is unique to every agent! (turtles-own) So we don't overwrite content across agents...
+  ;;key = WALS-feature name
+  ;;value = a nested list, each sublist with two items: a possible/known feature value + the odds for using this instance
+
+  let start-lang-vec-odds ( map [i -> list i 1] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (initialized as 1)
+
+  set my-lang-table table:make ;;initialize the empty table
+
+  ;;loop to create each agent's language table based on their language vector:
+  foreach feature-list [ ;;feature-list contains the 50 WALS feature names
+    x ->
+    let key x ;;the WALS feature name - what we want to be the table key
+    let index position x feature-list ;;the index of the current feature in feature-list (since we then want the corresponding item from start-lang-vec):
+    let value item index start-lang-vec-odds
+    table:put my-lang-table key value ;;table:put adds this key-value combination to the agent's table
+
+    ;;to begin with, each agent only knows one possible feature value (so e.g. the value entry for feature X9A could just look like this: [0 1] ;;(where 1 is the odds)
+  ]
+end
 
 
 ;;---GRAPHICS:
