@@ -162,11 +162,55 @@ to initialize-my-table ;;agent procedure, used in make-person
     x ->
     let key x ;;the WALS feature name - what we want to be the table key
     let index position x feature-list ;;the index of the current feature in feature-list (since we then want the corresponding item from start-lang-vec):
-    let value item index start-lang-vec-odds
+    let empty-list [] ;;used so value becomes a nested list in an existing list (the structure we want, so we can later keep adding nested lists). ie. [[3 1]] instead of [3 1]
+    let value lput (item index start-lang-vec-odds) empty-list
     table:put my-lang-table key value ;;table:put adds this key-value combination to the agent's table
 
     ;;to begin with, each agent only knows one possible feature value (so e.g. the value entry for feature X9A could just look like this: [0 1] ;;(where 1 is the odds)
   ]
+end
+
+
+;;---USEFUL FUNCTIONS AND REPORTERS FOR HANDLING AGENTS' LANGUAGE TABLES:
+
+to-report known-value? [feature value] ;;agent reporter (uses the agent's my-lang-table), takes a feature and value as input
+  ;;reports a boolean: whether or not an agent already knows this specific value/instance of this specific WALS feature
+  let value-odds-list table:get my-lang-table feature ;;the list of known values and odds associated with the WALS feature
+
+  ;;now to remove the odds which we don't care about for this:
+    let value-list map first value-odds-list ;;a list of all known values for this feature (with the odds removed)
+    ifelse member? value value-list [report true] [report false] ;;checks whether the value of interest (input to this reporter) is in the known value list
+end
+
+to-report get-odds [feature value] ;;agent reporter. Returns the agent's associated odds for a specific value/instance of a specific WALS feature
+  ;;OBS: this only runs if the value is known! (can check first with known-value?)
+
+  ifelse known-value? feature value [
+    let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature
+    let the-pair filter [i -> first i = value] value-odds-list ;;locates the value of interest, discards the rest
+    report item 1 item 0 the-pair ;;returns the odds associated with this value (item 1 item 0 starter inderst - så vi vil have det andet element fra den første liste)
+  ]
+  [ ;;@if they don't actually know this value, instead of an error and crashing, now returns NA:
+    report "NA"
+  ]
+end
+
+
+to-report weigted-one-of [feature] ;;agent reporter. For a specific WALS feature, looks in their language table, and based on the odds, returns a value/instance (randomness involved each time)
+  ;;@see Arthur's pseudo code
+  ;;let the-list something
+
+end
+
+to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance + associated odds for a specific WALS feature to the agent's my-lang-table
+
+
+  ;;@doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
+
+end
+
+to update-odds [feature] ;;agent reporter. @how do we want to do this? more inputs? what to include?
+  ;;@
 end
 
 
