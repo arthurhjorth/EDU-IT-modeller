@@ -178,8 +178,8 @@ to-report known-value? [feature value] ;;agent reporter (uses the agent's my-lan
   let value-odds-list table:get my-lang-table feature ;;the list of known values and odds associated with the WALS feature
 
   ;;now to remove the odds which we don't care about for this:
-    let value-list map first value-odds-list ;;a list of all known values for this feature (with the odds removed)
-    ifelse member? value value-list [report true] [report false] ;;checks whether the value of interest (input to this reporter) is in the known value list
+  let value-list map first value-odds-list ;;a list of all known values for this feature (with the odds removed)
+  ifelse member? value value-list [report true] [report false] ;;checks whether the value of interest (input to this reporter) is in the known value list
 end
 
 to-report get-odds [feature value] ;;agent reporter. Returns the agent's associated odds for a specific value/instance of a specific WALS feature
@@ -203,10 +203,11 @@ to-report weigted-one-of [feature] ;;agent reporter. For a specific WALS feature
 end
 
 to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance + associated odds for a specific WALS feature to the agent's my-lang-table
-
-
-  ;;@doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
-
+  let new-value list value odds ;;e.g. in the form [3 1]
+  let old-entry table:get my-lang-table feature
+  let new-entry lput new-value old-entry
+  table:put my-lang-table feature new-entry
+  ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
 to update-odds [feature] ;;agent reporter. @how do we want to do this? more inputs? what to include?
