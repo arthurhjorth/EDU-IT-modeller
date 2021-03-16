@@ -183,18 +183,15 @@ to-report known-value? [feature value] ;;agent reporter (uses the agent's my-lan
 end
 
 to-report get-odds [feature value] ;;agent reporter. Returns the agent's associated odds for a specific value/instance of a specific WALS feature
-  ;;OBS: this only runs if the value is known! (can check first with known-value?)
-
-  ifelse known-value? feature value [
+  ifelse known-value? feature value [ ;;this only runs if the value is known!
     let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature
-    let the-pair filter [i -> first i = value] value-odds-list ;;locates the value of interest, discards the rest
+    let the-pair filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest
     report item 1 item 0 the-pair ;;returns the odds associated with this value (item 1 item 0 starter inderst - så vi vil have det andet element fra den første liste)
   ]
   [ ;;@if they don't actually know this value, instead of an error and crashing, now returns NA:
     report "NA"
   ]
 end
-
 
 to-report weighted-one-of [feature] ;;agent reporter. For a specific WALS feature, looks in their language table, and based on the odds, returns a value/instance (randomness involved each time)
   let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
@@ -218,14 +215,45 @@ end
 
 to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance + associated odds for a specific WALS feature to the agent's my-lang-table
   let new-value list value odds ;;e.g. in the form [3 1]
-  let old-entry table:get my-lang-table feature
+  let old-entry table:get my-lang-table feature ;;the value-odds-list
   let new-entry lput new-value old-entry
-  table:put my-lang-table feature new-entry
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry
   ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
-to update-odds [feature] ;;agent reporter. @how do we want to do this? more inputs? what to include?
-  ;;@
+to increase-odds [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
+  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
+  let index position the-pair value-odds-list ;;the position of the value-odds pair
+  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
+  let new-odds old-odds + 1 ;;@can maybe change this increase depending on different things?
+  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+end
+
+to decrease-odds [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
+  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
+  let index position the-pair value-odds-list ;;the position of the value-odds pair
+  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
+  let new-odds old-odds - 1 ;;@can maybe change this decrease depending on different things?
+  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+end
+
+
+
+;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
+  ;;how do we want to do this? more inputs? what to include?
+
+
+;;---BASIC USEFUL REPORTERS:
+
+to-report replace-subitem [index2 index1 lists value] ;;OBS: I changed it around to fit NetLogo logic! begins from the INSIDE! index2 is the innermost index, index1 is the list position!
+  let old-sublist item index1 lists
+  report replace-item index1 lists (replace-item index2 old-sublist value)
 end
 
 
