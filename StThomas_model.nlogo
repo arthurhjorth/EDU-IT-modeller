@@ -196,10 +196,24 @@ to-report get-odds [feature value] ;;agent reporter. Returns the agent's associa
 end
 
 
-to-report weigted-one-of [feature] ;;agent reporter. For a specific WALS feature, looks in their language table, and based on the odds, returns a value/instance (randomness involved each time)
-  ;;@see Arthur's pseudo code
-  ;;let the-list something
+to-report weighted-one-of [feature] ;;agent reporter. For a specific WALS feature, looks in their language table, and based on the odds, returns a value/instance (randomness involved each time)
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let odds-list map last value-odds-list ;;list of just the odds
+  let odds-total sum odds-list ;;all the odds added together
+  let roll random (odds-total + 1) ;;we roll the dice (+1 so the result is a number from 0 to odds-total)
 
+  let total 0 ;;initialize variables used in loop
+  let final-choice "NA"
+
+  foreach value-odds-list [
+   i -> ;;loop through each value-odds-pair, e.g. i = [0 1
+   set total total + item 1 i ;;keep adding up the odds with your odds total so far
+    if roll < total and final-choice = "NA" [ ;;once we reach the item where the cumulative sum of odds to far is higher than the roll, this is the value we choose!
+      set final-choice item 0 i
+    ]
+  ]
+
+  report final-choice ;;the value that was chosen (weighted based on the odds - but random each time due to the roll!)
 end
 
 to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance + associated odds for a specific WALS feature to the agent's my-lang-table
