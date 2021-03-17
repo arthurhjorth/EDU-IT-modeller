@@ -1,4 +1,4 @@
-extensions [fetch csv table]
+extensions [fetch import-a csv table]
 
 globals [
   wals-list
@@ -36,7 +36,8 @@ to setup
   reset-ticks
 
   ;;create the map:
-  import-pcolors "stthomas.png"
+  ;;import-pcolors "stthomas.png"
+  import-img ;;function that fetches the image online
   streamline-map
   set sea-patches patches with [pcolor = red] ; defining the global variables
   set land-patches patches with [pcolor = green]
@@ -106,6 +107,31 @@ end
 
 
 ;;---IMPORTING DATA FILES:
+
+;;using this guide: https://www.mail-signatures.com/articles/direct-link-to-hosted-image/#google-drive
+;;trying with Google Drive:
+;;link to just the image: https://drive.google.com/file/d/1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p/view?usp=sharing
+;;using this downloadable link template: https://drive.google.com/uc?export=download&id=DRIVE_FILE_ID
+;;from this guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/
+;;result: https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p
+
+;;trying with imgur works!:
+;;@(but only the image itself in NL web hmm, looks into this!)
+
+;;trying with Google slides (guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/):
+;;template: https://docs.google.com/presentation/d/FILE_ID/export/png?pageid=p1
+;;slides link: https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/edit?usp=sharing (work out sizing!)
+;;  fetch:url-async "https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/export/png?pageid=p1" [ ;;@DOESN'T WORK
+
+to import-img
+  ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [
+  fetch:url-async "https://i.imgur.com/Vh9k5AI.png" [ ;;works! (but NL web? hmmm)
+
+    p ->
+    import-a:pcolors p
+  ]
+end
+
 
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
 
@@ -247,6 +273,10 @@ end
 
 ;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
   ;;how do we want to do this? more inputs? what to include?
+
+
+
+
 
 
 ;;---BASIC USEFUL REPORTERS:
