@@ -64,6 +64,7 @@ to go
   every 0.2 [
 
   set time ticks mod 12 ;;update time
+  communicate
 
   if year = 1940 [stop]
   tick
@@ -92,6 +93,13 @@ to make-person [language] ;;function that creates a person and takes their start
     move-to one-of land-patches ;;@just random position right now
   ]
 end
+
+to communicate ;;run in go
+  ;;@Ida will add short example of simple communication using the functions here:
+
+
+end
+
 
 
 ;;---REPORTERS:
@@ -229,9 +237,9 @@ to-report weighted-one-of [feature] ;;agent reporter. For a specific WALS featur
   let final-choice "NA"
 
   foreach value-odds-list [
-   i -> ;;loop through each value-odds-pair, e.g. i = [0 1
+   i -> ;;loop through each value-odds-pair, e.g. i = [0 1]
    set total total + item 1 i ;;keep adding up the odds with your odds total so far
-    if roll < total and final-choice = "NA" [ ;;once we reach the item where the cumulative sum of odds to far is higher than the roll, this is the value we choose!
+    if roll < total and final-choice = "NA" [ ;;once we reach the item where the cumulative sum of odds so far is higher than the roll, this is the value we choose!
       set final-choice item 0 i
     ]
   ]
@@ -273,10 +281,6 @@ end
 
 ;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
   ;;how do we want to do this? more inputs? what to include?
-
-
-
-
 
 
 ;;---BASIC USEFUL REPORTERS:
