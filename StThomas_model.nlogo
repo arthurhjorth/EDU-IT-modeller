@@ -11,6 +11,9 @@ globals [
 
   time
   month-names
+
+  success-count
+  fail-count
 ]
 
 breed [plantations plantation]
@@ -63,11 +66,12 @@ end
 to go
   every 0.2 [
 
-  set time ticks mod 12 ;;update time
-  communicate
+    communicate ;;procedure where agents talk to each other
 
-  if year = 1940 [stop]
-  tick
+    set time ticks mod 12 ;;update time
+    if year = 1940 [stop]
+
+    tick
 
   ]
 end
@@ -95,14 +99,73 @@ to make-person [language] ;;function that creates a person and takes their start
 end
 
 to communicate ;;run in go
-  ;;@Ida will add short example of simple communication using the functions here:
+  ;;@example of simple communication using the custom table functions and procedures - we can always expand on this:
 
+  ask slaves [ ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
+    ;;1. Speaker chooses a hearer
+    let partner one-of other slaves ;;partner is a turtles-own variable, it stores their conversation partner
+                                    ;;@random now, i.e. the same agent can be hearer multiple times, or not at all, in any given round
 
+    ;;2. Choose which WALS feature to exchange (the 'conversation topic')
+    let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
+
+    ;;3. Speaker retrieves a specific value/instance of this WALS feature from their language table (to begin with they only know one instance anyway)
+    let speaker-value weighted-one-of chosen-feature ;;weighted-one-of takes a feature and randomly picks a value based on their odds
+
+    ;;4. Speaker asks hearer to retrieve a value for the WALS feature
+    let hearer-value "NA" ;;placeholder to initiate value outside ask block
+    ask partner [
+      set hearer-value weighted-one-of chosen-feature ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
+    ]
+
+    ;;5. Compare the values to see if the communication was coordinated/succesful
+    let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
+    ifelse speaker-value = hearer-value [ ;;@now simple binary decision - could add nuance somehow?
+      set success? true
+      set success-count success-count + 1
+    ]
+    [
+      set success? false
+      set fail-count fail-count + 1
+    ]
+
+    ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
+    ifelse success? [
+      increase-odds chosen-feature speaker-value ;;function increases the odds for this value of this feature (right now simply +1)
+    ]
+    [ ;;if unsuccessful, odds decrease:
+      decrease-odds chosen-feature speaker-value ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
+    ]
+
+    ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
+    ask partner [
+      ifelse success? [
+        increase-odds chosen-feature speaker-value ;;function increases the odds for this value of this feature (right now simply +1)
+      ]
+      [ ;;if unsuccessful communication:
+        ifelse known-value? chosen-feature speaker-value [
+          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
+          increase-odds chosen-feature speaker-value
+        ]
+        [ ;;hearer simply learns the value if they don't already know it:
+          learn-value chosen-feature speaker-value 1 ;;@now simply with starting odds of 1
+        ]
+      ]
+    ]
+
+    ;;(8: output-print what happened (just for testing):
+    output-print ""
+    output-print (word self " talked to " partner)
+    output-print word "Chosen feature: " chosen-feature
+    output-print (word "Speaker said: " speaker-value ", hearer said: " hearer-value)
+    output-print (word "Successful?: " success?)
+
+  ]
 end
 
 
 
-;;---REPORTERS:
+;;---REPORTERS FOR INTERFACE:
 
 to-report year
   report floor (ticks / 12) + 1600
@@ -112,7 +175,6 @@ to-report this-month ;reporting month-names
   let month ticks mod 12 ;;sets this-month from 0 to 11
   report item month month-names ;;reports the current month name from the 'month-names' list
 end
-
 
 ;;---IMPORTING DATA FILES:
 
@@ -124,7 +186,7 @@ end
 ;;result: https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p
 
 ;;trying with imgur works!:
-;;@(but only the image itself in NL web hmm, looks into this!)
+;;@(but only the image itself in NL web hmm, look into this!)
 
 ;;trying with Google slides (guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/):
 ;;template: https://docs.google.com/presentation/d/FILE_ID/export/png?pageid=p1
@@ -231,7 +293,7 @@ to-report weighted-one-of [feature] ;;agent reporter. For a specific WALS featur
   let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
   let odds-list map last value-odds-list ;;list of just the odds
   let odds-total sum odds-list ;;all the odds added together
-  let roll random (odds-total + 1) ;;we roll the dice (+1 so the result is a number from 0 to odds-total)
+  let roll (random odds-total) + 1 ;;we roll the dice (+1 so the result is a number from 1 to odds-total)
 
   let total 0 ;;initialize variables used in loop
   let final-choice "NA"
@@ -239,7 +301,7 @@ to-report weighted-one-of [feature] ;;agent reporter. For a specific WALS featur
   foreach value-odds-list [
    i -> ;;loop through each value-odds-pair, e.g. i = [0 1]
    set total total + item 1 i ;;keep adding up the odds with your odds total so far
-    if roll < total and final-choice = "NA" [ ;;once we reach the item where the cumulative sum of odds so far is higher than the roll, this is the value we choose!
+    if roll <= total and final-choice = "NA" [ ;;once we reach the item where the cumulative sum of odds so far is higher than (or equals) the roll, this is the value we choose!
       set final-choice item 0 i
     ]
   ]
@@ -266,15 +328,17 @@ to increase-odds [feature value] ;;agent reporter. increases the odds for a spec
   table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
 
-to decrease-odds [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
+to decrease-odds [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by -1! (but never to 0)
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
   let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
   let new-odds old-odds - 1 ;;@can maybe change this decrease depending on different things?
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+  if old-odds > 1 [ ;;odds can never get below 1
+    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+    table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+  ]
 end
 
 
@@ -354,10 +418,10 @@ NIL
 1
 
 OUTPUT
-978
-63
-1446
-347
+970
+10
+1438
+294
 11
 
 BUTTON
@@ -395,6 +459,28 @@ MONITOR
 405
 Year
 year
+17
+1
+11
+
+MONITOR
+970
+310
+1050
+355
+NIL
+success-count
+17
+1
+11
+
+MONITOR
+970
+360
+1050
+405
+NIL
+fail-count
 17
 1
 11
