@@ -3,6 +3,7 @@ extensions [fetch import-a csv table]
 globals [
   wals-list
   header-list
+  lang-list
   feature-list
   wals-table
 
@@ -38,6 +39,7 @@ to setup
   clear-all
   reset-ticks
 
+
   ;;create the map:
   ;;import-pcolors "stthomas.png"
 
@@ -59,30 +61,31 @@ to setup
     move-to one-of land-patches ;;@randomly placed right now
   ]
 
+  set lang-list table:keys wals-table
   populate ;;create starting population
+
+
 
 end
 
 
 to go
-  every 0.2 [
+ ;; every 0.2 [
 
-    communicate ;;procedure where agents talk to each other
+  ask slaves [ communicate ] ;;procedure where agents talk to each other
 
     set time ticks mod 12 ;;update time
     if year = 1940 [stop]
 
     tick
 
-  ]
+ ;; ]
 end
 
 
 to populate ;;run in setup. Create starting population
   ;;@IBH: these are just a few random people to show how it could work :P
-  make-person "cSANo"
-  make-person "cTOKe"
-  make-person "eweKWA"
+  repeat 100 [ make-person (one-of lang-list) ]
 
 end
 
@@ -101,11 +104,12 @@ end
 
 to communicate ;;run in go
   ;;@example of simple communication using the custom table functions and procedures - we can always expand on this:
-
-  ask slaves [ ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
+;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
     ;;1. Speaker chooses a hearer
-    let partner one-of other slaves ;;partner is a turtles-own variable, it stores their conversation partner
+  let partner my-partner-choice ;;agent reporter
+  ;;let partner one-of other slaves ;;partner is a turtles-own variable, it stores their conversation partner
                                     ;;@random now, i.e. the same agent can be hearer multiple times, or not at all, in any given round
+                                    ;;@gem evt historie over hvem der har talt sammen?
 
     ;;2. Choose which WALS feature to exchange (the 'conversation topic')
     let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
@@ -123,7 +127,10 @@ to communicate ;;run in go
     let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
     ifelse speaker-value = hearer-value [ ;;@now simple binary decision - could add nuance somehow?
       set success? true
-      set success-count success-count + 1
+      set success-count success-count + 1 ;;lav global liste ('agreement'), for hvert go laver vi ny liste, smider alle tingene ind - så det bliver en liste af lister
+      ;;hver liste er success/failure for hvert tick
+      ;;smid fx alle true/false ind
+                                          ;;ET tal per tick, en liste per tick. agreement = [[5 6] [2 5]]
     ]
     [
       set success? false
@@ -153,15 +160,24 @@ to communicate ;;run in go
         ]
       ]
     ]
+    ;;@overvej: lær mere af succes end ikke-succes?
 
     ;;(8: output-print what happened (just for testing):
-    output-print ""
-    output-print (word self " talked to " partner)
-    output-print word "Chosen feature: " chosen-feature
-    output-print (word "Speaker said: " speaker-value ", hearer said: " hearer-value)
-    output-print (word "Successful?: " success?)
+;    output-print ""
+;    output-print (word self " talked to " partner)
+;    output-print word "Chosen feature: " chosen-feature
+;    output-print (word "Speaker said: " speaker-value ", hearer said: " hearer-value)
+;    output-print (word "Successful?: " success?)
+end
 
-  ]
+to-report my-partner-choice ;;agent reporter, run in communicate
+  ;;@can add more complexity - check how papers did it
+
+  ;;evt. probabilitstik: find afstand til alle, weighted-one-of afstand til mig selv - jo tættere, jo højere
+
+  ;;evt. 50% chance for en tæt på, 50% chance for en tilfældig
+
+  report one-of other slaves ;;helt simpelt
 end
 
 
@@ -176,6 +192,27 @@ to-report this-month ;reporting month-names
   let month ticks mod 12 ;;sets this-month from 0 to 11
   report item month month-names ;;reports the current month name from the 'month-names' list
 end
+
+
+;;hvor langt er deres sprog fra hinanden?
+;;simpleste måde:
+
+;;for hver feature: hvad er mode? (
+;;find den value med højeste odds for hver feature - den oftest forekommende med højest værdi. og se hvor mange der har den
+;;og hvor mange har den højeste sandsynlighed for at trække den?
+;;hvad er den højest sandsynlige værdi for hver feature? og hvor mange andre er enige i den mode (den hyppigste)
+;;lav histogram: man kan ændre, hvilken feature man ser. og så kan vi se, hvor mange forskellige værdier vi finder (til test: bare 5 features)
+;;distinktion: sandsynlighed? eller egentlig talt?
+
+
+
+to-report value-prob [feature value] ;;agent reporter, takes a WALS feature and value/instance, calculates the probability that an agent chooses this value (odds --> probability)
+  ;;giver sandsynligheden for en feature + værdi
+  ;;omform odds til almindelig sandsynlighed
+end
+
+
+
 
 ;;---IMPORTING DATA FILES:
 
@@ -251,7 +288,7 @@ to initialize-my-table ;;agent procedure, used in make-person
   ;;key = WALS-feature name
   ;;value = a nested list, each sublist with two items: a possible/known feature value + the odds for using this instance
 
-  let start-lang-vec-odds ( map [i -> list i 1] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (initialized as 1)
+  let start-lang-vec-odds ( map [i -> list i 40] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (@@@initialized as 40?)
 
   set my-lang-table table:make ;;initialize the empty table
 
@@ -493,6 +530,35 @@ fail-count
 17
 1
 11
+
+PLOT
+1095
+295
+1415
+500
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -14439633 true "" "plot success-count"
+"pen-1" 1.0 0 -8053223 true "" "plot fail-count"
+
+TEXTBOX
+960
+450
+1110
+476
+plot ratio i stedet! (gem for hvert tick)
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
