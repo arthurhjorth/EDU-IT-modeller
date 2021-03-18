@@ -40,11 +40,12 @@ to setup
 
   ;;create the map:
   ;;import-pcolors "stthomas.png"
+
   import-img ;;function that fetches the image online
-  streamline-map
-  set sea-patches patches with [pcolor = red] ; defining the global variables
-  set land-patches patches with [pcolor = green]
-  color-map
+  initialize-map ;coloring functions do not apply in Netlogo Web, although they function if I run them elsewhere, e.g. directly in Command Center or in the go-procedure
+                 ; "ERROR. ITEM expected input to be a string or list but got the number 0 instead."
+
+
 
   ;;get the data files:
   import-csv ;;gets WALS data from url, makes it into a table
@@ -203,6 +204,7 @@ to import-img
 end
 
 
+
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
 
 ;;link to the sheets: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/edit?usp=sharing
@@ -356,6 +358,13 @@ end
 
 
 ;;---GRAPHICS:
+to initialize-map
+  streamline-map
+  set sea-patches patches with [pcolor = red] ; defining the global variables
+  set land-patches patches with [pcolor = green]
+  color-map
+end
+
 
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
