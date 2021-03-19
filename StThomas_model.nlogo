@@ -13,8 +13,11 @@ globals [
   time
   month-names
 
-  success-count
-  fail-count
+  agreement ;;nested list with entry for each tick, counting successes and fails for each turn
+  success-count ;;total cumulative count
+  fail-count ;;total cumulative count
+  fails-this-tick
+  successes-this-tick
 ]
 
 breed [plantations plantation]
@@ -39,7 +42,6 @@ to setup
   clear-all
   reset-ticks
 
-
   ;;create the map:
   ;;import-pcolors "stthomas.png"
 
@@ -47,13 +49,9 @@ to setup
   initialize-map ;coloring functions do not apply in Netlogo Web, although they function if I run them elsewhere, e.g. directly in Command Center or in the go-procedure
                  ; "ERROR. ITEM expected input to be a string or list but got the number 0 instead."
 
-
-
-  ;;get the data files:
+  ;;get the data files and initialize variables:
   import-csv ;;gets WALS data from url, makes it into a table
-
-  ;;initialize variables:
-  set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
+  initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
   ;;layout the world:
   create-plantations 10 [
@@ -61,7 +59,6 @@ to setup
     move-to one-of land-patches ;;@randomly placed right now
   ]
 
-  set lang-list table:keys wals-table
   populate ;;create starting population
 
 
@@ -69,24 +66,26 @@ to setup
 end
 
 
+to initialize-variables
+  set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
+  set lang-list table:keys wals-table ;;list of all the language IDs
+  set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
+end
+
 to go
- ;; every 0.2 [
-
+  set fails-this-tick 0 set successes-this-tick 0
   ask slaves [ communicate ] ;;procedure where agents talk to each other
+  set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
 
-    set time ticks mod 12 ;;update time
-    if year = 1940 [stop]
+  set time ticks mod 12 ;;update time
+  if year = 1940 [stop]
 
-    tick
-
- ;; ]
+  tick
 end
 
 
 to populate ;;run in setup. Create starting population
-  ;;@IBH: these are just a few random people to show how it could work :P
-  repeat 100 [ make-person (one-of lang-list) ]
-
+  repeat 1000 [ make-person (one-of lang-list) ] ;;random language
 end
 
 
@@ -102,9 +101,10 @@ to make-person [language] ;;function that creates a person and takes their start
   ]
 end
 
-to communicate ;;run in go
+to communicate ;;agent procedure run in go
   ;;@example of simple communication using the custom table functions and procedures - we can always expand on this:
 ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
+
     ;;1. Speaker chooses a hearer
   let partner my-partner-choice ;;agent reporter
   ;;let partner one-of other slaves ;;partner is a turtles-own variable, it stores their conversation partner
@@ -125,16 +125,18 @@ to communicate ;;run in go
 
     ;;5. Compare the values to see if the communication was coordinated/succesful
     let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
-    ifelse speaker-value = hearer-value [ ;;@now simple binary decision - could add nuance somehow?
+    ifelse speaker-value = hearer-value [ ;;@now simple binary decision understood/not understood - could add nuance somehow?
       set success? true
-      set success-count success-count + 1 ;;lav global liste ('agreement'), for hvert go laver vi ny liste, smider alle tingene ind - så det bliver en liste af lister
+      set success-count success-count + 1 ;;total cumulative
+      set successes-this-tick successes-this-tick + 1 ;;for plotting (and agreement list)
+    ;;lav global liste ('agreement'), for hvert go laver vi ny liste, smider alle tingene ind - så det bliver en liste af lister
       ;;hver liste er success/failure for hvert tick
-      ;;smid fx alle true/false ind
-                                          ;;ET tal per tick, en liste per tick. agreement = [[5 6] [2 5]]
+                                        ;ET tal per tick, en liste per tick. agreement = [[5 6] [2 5]]
     ]
     [
       set success? false
-      set fail-count fail-count + 1
+      set fail-count fail-count + 1 ;;total cumulative
+      set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
     ]
 
     ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
@@ -162,7 +164,7 @@ to communicate ;;run in go
     ]
     ;;@overvej: lær mere af succes end ikke-succes?
 
-    ;;(8: output-print what happened (just for testing):
+    ;(8: output-print what happened (just for testing):
 ;    output-print ""
 ;    output-print (word self " talked to " partner)
 ;    output-print word "Chosen feature: " chosen-feature
@@ -533,12 +535,12 @@ fail-count
 
 PLOT
 1095
-295
+300
 1415
-500
-plot 1
-NIL
-NIL
+505
+Communication outcomes (per tick)
+Time
+Count
 0.0
 10.0
 0.0
@@ -547,18 +549,8 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -14439633 true "" "plot success-count"
-"pen-1" 1.0 0 -8053223 true "" "plot fail-count"
-
-TEXTBOX
-960
-450
-1110
-476
-plot ratio i stedet! (gem for hvert tick)
-11
-0.0
-1
+"Successes" 1.0 0 -14439633 true "" "plot successes-this-tick"
+"Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
 
 @#$#@#$#@
 ## WHAT IS IT?
