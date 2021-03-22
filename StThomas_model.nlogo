@@ -85,7 +85,7 @@ end
 
 
 to populate ;;run in setup. Create starting population
-  repeat 1000 [ make-person (one-of lang-list) ] ;;random language
+  repeat nr-of-agents [ make-person (one-of lang-list) ] ;;random language
 end
 
 
@@ -115,12 +115,14 @@ to communicate ;;agent procedure run in go
     let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
 
     ;;3. Speaker retrieves a specific value/instance of this WALS feature from their language table (to begin with they only know one instance anyway)
-    let speaker-value weighted-one-of chosen-feature ;;weighted-one-of takes a feature and randomly picks a value based on their odds
+    let speaker-input-list table:get my-lang-table chosen-feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+    let speaker-value weighted-one-of speaker-input-list ;;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
 
     ;;4. Speaker asks hearer to retrieve a value for the WALS feature
     let hearer-value "NA" ;;placeholder to initiate value outside ask block
     ask partner [
-      set hearer-value weighted-one-of chosen-feature ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
+      let hearer-input-list table:get my-lang-table chosen-feature
+      set hearer-value weighted-one-of hearer-input-list ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
     ]
 
     ;;5. Compare the values to see if the communication was coordinated/succesful
@@ -172,15 +174,68 @@ to communicate ;;agent procedure run in go
 ;    output-print (word "Successful?: " success?)
 end
 
-to-report my-partner-choice ;;agent reporter, run in communicate
-  ;;@can add more complexity - check how papers did it
+to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
+  ;;@check how papers did it
+  ;;@right now only slaves. can change it to people and add:
+  ;;let people (turtle-set colonists slaves)
 
-  ;;evt. probabilitstik: find afstand til alle, weighted-one-of afstand til mig selv - jo tættere, jo højere
+  if partner-choice = "random" [
+    report one-of other slaves ;;completely random partner
+  ]
 
-  ;;evt. 50% chance for en tæt på, 50% chance for en tilfældig
+  if partner-choice = "closest-one" [
+    report min-one-of slaves [distance myself] ;;the closest agent (if tie, random one of these)
+  ]
 
-  report one-of other slaves ;;helt simpelt
+  if partner-choice = "nearby" [
+    let nearby other slaves in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
+    ifelse any? nearby [
+        report one-of nearby ;;choose someone who's nearby
+    ]
+    [ ;;if nobody is nearby, simply random:
+      report one-of other slaves
+    ]
+  ]
+
+  if partner-choice = "nearby-or-random" [
+    ;;e.g. 50% chance of someone nearby, 50% chance of someone random
+    let nearby other slaves in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
+    ifelse any? nearby [
+      let chance random-float 1
+      ifelse chance < 0.50 [ ;;@can change this probability
+        report one-of nearby ;;50% chance of choosing someone nearby
+      ]
+      [
+        report one-of other slaves ;;and 50% chance of choosing a rando
+      ]
+    ]
+    [ ;;if nobody is nearby, simply random:
+      report one-of other slaves
+    ]
+  ]
+
+  if partner-choice = "weighted-proximity" [
+    let turtle-distance-list [list self (round distance myself)] of other slaves ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
+    ;;we want: the lower the distance, the higher the odds...
+    ;;for the weighted-one-of function, the odds have to start from 1 (no zeros)... and the higher the odds, the higher probability of being chosen!
+    ;;therefore, a little transformation:
+    let distances map last turtle-distance-list
+    let max-plus-one max distances + 1
+    let trans-distances map [i -> max-plus-one - i] distances ;;for each distance, we subtract the distance from (the max distance + 1)
+    let turtle-list map first turtle-distance-list
+    ;;NOW CREATE A NESTED LIST COMBINING TURTLE-LIST AND TRANS-DISTANCES!:
+    let input-list []
+    foreach turtle-list [
+      i ->
+      let index position i turtle-list
+      let this-trans-dist (item index trans-distances)
+      set input-list lput (list i this-trans-dist) input-list
+    ]
+
+    report weighted-one-of input-list ;;feed this list to the function to choose a turtle randomly, weighted by proximity (the closer, the higher odds)
+  ]
 end
+
 
 
 
@@ -330,16 +385,16 @@ to-report get-odds [feature value] ;;agent reporter. Returns the agent's associa
   ]
 end
 
-to-report weighted-one-of [feature] ;;agent reporter. For a specific WALS feature, looks in their language table, and based on the odds, returns a value/instance (randomness involved each time)
-  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let odds-list map last value-odds-list ;;list of just the odds
+to-report weighted-one-of [nested-list] ;;agent reporter, more general
+                                               ;;for a nested list (first = item, second = odds), based on the odds, returns one of the items (randomness involved each time)
+  let odds-list map last nested-list ;;list of just the odds
   let odds-total sum odds-list ;;all the odds added together
   let roll (random odds-total) + 1 ;;we roll the dice (+1 so the result is a number from 1 to odds-total)
 
   let total 0 ;;initialize variables used in loop
   let final-choice "NA"
 
-  foreach value-odds-list [
+  foreach nested-list [
    i -> ;;loop through each value-odds-pair, e.g. i = [0 1]
    set total total + item 1 i ;;keep adding up the odds with your odds total so far
     if roll <= total and final-choice = "NA" [ ;;once we reach the item where the cumulative sum of odds so far is higher than (or equals) the roll, this is the value we choose!
@@ -422,9 +477,9 @@ to color-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+225
 10
-940
+955
 357
 -1
 -1
@@ -449,10 +504,10 @@ ticks
 30.0
 
 BUTTON
-25
 30
-88
-63
+120
+93
+153
 NIL
 setup
 NIL
@@ -473,10 +528,10 @@ OUTPUT
 11
 
 BUTTON
-95
-30
-158
-63
+100
+120
+163
+153
 NIL
 go
 T
@@ -490,9 +545,9 @@ NIL
 1
 
 MONITOR
-485
+500
 360
-542
+557
 405
 Month
 this-month
@@ -501,9 +556,9 @@ this-month
 11
 
 MONITOR
-545
+560
 360
-602
+617
 405
 Year
 year
@@ -551,6 +606,27 @@ true
 PENS
 "Successes" 1.0 0 -14439633 true "" "plot successes-this-tick"
 "Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
+
+CHOOSER
+85
+25
+215
+70
+partner-choice
+partner-choice
+"random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
+4
+
+INPUTBOX
+10
+20
+80
+80
+nr-of-agents
+3.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
