@@ -7,6 +7,8 @@ globals [
   feature-list
   wals-table
 
+  color-list ;;for plotting
+
   sea-patches
   land-patches
 
@@ -60,20 +62,23 @@ to setup
   ]
 
   populate ;;create starting population
+  update-feature-plot
 end
 
 
-to initialize-variables
+to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
+
+  set color-list [0 16 106 56 44 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
 end
 
 to go
   set fails-this-tick 0 set successes-this-tick 0
   ask slaves [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
-
+  update-feature-plot
   set time ticks mod 12 ;;update time
   if year = 1940 [stop]
 
@@ -236,9 +241,6 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
 
 end
 
-
-
-
 ;;---REPORTERS FOR INTERFACE:
 
 to-report year
@@ -253,7 +255,6 @@ end
 
 ;;hvor langt er deres sprog fra hinanden?
 ;;simpleste måde:
-
 ;;for hver feature: hvad er mode? (typetal)
 ;;find den value med højeste odds for hver feature - den oftest forekommende med højest værdi. og se hvor mange der har den
 ;;og hvor mange har den højeste sandsynlighed for at trække den?
@@ -284,6 +285,44 @@ to initialize-my-table ;;agent procedure, used in make-person
     ;;to begin with, each agent only knows one possible feature value (so e.g. the value entry for feature X9A could just look like this: [0 1] ;;(where 1 is the odds)
   ]
 end
+
+
+;;--- PLOTS
+to update-feature-plot ;;this line is in the plot update commands (and everything else is here)
+  set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
+  clear-plot
+
+  ;;interface chooser decides what feature we focus on ('plot-feature')
+
+  if plot-this = "max value (count)" [
+    let counts table:counts [most-likely-value plot-feature] of slaves ;;using the handy most-likely-value agent reporter
+    ;;[most-likely-value plot-feature] of slaves is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
+    ;;table:counts makes it into a table where the entry is the occurences of the key in the list, e.g. {{table: [[1 2] [2 1] [3 3]]}}
+    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :))
+    let n length instances
+    set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
+    let step 0.02 ;;tweak this to leave no gaps
+
+    (foreach instances range n [
+      [s i] ->
+      let y table:get counts s
+      ;;let c hsb (i * 360 / n) 50 75 ;;colors ;;@@@FIX these colors so they stay consistent i.e. when going from 2 to just 1 value! (make separate list?)
+      let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+      create-temporary-plot-pen (word s) ;;the instance/value name made into a string
+      set-plot-pen-mode 1 ;;bar mode
+      set-plot-pen-color c
+      foreach (range 0 y step) [_y -> plotxy i _y]
+      set-plot-pen-color black
+      plotxy i y
+      set-plot-pen-color c ;;to get the right color in the legend
+
+    ])
+
+  ]
+
+
+end
+
 
 
 ;;---USEFUL FUNCTIONS AND REPORTERS FOR HANDLING AGENTS' LANGUAGE TABLES:
@@ -371,6 +410,31 @@ to-report value-prob [feature value] ;;agent reporter, takes a WALS feature and 
   ;;giver sandsynligheden for at agenten vælger netop denne value for denne feature
 end
 
+to-report most-likely-value [feature] ;;agent reporter, takes a WALS feature and reports the value with the highest odds for this agent for this feature
+  let value-odds-list table:get my-lang-table feature
+  let odds-list map last value-odds-list
+  let max-odds max odds-list ;;the highest odds number
+
+  let index "NA" ;;initialize it outside of the ifelse block
+  ifelse frequency max-odds odds-list > 1 [ ;;how to handle tie-breaks if there are more than one odds of this value (frequency is a reporter):
+    let position-list []
+    while [frequency max-odds odds-list > 0] [ ;;as long as there's still occurences of the max value in the list
+      let an-index position max-odds odds-list ;;return the position of the FIRST occurence only
+      set position-list lput an-index position-list ;;add it to the list of positions
+      set odds-list replace-item an-index odds-list "wee" ;;replace the value at the position - so indexing is intact, but it isn't counted next time
+
+    ]
+    print word "position-list: " position-list
+    set index one-of position-list ;;choose one of the max value positions at random
+    ;;print "a tie!" ;;so we can get a feel for how often this happens...
+  ]
+  [ ;;if there's only one instance of the max odds:
+    set index position max-odds odds-list ;;simply save: what number in the list was it?
+  ]
+  let the-pair item index value-odds-list ;;use this index to locate the value-odds pair with the highest odds
+  let the-value first the-pair
+  report the-value
+end
 
 ;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
   ;;how do we want to do this? more inputs? what to include?
@@ -381,6 +445,10 @@ end
 to-report replace-subitem [index2 index1 lists value] ;;OBS: I changed it around to fit NetLogo logic! begins from the INSIDE! index2 is the innermost index, index1 is the list position!
   let old-sublist item index1 lists
   report replace-item index1 lists (replace-item index2 old-sublist value)
+end
+
+to-report frequency [the-item the-list]
+    report length filter [i -> i = the-item] the-list
 end
 
 ;;---IMPORTING DATA FILES:
@@ -515,13 +583,6 @@ NIL
 NIL
 1
 
-OUTPUT
-970
-10
-1438
-294
-11
-
 BUTTON
 100
 120
@@ -562,10 +623,10 @@ year
 11
 
 MONITOR
-970
-310
-1050
-355
+1290
+10
+1370
+55
 NIL
 success-count
 17
@@ -573,10 +634,10 @@ success-count
 11
 
 MONITOR
-970
-360
-1050
-405
+1290
+60
+1370
+105
 NIL
 fail-count
 17
@@ -584,10 +645,10 @@ fail-count
 11
 
 PLOT
-1095
-300
-1415
-505
+965
+10
+1285
+185
 Communication outcomes (per tick)
 Time
 Count
@@ -622,6 +683,53 @@ nr-of-agents
 1
 0
 Number
+
+PLOT
+1070
+270
+1290
+510
+Feature plot
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+
+CHOOSER
+1070
+220
+1162
+265
+plot-feature
+plot-feature
+"X9A" "X10A"
+1
+
+CHOOSER
+1165
+220
+1290
+265
+plot-this
+plot-this
+"average probability" "max value (count)"
+1
+
+TEXTBOX
+1300
+230
+1450
+256
+@average probability ikke kodet endnu
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
