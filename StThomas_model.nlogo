@@ -26,8 +26,8 @@ breed [slaves slave]
 
 slaves-own [
   start-lang ;;starting language (ID code)
-  start-lang-vec ;;the feature values for their starting language @maybe doesn't need to be saved? although maybe for later comparison...
-  my-lang-table ;;their language table! 50 entries, one for each WALS feature. The value is a nested list of their known values for this feature + associated odds
+  start-lang-vec ;;vector with the feature values for their starting language @maybe doesn't need to be saved? although maybe for later comparison...
+  my-lang-table ;;their language table! 50 entries, one for each WALS feature. Each entry is a nested list of their known values for this feature + associated odds
 ]
 
 colonists-own [
@@ -60,9 +60,6 @@ to setup
   ]
 
   populate ;;create starting population
-
-
-
 end
 
 
@@ -234,6 +231,9 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
 
     report weighted-one-of input-list ;;feed this list to the function to choose a turtle randomly, weighted by proximity (the closer, the higher odds)
   ]
+
+  ;;@maybe ADD: based on other people's language?
+
 end
 
 
@@ -254,89 +254,12 @@ end
 ;;hvor langt er deres sprog fra hinanden?
 ;;simpleste måde:
 
-;;for hver feature: hvad er mode? (
+;;for hver feature: hvad er mode? (typetal)
 ;;find den value med højeste odds for hver feature - den oftest forekommende med højest værdi. og se hvor mange der har den
 ;;og hvor mange har den højeste sandsynlighed for at trække den?
 ;;hvad er den højest sandsynlige værdi for hver feature? og hvor mange andre er enige i den mode (den hyppigste)
 ;;lav histogram: man kan ændre, hvilken feature man ser. og så kan vi se, hvor mange forskellige værdier vi finder (til test: bare 5 features)
 ;;distinktion: sandsynlighed? eller egentlig talt?
-
-
-
-to-report value-prob [feature value] ;;agent reporter, takes a WALS feature and value/instance, calculates the probability that an agent chooses this value (odds --> probability)
-  ;;giver sandsynligheden for en feature + værdi
-  ;;omform odds til almindelig sandsynlighed
-end
-
-
-
-
-;;---IMPORTING DATA FILES:
-
-;;using this guide: https://www.mail-signatures.com/articles/direct-link-to-hosted-image/#google-drive
-;;trying with Google Drive:
-;;link to just the image: https://drive.google.com/file/d/1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p/view?usp=sharing
-;;using this downloadable link template: https://drive.google.com/uc?export=download&id=DRIVE_FILE_ID
-;;from this guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/
-;;result: https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p
-
-;;trying with imgur works!:
-;;@(but only the image itself in NL web hmm, look into this!)
-
-;;trying with Google slides (guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/):
-;;template: https://docs.google.com/presentation/d/FILE_ID/export/png?pageid=p1
-;;slides link: https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/edit?usp=sharing (work out sizing!)
-;;  fetch:url-async "https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/export/png?pageid=p1" [ ;;@DOESN'T WORK
-
-to import-img
-  ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [
-  fetch:url-async "https://i.imgur.com/Vh9k5AI.png" [ ;;works! (but NL web? hmmm)
-
-    p ->
-    import-a:pcolors p
-  ]
-end
-
-
-
-;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
-
-;;link to the sheets: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/edit?usp=sharing
-;;downloadable link used here to import: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv
-;;we can always change this url if/when we find a better way to host the csv files online
-
-to import-csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv" [
-    text ->
-    let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
-    ;;now to convert it:
-    set wals-list []
-    set wals-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
-    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
-  ]
-
-  set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
-  set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
-
-  set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
-
-  ;;now to make the table:
-  set wals-table table:make ;;initialize the empty table
-
-  ;;loop to create the wals table based on the list:
-  foreach wals-list [ ;;wals-list is a list of lists
-    x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
-    let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
-    let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
-    table:put wals-table key value ;;table:put adds this key-value combination to the table
-  ]
-end
-
-;;@Ida's notes about how to handle the data:
-;;- how to get a particular feature value for a particular language from the WALS table:
-  ;;let lang-vec table:get wals-table "cSANo" ;;write the language ID code here
-  ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
 
 
 to initialize-my-table ;;agent procedure, used in make-person
@@ -437,6 +360,16 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   ]
 end
 
+to-report value-prob [feature value] ;;agent reporter, takes a WALS feature and value/instance, calculates the probability that an agent chooses this value (odds --> probability)
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature, e.g. [[0 2] [1 4] [2 1]]
+  let odds-list map last value-odds-list ;;list of just the odds, e.g. [2 4 1]
+  let odds-total sum odds-list ;;the sum of all the odds
+  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest, e.g. [1 4]) ;;(item 0 since it's a nested list)
+  let the-odds item 1 the-pair ;;just the odds number
+  let probability the-odds / odds-total ;;total sum of odds divided by the odds of interest = probability!
+  report probability ;;a number between 0 and 1, indicating the percentage chance
+  ;;giver sandsynligheden for at agenten vælger netop denne value for denne feature
+end
 
 
 ;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
@@ -450,15 +383,77 @@ to-report replace-subitem [index2 index1 lists value] ;;OBS: I changed it around
   report replace-item index1 lists (replace-item index2 old-sublist value)
 end
 
+;;---IMPORTING DATA FILES:
+
+;;using this guide: https://www.mail-signatures.com/articles/direct-link-to-hosted-image/#google-drive
+;;trying with Google Drive:
+;;link to just the image: https://drive.google.com/file/d/1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p/view?usp=sharing
+;;using this downloadable link template: https://drive.google.com/uc?export=download&id=DRIVE_FILE_ID
+;;from this guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/
+;;result: https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p
+
+;;trying with imgur works!
+
+;;trying with Google slides (guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/):
+;;template: https://docs.google.com/presentation/d/FILE_ID/export/png?pageid=p1
+;;slides link: https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/edit?usp=sharing (work out sizing!)
+;;  fetch:url-async "https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/export/png?pageid=p1" [ ;;@DOESN'T WORK
+
+to import-img
+  ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [
+  fetch:url-async "https://i.imgur.com/Vh9k5AI.png" [ ;;works! (but NL web? hmmm)
+
+    p ->
+    import-a:pcolors p
+  ]
+end
+
+;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
+;;link to the sheets: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/edit?usp=sharing
+;;downloadable link used here to import: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv
+;;we can always change this url if/when we find a better way to host the csv files online
+
+to import-csv
+  fetch:url-async "https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv" [
+    text ->
+    let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
+    ;;now to convert it:
+    set wals-list []
+    set wals-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
+    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
+    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+  ]
+
+  set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
+  set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
+  set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
+
+  ;;now to make the table:
+  set wals-table table:make ;;initialize the empty table
+
+  ;;loop to create the wals table based on the list:
+  foreach wals-list [ ;;wals-list is a list of lists
+    x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
+    let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
+    let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
+    table:put wals-table key value ;;table:put adds this key-value combination to the table
+  ]
+end
+
+;;@Ida's notes about how to handle the data:
+;;- how to get a particular feature value for a particular language from the WALS table:
+  ;;let lang-vec table:get wals-table "cSANo" ;;write the language ID code here
+  ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
+
 
 ;;---GRAPHICS:
+
 to initialize-map
   streamline-map
   set sea-patches patches with [pcolor = red] ; defining the global variables
   set land-patches patches with [pcolor = green]
   color-map
 end
-
 
 to streamline-map ; this is manipulating the map into 2 colors
 ask patches with [shade-of? pcolor sky] [set pcolor red]
@@ -615,7 +610,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-4
+0
 
 INPUTBOX
 10
@@ -623,7 +618,7 @@ INPUTBOX
 80
 80
 nr-of-agents
-3.0
+100.0
 1
 0
 Number
