@@ -15,6 +15,7 @@ globals [
   time
   month-names
 
+  chosen-table ;;table: keys = WALS features, entries = lists of ALL the values chosen (speaker or hearer) (no distinguishing between ticks/turns, just one long list for each feature)
   agreement ;;nested list with entry for each tick, counting successes and fails for each turn
   success-count ;;total cumulative count
   fail-count ;;total cumulative count
@@ -70,6 +71,14 @@ to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
+
+  set chosen-table table:make ;;initialize the spoken-table:
+  foreach feature-list [ ;;feature-list contains the 50 WALS feature names
+    key -> ;;the WALS feature name - what we want to be the table key
+    let value [] ;;values are now empty lists, will be filled with ALL values ever chosen (by speaker OR hearer) for that feature in a given run
+    table:put chosen-table key value ;;table:put adds this key-value combination to the agent's table
+  ]
+
 
   set color-list [0 16 106 56 44 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
 end
@@ -168,7 +177,15 @@ to communicate ;;agent procedure run in go
     ]
     ;;@overvej: lær mere af succes end ikke-succes?
 
-    ;(8: output-print what happened (just for testing):
+  ;;8. Record what happened
+
+  let old-entry table:get chosen-table chosen-feature ;;old entry (list of all values ever chosen)
+  let new-chosen list speaker-value hearer-value ;;two-item list of the new two items chosen
+  let new-entry reduce sentence list old-entry new-chosen ;;the same as just lputting these new two items to the old-entry list
+  table:put chosen-table chosen-feature new-entry
+
+
+    ;(9. output-print what happened (just for testing):
 ;    output-print ""
 ;    output-print (word self " talked to " partner)
 ;    output-print word "Chosen feature: " chosen-feature
@@ -256,8 +273,11 @@ end
 ;;hvor langt er deres sprog fra hinanden?
 ;;simpleste måde:
 ;;for hver feature: hvad er mode? (typetal)
-;;find den value med højeste odds for hver feature - den oftest forekommende med højest værdi. og se hvor mange der har den
+
+
+;;find den value med højeste odds for hver feature - den oftest forekommende med højest værdi. og se hvor mange der har den ;;TJEK!
 ;;og hvor mange har den højeste sandsynlighed for at trække den?
+
 ;;hvad er den højest sandsynlige værdi for hver feature? og hvor mange andre er enige i den mode (den hyppigste)
 ;;lav histogram: man kan ændre, hvilken feature man ser. og så kan vi se, hvor mange forskellige værdier vi finder (til test: bare 5 features)
 ;;distinktion: sandsynlighed? eller egentlig talt?
@@ -288,21 +308,20 @@ end
 
 
 ;;--- PLOTS
-to update-feature-plot ;;this line is in the plot update commands (and everything else is here)
+to update-feature-plot ;;run in go
   set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
   clear-plot
-
   ;;interface chooser decides what feature we focus on ('plot-feature')
 
-  if plot-this = "max value (count)" [
+  if plot-this = "max value (count)" [ ;;for each possible value, counts and plots how many agents has that as their most likely choice (highest odds)
     let counts table:counts [most-likely-value plot-feature] of slaves ;;using the handy most-likely-value agent reporter
     ;;[most-likely-value plot-feature] of slaves is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
     ;;table:counts makes it into a table where the entry is the occurences of the key in the list, e.g. {{table: [[1 2] [2 1] [3 3]]}}
-    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :))
-    let n length instances
+    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
+    let n length instances ;;how many values there are
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     let step 0.02 ;;tweak this to leave no gaps
-
+    ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
       let y table:get counts s
@@ -315,8 +334,76 @@ to update-feature-plot ;;this line is in the plot update commands (and everythin
       set-plot-pen-color black
       plotxy i y
       set-plot-pen-color c ;;to get the right color in the legend
-
     ])
+
+  ]
+
+  if plot-this = "average probability" [ ;;for each possible value, plots the average probability of choosing that value across all agents!
+    ;;for each value for plot-feature (the chosen WALS feature), we calculate the average probability (across agents) for each value/instance for this feature
+    ;;using the handy 'avg-value-prob' reporter
+    ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
+
+    let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+                                                                     ;;@not including values that are possible but aren't in the population at all
+    let counts table:counts values ;;we don't actually care about these counts...
+    let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
+    let n length instances ;;nr of values/instances for this feature, e.g. 3
+    set-plot-x-range 0 n ;;scales the plot to fit the total number of instances/values
+    let step 0.02
+    ;;the plotting loop:
+    (foreach instances range n [
+      [s i] ->
+      ;;let y table:get counts s ;;@CHANGE THIS TO THE AVERAGE PROBABILITY FOR THIS VALUE
+      let y avg-value-prob plot-feature s ;;uses the reporter 'avg-value-prob' with the current feature and instance/value as input - so y is the average probability across agents
+
+      let c item s color-list
+      create-temporary-plot-pen (word s)
+      set-plot-pen-mode 1
+      set-plot-pen-color c
+      foreach (range 0 y step) [_y -> plotxy i _y]
+      set-plot-pen-color black
+      plotxy i y
+      set-plot-pen-color c
+      ])
+
+  ]
+
+  if plot-this = "times chosen" [ ;;for each possible value, plot count of how many times it's been actually spoken/chosen in this run (CUMULATIVE!
+    ;;for setting the range/plotting bars
+    let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+                                                                     ;;@not including values that are possible but aren't in the population at all
+    let counts2 table:counts values ;;we don't actually care about these counts...
+    let instances sort table:keys counts2 ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
+    let n length instances ;;nr of values/instances for this feature, e.g. 3
+
+
+    let counts table:counts table:get chosen-table plot-feature ;;table with counts of how many times each value has been chosen for this feature so far
+                                                                ;;i.e.: {{table: [[2 386] [1 997] [3 415]]}}
+    set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
+    let step 0.02 ;;tweak this to leave no gaps
+    ;;the plotting loop:
+    (foreach instances range n [
+      [s i] ->
+      let y "NA" ;;placeholder before the ifelse statement that sets it
+      ifelse table:has-key? counts s [ ;;if it has the key:
+       set y table:get counts s ;;how many times this value has been spoken (looks it up in the table)
+      ]
+     [ ;;if it doesn't have the key, it means it hasn't been spoken yet:
+       set y 0
+      ]
+
+      let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+      create-temporary-plot-pen (word s) ;;the instance/value name made into a string
+      set-plot-pen-mode 1 ;;bar mode
+      set-plot-pen-color c
+      foreach (range 0 y step) [_y -> plotxy i _y]
+      set-plot-pen-color black
+      plotxy i y
+      set-plot-pen-color c ;;to get the right color in the legend
+    ])
+
+
+
 
   ]
 
@@ -334,6 +421,11 @@ to-report known-value? [feature value] ;;agent reporter (uses the agent's my-lan
   ;;now to remove the odds which we don't care about for this:
   let value-list map first value-odds-list ;;a list of all known values for this feature (with the odds removed)
   ifelse member? value value-list [report true] [report false] ;;checks whether the value of interest (input to this reporter) is in the known value list
+end
+
+to-report known-values [feature] ;;agent reporter. for a specific WALS feature, returns a list of all the values the agent knows (just the values, no odds!)
+  let value-odds-list table:get my-lang-table feature
+  report map first value-odds-list
 end
 
 to-report get-odds [feature value] ;;agent reporter. Returns the agent's associated odds for a specific value/instance of a specific WALS feature
@@ -399,15 +491,21 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   ]
 end
 
-to-report value-prob [feature value] ;;agent reporter, takes a WALS feature and value/instance, calculates the probability that an agent chooses this value (odds --> probability)
+to-report my-value-prob [feature value] ;;agent reporter, takes a WALS feature and value/instance, calculates the probability that an agent chooses this value (odds --> probability)
+  ;;returns 0 if they don't know the value!
   let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature, e.g. [[0 2] [1 4] [2 1]]
   let odds-list map last value-odds-list ;;list of just the odds, e.g. [2 4 1]
   let odds-total sum odds-list ;;the sum of all the odds
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest, e.g. [1 4]) ;;(item 0 since it's a nested list)
-  let the-odds item 1 the-pair ;;just the odds number
-  let probability the-odds / odds-total ;;total sum of odds divided by the odds of interest = probability!
-  report probability ;;a number between 0 and 1, indicating the percentage chance
-  ;;giver sandsynligheden for at agenten vælger netop denne value for denne feature
+  ifelse length ( filter [i -> first i = value] value-odds-list ) = 0 [
+    report 0
+  ]
+  [;;if they do know the value:
+    let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest, e.g. [1 4]) ;;(item 0 since it's a nested list)
+    let the-odds item 1 the-pair ;;just the odds number
+    let probability the-odds / odds-total ;;total sum of odds divided by the odds of interest = probability!
+    report probability ;;a number between 0 and 1, indicating the percentage chance
+                       ;;giver sandsynligheden for at agenten vælger netop denne value for denne feature
+  ]
 end
 
 to-report most-likely-value [feature] ;;agent reporter, takes a WALS feature and reports the value with the highest odds for this agent for this feature
@@ -424,7 +522,6 @@ to-report most-likely-value [feature] ;;agent reporter, takes a WALS feature and
       set odds-list replace-item an-index odds-list "wee" ;;replace the value at the position - so indexing is intact, but it isn't counted next time
 
     ]
-    print word "position-list: " position-list
     set index one-of position-list ;;choose one of the max value positions at random
     ;;print "a tie!" ;;so we can get a feel for how often this happens...
   ]
@@ -438,6 +535,15 @@ end
 
 ;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
   ;;how do we want to do this? more inputs? what to include?
+
+
+;;--- NON-AGENT REPORTERS:
+
+to-report avg-value-prob [feature value] ;;reports the average probability across agents for choosing this value for this feature
+                                   ;;my-value-prob [feature value] ;;using the my-value-prob agent reporter
+  let prob-list ( reduce sentence [my-value-prob plot-feature 1] of slaves ) ;;list of all agent's probs for this value, e.g. [0.9595959595959596 0.9770114942528736 1 ...]
+  report mean prob-list ;;the average probability of choosing this value for this feature, across agents
+end
 
 
 ;;---BASIC USEFUL REPORTERS:
@@ -686,11 +792,11 @@ Number
 
 PLOT
 1070
-270
+255
 1290
-510
+495
 Feature plot
-NIL
+Values
 NIL
 0.0
 10.0
@@ -703,30 +809,67 @@ PENS
 
 CHOOSER
 1070
-220
+205
 1162
-265
+250
 plot-feature
 plot-feature
-"X9A" "X10A"
-1
+"X9A" "X10A" "X18A" "X27A" "X28A"
+0
 
 CHOOSER
 1165
-220
+205
 1290
-265
+250
 plot-this
 plot-this
-"average probability" "max value (count)"
-1
+"max value (count)" "average probability" "times chosen"
+2
 
 TEXTBOX
 1300
-230
-1450
-256
-@average probability ikke kodet endnu
+200
+1485
+406
+@max value (count): hvor mange der har den value som top choice. ret nice, kan se hvordan én overtager\n\n@average probability: ikke så interessant, mean ligger bare stabilt? (fordi: nu er avg prob 0 for dem, der ikke kender værdien!)\n\n@times chosen: cool cumulative overview\n\n
+12
+0.0
+1
+
+TEXTBOX
+1315
+415
+1485
+480
+@men fordi der er så mange features (50) og de kun vælger én hver gang, tager det lang tid at se forandring for bare en enkelt!
+11
+0.0
+1
+
+BUTTON
+1120
+495
+1240
+528
+NIL
+update-feature-plot
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+1250
+515
+1485
+555
+(button useful if changing plot-this while the model is paused) (otherwise this command is run every tick in go)
 11
 0.0
 1
