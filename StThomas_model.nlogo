@@ -186,6 +186,19 @@ to communicate ;;agent procedure run in go
   let new-entry reduce sentence list old-entry new-chosen ;;the same as just lputting these new two items to the old-entry list
   table:put chosen-table chosen-feature new-entry
 
+  ;;@behøvr ikke at gemme chosen-table!
+
+  ;;nemmere måde: tæl det bare op
+  ;;keys: features
+  ;;values: nested list med tal for hvor mange gange de er talt
+  ;;noget a la {{table: [[3 112] [1 802] [2 80]]}}
+  ;;tjek om det er hurtigere
+
+
+  ;;value 1 tilsvarer postion 0, 1 tilsvarer position 1 osv...
+  ;;altså bare en liste fx [802 80 112]
+
+
 
     ;(9. output-print what happened (just for testing):
 ;    output-print ""
@@ -258,6 +271,8 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
 
   ;;@maybe ADD: based on other people's language?
 
+
+
 end
 
 ;;---REPORTERS FOR INTERFACE:
@@ -276,7 +291,6 @@ to color-by-lang
   ask slaves [
     let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
     set color item my-choice agent-color-list ;;using the value as indexing for what color to choose from the global agent-color-list
-
   ]
 end
 
@@ -551,7 +565,7 @@ end
 
 to-report avg-value-prob [feature value] ;;reports the average probability across agents for choosing this value for this feature
                                    ;;my-value-prob [feature value] ;;using the my-value-prob agent reporter
-  let prob-list ( reduce sentence [my-value-prob plot-feature 1] of slaves ) ;;list of all agent's probs for this value, e.g. [0.9595959595959596 0.9770114942528736 1 ...]
+  let prob-list [my-value-prob plot-feature value] of slaves ;;list of all agent's probs for this value, e.g. [0.9595959595959596 0.9770114942528736 1 ...]
   report mean prob-list ;;the average probability of choosing this value for this feature, across agents
 end
 
@@ -683,10 +697,10 @@ ticks
 30.0
 
 BUTTON
-30
-120
-93
-153
+355
+370
+418
+403
 NIL
 setup
 NIL
@@ -700,10 +714,10 @@ NIL
 1
 
 BUTTON
-100
-120
-163
-153
+425
+370
+488
+403
 NIL
 go
 T
@@ -780,20 +794,20 @@ PENS
 "Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
 
 CHOOSER
-85
-25
-215
-70
+10
+175
+140
+220
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-1
+0
 
 INPUTBOX
-10
-20
-80
-80
+5
+50
+75
+110
 nr-of-agents
 50.0
 1
@@ -835,14 +849,14 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-0
+1
 
 TEXTBOX
 1300
 200
 1485
 406
-@max value (count): hvor mange der har den value som top choice. ret nice, kan se hvordan én overtager\n\n@average probability: ikke så interessant, mean ligger bare stabilt? (fordi: nu er avg prob 0 for dem, der ikke kender værdien!)\n\n@times chosen: cool cumulative overview\n\n
+@max value (count): hvor mange der har den value som top choice. ret nice, kan se hvordan én overtager\n\n@average probability: average probability over alle agenter for præcis den value for den feature\n\n@times chosen: cool cumulative overview\n\n
 12
 0.0
 1
@@ -879,7 +893,7 @@ TEXTBOX
 515
 1485
 555
-(button useful if changing plot-this while the model is paused) (otherwise this command is run every tick in go)
+(button useful if changing plot-feature or plot-this while the model is paused) (otherwise this command is run every tick in go)
 11
 0.0
 1
@@ -917,6 +931,102 @@ TEXTBOX
 960
 491
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
+11
+0.0
+1
+
+TEXTBOX
+90
+345
+145
+363
+Samtaler
+14
+0.0
+1
+
+TEXTBOX
+60
+155
+165
+173
+Partner-selektion
+14
+0.0
+1
+
+TEXTBOX
+70
+235
+150
+253
+Sproglæring
+14
+0.0
+1
+
+TEXTBOX
+765
+390
+845
+415
+Visualisering
+14
+0.0
+1
+
+TEXTBOX
+40
+260
+190
+305
+- start-odds for modersmål\n- + og - for learning/unlearning
+11
+0.0
+1
+
+SLIDER
+35
+370
+180
+403
+nr-features-exchanged
+nr-features-exchanged
+1
+10
+1.0
+1
+1
+NIL
+HORIZONTAL
+
+SWITCH
+35
+405
+180
+438
+include-words?
+include-words?
+1
+1
+-1000
+
+TEXTBOX
+80
+10
+150
+28
+Demografi
+14
+0.0
+1
+
+TEXTBOX
+100
+50
+200
+130
+proportion af slaver til slaveejere? noget med alder? sprog i befolkningen?
 11
 0.0
 1
