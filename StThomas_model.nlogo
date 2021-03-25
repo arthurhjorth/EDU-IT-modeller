@@ -8,6 +8,7 @@ globals [
   wals-table
 
   color-list ;;for plotting
+  agent-color-list ;;for visualizing
 
   sea-patches
   land-patches
@@ -80,7 +81,8 @@ to initialize-variables ;;run in setup
   ]
 
 
-  set color-list [0 16 106 56 44 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
+  set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
+  set agent-color-list [white 14 104 45 53] ;;@ can add more
 end
 
 to go
@@ -203,7 +205,7 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
   ]
 
   if partner-choice = "closest-one" [
-    report min-one-of slaves [distance myself] ;;the closest agent (if tie, random one of these)
+    report min-one-of other slaves [distance myself] ;;the closest agent (if tie, random one of these)
   ]
 
   if partner-choice = "nearby" [
@@ -269,6 +271,14 @@ to-report this-month ;reporting month-names
   report item month month-names ;;reports the current month name from the 'month-names' list
 end
 
+
+to color-by-lang
+  ask slaves [
+    let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
+    set color item my-choice agent-color-list ;;using the value as indexing for what color to choose from the global agent-color-list
+
+  ]
+end
 
 ;;hvor langt er deres sprog fra hinanden?
 ;;simpleste måde:
@@ -777,7 +787,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-0
+1
 
 INPUTBOX
 10
@@ -785,7 +795,7 @@ INPUTBOX
 80
 80
 nr-of-agents
-100.0
+50.0
 1
 0
 Number
@@ -825,7 +835,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-2
+0
 
 TEXTBOX
 1300
@@ -870,6 +880,43 @@ TEXTBOX
 1485
 555
 (button useful if changing plot-this while the model is paused) (otherwise this command is run every tick in go)
+11
+0.0
+1
+
+BUTTON
+705
+470
+800
+503
+NIL
+color-by-lang
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+705
+425
+800
+470
+color-feature
+color-feature
+"X9A" "X10A"
+0
+
+TEXTBOX
+810
+450
+960
+491
+@coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
 1
