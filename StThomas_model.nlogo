@@ -22,6 +22,8 @@ globals [
   fail-count ;;total cumulative count
   fails-this-tick
   successes-this-tick
+
+  testing
 ]
 
 breed [plantations plantation]
@@ -73,10 +75,10 @@ to initialize-variables ;;run in setup
   set lang-list table:keys wals-table ;;list of all the language IDs
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
 
-  set chosen-table table:make ;;initialize the spoken-table:
+  set chosen-table table:make ;;initialize the chosen-table:
   foreach feature-list [ ;;feature-list contains the 50 WALS feature names
     key -> ;;the WALS feature name - what we want to be the table key
-    let value [] ;;values are now empty lists, will be filled with ALL values ever chosen (by speaker OR hearer) for that feature in a given run
+    let value [0 0 0 0 0 0 0 0 0 0] ;;values are a list of counts for how often each value (of that index, e.g. item 1 = value '1' for that feature) has been chosen. max value = 9. ?-values = index 0.
     table:put chosen-table key value ;;table:put adds this key-value combination to the agent's table
   ]
 
@@ -181,31 +183,24 @@ to communicate ;;agent procedure run in go
 
   ;;8. Record what happened
 
-  let old-entry table:get chosen-table chosen-feature ;;old entry (list of all values ever chosen)
-  let new-chosen list speaker-value hearer-value ;;two-item list of the new two items chosen
-  let new-entry reduce sentence list old-entry new-chosen ;;the same as just lputting these new two items to the old-entry list
-  table:put chosen-table chosen-feature new-entry
+  let new-chosen list speaker-value hearer-value ;;two-item list of the new two values chosen for this feature, e.g. [4 1]
 
-  ;;@behøvr ikke at gemme chosen-table!
+  foreach new-chosen [ ;;for each of the two spoken values
+   value-index ->
+    if value-index = "?" [set value-index 0] ;;@now '?'-entries are recorded in index 0 (since there are no 0 values)
+     ;;value 1 tilsvarer position 1, 2 tilsvarer position 2 osv...
+    let old-entry table:get chosen-table chosen-feature ;;old entry, 10-item list with each nr representing the nr of times that value (index position) has been chosen
+    let new-entry replace-item value-index old-entry (item value-index old-entry + 1) ;;increases the number (count so far) at the position of the value index by 1 (for this feature)
+    table:put chosen-table chosen-feature new-entry
 
-  ;;nemmere måde: tæl det bare op
-  ;;keys: features
-  ;;values: nested list med tal for hvor mange gange de er talt
-  ;;noget a la {{table: [[3 112] [1 802] [2 80]]}}
-  ;;tjek om det er hurtigere
+  ]
 
-
-  ;;value 1 tilsvarer postion 0, 1 tilsvarer position 1 osv...
-  ;;altså bare en liste fx [802 80 112]
-
-
-
-    ;(9. output-print what happened (just for testing):
-;    output-print ""
-;    output-print (word self " talked to " partner)
-;    output-print word "Chosen feature: " chosen-feature
-;    output-print (word "Speaker said: " speaker-value ", hearer said: " hearer-value)
-;    output-print (word "Successful?: " success?)
+    ;;9. print what happened (just for testing):
+;    print ""
+;    print (word self " talked to " partner)
+;    print word "Chosen feature: " chosen-feature
+;    print (word "Speaker said: " speaker-value ", hearer said: " hearer-value)
+;    print (word "Successful?: " success?)
 end
 
 to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
@@ -338,18 +333,36 @@ to update-feature-plot ;;run in go
   ;;interface chooser decides what feature we focus on ('plot-feature')
 
   if plot-this = "max value (count)" [ ;;for each possible value, counts and plots how many agents has that as their most likely choice (highest odds)
-    let counts table:counts [most-likely-value plot-feature] of slaves ;;using the handy most-likely-value agent reporter
+
+    ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
+    let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+                                                                     ;;@not including values that are possible but aren't in the population at all
+    let counts table:counts values ;;we don't actually care about these counts...
+    let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
+    let n length instances ;;nr of values/instances for this feature, e.g. 3
+
+
+    let counts-table table:counts [most-likely-value plot-feature] of slaves ;;using the handy most-likely-value agent reporter
     ;;[most-likely-value plot-feature] of slaves is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
     ;;table:counts makes it into a table where the entry is the occurences of the key in the list, e.g. {{table: [[1 2] [2 1] [3 3]]}}
-    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
-    let n length instances ;;how many values there are
+;    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
+;    let n length instances ;;how many values there are
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     let step 0.02 ;;tweak this to leave no gaps
     ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
-      let y table:get counts s
-      ;;let c hsb (i * 360 / n) 50 75 ;;colors ;;@@@FIX these colors so they stay consistent i.e. when going from 2 to just 1 value! (make separate list?)
+
+      let y "NA" ;;placeholder before the ifelse that sets it
+       ifelse table:has-key? counts-table s [ ;;if it has the key:
+       set y table:get counts-table s ;;nr of agents with this value as their top choice (looks it up in the table)
+      ]
+     [ ;;if it doesn't have the key, it means no agents have it as their top value (but we still want to visualize the 0 bar, that's why we're keeping this here)
+       set y 0
+      ]
+
+
+
       let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
       create-temporary-plot-pen (word s) ;;the instance/value name made into a string
       set-plot-pen-mode 1 ;;bar mode
@@ -392,7 +405,7 @@ to update-feature-plot ;;run in go
 
   ]
 
-  if plot-this = "times chosen" [ ;;for each possible value, plot count of how many times it's been actually spoken/chosen in this run (CUMULATIVE!
+  if plot-this = "times chosen" [ ;;for each possible value, plot count of how many times it's been actually spoken/chosen in this run (CUMULATIVE!)
     ;;for setting the range/plotting bars
     let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
                                                                      ;;@not including values that are possible but aren't in the population at all
@@ -400,35 +413,26 @@ to update-feature-plot ;;run in go
     let instances sort table:keys counts2 ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
     let n length instances ;;nr of values/instances for this feature, e.g. 3
 
+    let counts-list table:get chosen-table plot-feature
+    ;;chosen-table is a table with counts of how many times each value has been chosen for this feature so far, through indexing using the value nr (? = 0)
+                                                                ;;i.e.: entry (and thus chosen-list) for key "X9A" = [0 1 0 2 0 0 0 0 0 0] = value 1 has been chosen once, value 3 has been chosen twice
 
-    let counts table:counts table:get chosen-table plot-feature ;;table with counts of how many times each value has been chosen for this feature so far
-                                                                ;;i.e.: {{table: [[2 386] [1 997] [3 415]]}}
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     let step 0.02 ;;tweak this to leave no gaps
     ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
-      let y "NA" ;;placeholder before the ifelse statement that sets it
-      ifelse table:has-key? counts s [ ;;if it has the key:
-       set y table:get counts s ;;how many times this value has been spoken (looks it up in the table)
-      ]
-     [ ;;if it doesn't have the key, it means it hasn't been spoken yet:
-       set y 0
-      ]
-
+      let y item s counts-list ;;the nr of times this value has been chosen (using indexing because that's the structure of chosen-table and counts-list)
       let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
       create-temporary-plot-pen (word s) ;;the instance/value name made into a string
       set-plot-pen-mode 1 ;;bar mode
       set-plot-pen-color c
+      let wee (range 0 y step)
       foreach (range 0 y step) [_y -> plotxy i _y]
       set-plot-pen-color black
       plotxy i y
       set-plot-pen-color c ;;to get the right color in the legend
     ])
-
-
-
-
   ]
 
 
@@ -809,7 +813,7 @@ INPUTBOX
 75
 110
 nr-of-agents
-50.0
+100.0
 1
 0
 Number
@@ -849,7 +853,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-1
+0
 
 TEXTBOX
 1300
