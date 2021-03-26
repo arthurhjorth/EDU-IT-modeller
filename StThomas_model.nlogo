@@ -4,6 +4,7 @@ globals [
   wals-list
   header-list
   lang-list
+  affiliation-list
   feature-list
   wals-table
 
@@ -22,6 +23,8 @@ globals [
   fail-count ;;total cumulative count
   fails-this-tick
   successes-this-tick
+
+  people ;;turtle-set so slaves and colonists can be adressed with one word
 
   testing
 ]
@@ -61,11 +64,12 @@ to setup
 
   ;;layout the world:
   create-plantations 10 [
-    set color white set shape "house" set size 6
-    move-to one-of land-patches ;;@randomly placed right now
+    set color white set shape "house" set size 7
+    move-to one-of land-patches with [not any? turtles-here] ;;@randomly placed right now
   ]
 
   populate ;;create starting population
+  set people (turtle-set slaves colonists)
   update-feature-plot
 end
 
@@ -73,6 +77,7 @@ end
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
+  set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
 
   set chosen-table table:make ;;initialize the chosen-table:
@@ -88,8 +93,9 @@ to initialize-variables ;;run in setup
 end
 
 to go
+  set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
   set fails-this-tick 0 set successes-this-tick 0
-  ask slaves [ communicate ] ;;procedure where agents talk to each other
+  ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
   update-feature-plot
   set time ticks mod 12 ;;update time
@@ -100,31 +106,54 @@ end
 
 
 to populate ;;run in setup. Create starting population
-  repeat nr-of-agents [ make-person (one-of lang-list) ] ;;random language
+
+  ;;@OBS: check/fix/change these language mappings!
+  let col-lang-list sublist lang-list 141 149 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
+  let slave-lang-list sublist lang-list 0 141 ;;@all the other languages
+
+  ;;@random starting language right now! (from these two lists)
+  repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
+  repeat nr-colonists [ make-person "colonist" (one-of col-lang-list) ]
 end
 
 
-to make-person [language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
-  create-slaves 1 [
-    set shape "person" set size 6 set color black
-    set start-lang language
-    set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+to make-person [kind language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
 
-    initialize-my-table ;;creates their language table
 
-    move-to one-of land-patches ;;@just random position right now
+  if kind = "slave" [
+    create-slaves 1 [
+      set shape "person" set size 6 set color black
+      set start-lang language
+      set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+      initialize-my-table ;;creates their language table
+
+      ;;@just random position right now:
+      move-to one-of land-patches with [not any? slaves-here]
+
+    ]
+  ]
+
+  if kind = "colonist" [
+    create-colonists 1 [
+      set shape "person-inspecting" set size 6 set color black
+      set start-lang language
+      set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+      initialize-my-table ;;creates their language table
+
+      ;;@just random position right now:
+        move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
+    ]
   ]
 end
 
 to communicate ;;agent procedure run in go
-  ;;@example of simple communication using the custom table functions and procedures - we can always expand on this:
-;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
+               ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
 
     ;;1. Speaker chooses a hearer
-  let partner my-partner-choice ;;agent reporter
-  ;;let partner one-of other slaves ;;partner is a turtles-own variable, it stores their conversation partner
-                                    ;;@random now, i.e. the same agent can be hearer multiple times, or not at all, in any given round
-                                    ;;@gem evt historie over hvem der har talt sammen?
+    let partner my-partner-choice ;;using the agent reporter to select a partner
+                                    ;;@tilføj evt: gem historie over hvem der har talt sammen?
 
     ;;2. Choose which WALS feature to exchange (the 'conversation topic')
     let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
@@ -209,42 +238,42 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
   ;;let people (turtle-set colonists slaves)
 
   if partner-choice = "random" [
-    report one-of other slaves ;;completely random partner
+    report one-of other people ;;completely random partner
   ]
 
   if partner-choice = "closest-one" [
-    report min-one-of other slaves [distance myself] ;;the closest agent (if tie, random one of these)
+    report min-one-of other people [distance myself] ;;the closest agent (if tie, random one of these)
   ]
 
   if partner-choice = "nearby" [
-    let nearby other slaves in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
+    let nearby other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
     ifelse any? nearby [
         report one-of nearby ;;choose someone who's nearby
     ]
     [ ;;if nobody is nearby, simply random:
-      report one-of other slaves
+      report one-of other people
     ]
   ]
 
   if partner-choice = "nearby-or-random" [
     ;;e.g. 50% chance of someone nearby, 50% chance of someone random
-    let nearby other slaves in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
+    let nearby other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
     ifelse any? nearby [
       let chance random-float 1
       ifelse chance < 0.50 [ ;;@can change this probability
         report one-of nearby ;;50% chance of choosing someone nearby
       ]
       [
-        report one-of other slaves ;;and 50% chance of choosing a rando
+        report one-of other people ;;and 50% chance of choosing a rando
       ]
     ]
     [ ;;if nobody is nearby, simply random:
-      report one-of other slaves
+      report one-of other people
     ]
   ]
 
   if partner-choice = "weighted-proximity" [
-    let turtle-distance-list [list self (round distance myself)] of other slaves ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
+    let turtle-distance-list [list self (round distance myself)] of other people ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
     ;;we want: the lower the distance, the higher the odds...
     ;;for the weighted-one-of function, the odds have to start from 1 (no zeros)... and the higher the odds, the higher probability of being chosen!
     ;;therefore, a little transformation:
@@ -283,7 +312,8 @@ end
 
 
 to color-by-lang
-  ask slaves [
+  set people (turtle-set slaves colonists)
+  ask people [
     let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
     set color item my-choice agent-color-list ;;using the value as indexing for what color to choose from the global agent-color-list
   ]
@@ -308,7 +338,7 @@ to initialize-my-table ;;agent procedure, used in make-person
   ;;key = WALS-feature name
   ;;value = a nested list, each sublist with two items: a possible/known feature value + the odds for using this instance
 
-  let start-lang-vec-odds ( map [i -> list i 40] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (@@@initialized as 40?)
+  let start-lang-vec-odds ( map [i -> list i starting-odds] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (we've used 40 a lot)
 
   set my-lang-table table:make ;;initialize the empty table
 
@@ -323,6 +353,13 @@ to initialize-my-table ;;agent procedure, used in make-person
 
     ;;to begin with, each agent only knows one possible feature value (so e.g. the value entry for feature X9A could just look like this: [0 1] ;;(where 1 is the odds)
   ]
+
+  ;;@@@ADD UNIQUE 'WORDS:
+  ;;add a table entry with list of their unique words??? how to data structure this? separate table?
+  if include-words? [
+    ;
+  ]
+
 end
 
 
@@ -335,15 +372,15 @@ to update-feature-plot ;;run in go
   if plot-this = "max value (count)" [ ;;for each possible value, counts and plots how many agents has that as their most likely choice (highest odds)
 
     ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
-    let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+    let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
                                                                      ;;@not including values that are possible but aren't in the population at all
     let counts table:counts values ;;we don't actually care about these counts...
     let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
     let n length instances ;;nr of values/instances for this feature, e.g. 3
 
 
-    let counts-table table:counts [most-likely-value plot-feature] of slaves ;;using the handy most-likely-value agent reporter
-    ;;[most-likely-value plot-feature] of slaves is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
+    let counts-table table:counts [most-likely-value plot-feature] of people ;;using the handy most-likely-value agent reporter
+    ;;[most-likely-value plot-feature] of people is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
     ;;table:counts makes it into a table where the entry is the occurences of the key in the list, e.g. {{table: [[1 2] [2 1] [3 3]]}}
 ;    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
 ;    let n length instances ;;how many values there are
@@ -380,7 +417,7 @@ to update-feature-plot ;;run in go
     ;;using the handy 'avg-value-prob' reporter
     ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
 
-    let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+    let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
                                                                      ;;@not including values that are possible but aren't in the population at all
     let counts table:counts values ;;we don't actually care about these counts...
     let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
@@ -407,7 +444,7 @@ to update-feature-plot ;;run in go
 
   if plot-this = "times chosen" [ ;;for each possible value, plot count of how many times it's been actually spoken/chosen in this run (CUMULATIVE!)
     ;;for setting the range/plotting bars
-    let values reduce sentence [known-values plot-feature] of slaves ;;list with all known values for all slaves, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+    let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
                                                                      ;;@not including values that are possible but aren't in the population at all
     let counts2 table:counts values ;;we don't actually care about these counts...
     let instances sort table:keys counts2 ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
@@ -501,7 +538,7 @@ to increase-odds [feature value] ;;agent reporter. increases the odds for a spec
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + 1 ;;@can maybe change this increase depending on different things?
+  let new-odds old-odds + odds-increase ;;@can maybe change this increase depending on different things?
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
@@ -512,7 +549,7 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds - 1 ;;@can maybe change this decrease depending on different things?
+  let new-odds old-odds + odds-decrease ;;@can maybe change this decrease depending on different things?
   if old-odds > 1 [ ;;odds can never get below 1
     let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
     table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
@@ -569,7 +606,7 @@ end
 
 to-report avg-value-prob [feature value] ;;reports the average probability across agents for choosing this value for this feature
                                    ;;my-value-prob [feature value] ;;using the my-value-prob agent reporter
-  let prob-list [my-value-prob plot-feature value] of slaves ;;list of all agent's probs for this value, e.g. [0.9595959595959596 0.9770114942528736 1 ...]
+  let prob-list [my-value-prob plot-feature value] of people ;;list of all agent's probs for this value, e.g. [0.9595959595959596 0.9770114942528736 1 ...]
   report mean prob-list ;;the average probability of choosing this value for this feature, across agents
 end
 
@@ -702,9 +739,9 @@ ticks
 
 BUTTON
 355
-370
+365
 418
-403
+398
 NIL
 setup
 NIL
@@ -719,9 +756,9 @@ NIL
 
 BUTTON
 425
-370
+365
 488
-403
+398
 NIL
 go
 T
@@ -798,31 +835,31 @@ PENS
 "Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
 
 CHOOSER
-10
-175
-140
-220
+5
+180
+135
+225
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-0
+4
 
 INPUTBOX
 5
-50
-75
-110
-nr-of-agents
-100.0
+30
+70
+90
+nr-slaves
+50.0
 1
 0
 Number
 
 PLOT
 1070
-255
+240
 1290
-495
+480
 Feature plot
 Values
 NIL
@@ -837,9 +874,9 @@ PENS
 
 CHOOSER
 1070
-205
+190
 1162
-250
+235
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A"
@@ -847,29 +884,29 @@ plot-feature
 
 CHOOSER
 1165
-205
+190
 1290
-250
+235
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
 0
 
 TEXTBOX
-1300
-200
-1485
-406
-@max value (count): hvor mange der har den value som top choice. ret nice, kan se hvordan én overtager\n\n@average probability: average probability over alle agenter for præcis den value for den feature\n\n@times chosen: cool cumulative overview\n\n
+1305
+190
+1490
+411
+- max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
 12
 0.0
 1
 
 TEXTBOX
-1315
-415
-1485
-480
+1320
+420
+1490
+485
 @men fordi der er så mange features (50) og de kun vælger én hver gang, tager det lang tid at se forandring for bare en enkelt!
 11
 0.0
@@ -877,9 +914,9 @@ TEXTBOX
 
 BUTTON
 1120
-495
+480
 1240
-528
+513
 NIL
 update-feature-plot
 NIL
@@ -893,11 +930,11 @@ NIL
 1
 
 TEXTBOX
-1250
+1025
 515
-1485
-555
-(button useful if changing plot-feature or plot-this while the model is paused) (otherwise this command is run every tick in go)
+1325
+545
+Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature eller plot-this, mens modellen ikke kører.
 11
 0.0
 1
@@ -940,10 +977,10 @@ TEXTBOX
 1
 
 TEXTBOX
-90
-345
-145
-363
+80
+370
+135
+388
 Samtaler
 14
 0.0
@@ -951,9 +988,9 @@ Samtaler
 
 TEXTBOX
 60
-155
+160
 165
-173
+178
 Partner-selektion
 14
 0.0
@@ -961,9 +998,9 @@ Partner-selektion
 
 TEXTBOX
 70
-235
+255
 150
-253
+273
 Sproglæring
 14
 0.0
@@ -979,21 +1016,11 @@ Visualisering
 0.0
 1
 
-TEXTBOX
-40
-260
-190
-305
-- start-odds for modersmål\n- + og - for learning/unlearning
-11
-0.0
-1
-
 SLIDER
-35
-370
-180
-403
+5
+395
+150
+428
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1005,10 +1032,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-35
-405
-180
-438
+5
+430
+150
+463
 include-words?
 include-words?
 1
@@ -1026,11 +1053,73 @@ Demografi
 1
 
 TEXTBOX
+55
 100
-50
-200
-130
-proportion af slaver til slaveejere? noget med alder? sprog i befolkningen?
+150
+150
+- noget med alder?\n- startsprog i befolkningen?
+11
+0.0
+1
+
+INPUTBOX
+5
+285
+80
+345
+starting-odds
+40.0
+1
+0
+Number
+
+SLIDER
+90
+280
+195
+313
+odds-increase
+odds-increase
+0
+3
+1.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+90
+315
+195
+348
+odds-decrease
+odds-decrease
+-3
+0
+-1.0
+1
+1
+NIL
+HORIZONTAL
+
+INPUTBOX
+70
+30
+135
+90
+nr-colonists
+50.0
+1
+0
+Number
+
+TEXTBOX
+155
+420
+320
+461
+@nr-features-exchanged and include-words? not functional yet
 11
 0.0
 1
@@ -1251,6 +1340,17 @@ Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300
 Rectangle -7500403 true true 127 79 172 94
 Polygon -7500403 true true 195 90 240 150 225 180 165 105
 Polygon -7500403 true true 105 90 60 150 75 180 135 105
+
+person-inspecting
+false
+0
+Circle -7500403 true true 109 7 80
+Polygon -7500403 true true 125 90 120 195 105 300 105 300 135 300 149 215 165 300 195 300 195 300 180 195 175 91
+Rectangle -7500403 true true 127 79 172 94
+Polygon -7500403 true true 172 83 250 146 210 150 150 105
+Polygon -7500403 true true 251 146 180 197 174 167 230 131
+Polygon -7500403 true true 130 80 60 135 82 157 142 112
+Polygon -7500403 true true 19 109 79 154 92 130 41 88
 
 plant
 false
