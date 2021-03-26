@@ -738,10 +738,10 @@ ticks
 30.0
 
 BUTTON
-355
-365
-418
-398
+525
+410
+588
+443
 NIL
 setup
 NIL
@@ -755,10 +755,10 @@ NIL
 1
 
 BUTTON
-425
-365
-488
-398
+595
+410
+658
+443
 NIL
 go
 T
@@ -772,9 +772,9 @@ NIL
 1
 
 MONITOR
-500
+530
 360
-557
+587
 405
 Month
 this-month
@@ -783,9 +783,9 @@ this-month
 11
 
 MONITOR
-560
+590
 360
-617
+647
 405
 Year
 year
@@ -836,9 +836,9 @@ PENS
 
 CHOOSER
 5
-180
+175
 135
-225
+220
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
@@ -940,10 +940,10 @@ Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature elle
 1
 
 BUTTON
-705
-470
-800
-503
+775
+455
+870
+488
 NIL
 color-by-lang
 T
@@ -957,20 +957,20 @@ NIL
 1
 
 CHOOSER
-705
-425
-800
-470
+775
+410
+870
+455
 color-feature
 color-feature
 "X9A" "X10A"
 0
 
 TEXTBOX
-810
-450
-960
-491
+880
+435
+1030
+476
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
@@ -978,9 +978,9 @@ TEXTBOX
 
 TEXTBOX
 80
-370
+280
 135
-388
+298
 Samtaler
 14
 0.0
@@ -988,9 +988,9 @@ Samtaler
 
 TEXTBOX
 60
-160
+155
 165
-178
+173
 Partner-selektion
 14
 0.0
@@ -998,19 +998,19 @@ Partner-selektion
 
 TEXTBOX
 70
-255
+415
 150
-273
+433
 Sproglæring
 14
 0.0
 1
 
 TEXTBOX
-765
-390
-845
-415
+835
+375
+915
+400
 Visualisering
 14
 0.0
@@ -1018,9 +1018,9 @@ Visualisering
 
 SLIDER
 5
-395
+305
 150
-428
+338
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1033,9 +1033,9 @@ HORIZONTAL
 
 SWITCH
 5
-430
+340
 150
-463
+373
 include-words?
 include-words?
 1
@@ -1064,9 +1064,9 @@ TEXTBOX
 
 INPUTBOX
 5
-285
+445
 80
-345
+505
 starting-odds
 40.0
 1
@@ -1075,9 +1075,9 @@ Number
 
 SLIDER
 90
-280
+440
 195
-313
+473
 odds-increase
 odds-increase
 0
@@ -1090,9 +1090,9 @@ HORIZONTAL
 
 SLIDER
 90
-315
+475
 195
-348
+508
 odds-decrease
 odds-decrease
 -3
@@ -1115,11 +1115,51 @@ nr-colonists
 Number
 
 TEXTBOX
-155
-420
-320
-461
+5
+375
+170
+405
 @nr-features-exchanged and include-words? not functional yet
+11
+0.0
+1
+
+TEXTBOX
+30
+230
+180
+271
+- sandsynligheder for interaktion baseret på status, placering, sprog osv...
+11
+0.0
+1
+
+TEXTBOX
+15
+515
+220
+571
+- noget med threshold for forståelse (hvis de udveksler mere end én feature)? hver feature for sig (som flere samtaler)? Eller som helhed?
+11
+0.0
+1
+
+TEXTBOX
+280
+365
+430
+390
+Andre antagelser
+14
+0.0
+1
+
+TEXTBOX
+270
+395
+420
+491
+- noget med status (fx større sandsynlighed for at europæeren er speaker)?\n- gennemsnitlig levealder?\n- forskellig læring i børn og voksne? (@ingen børn endnu)\n- ...
 11
 0.0
 1
