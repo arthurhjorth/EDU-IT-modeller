@@ -37,12 +37,14 @@ slaves-own [
   start-lang ;;starting language (ID code)
   start-lang-vec ;;vector with the feature values for their starting language @maybe doesn't need to be saved? although maybe for later comparison...
   my-lang-table ;;their language table! 50 entries, one for each WALS feature. Each entry is a nested list of their known values for this feature + associated odds
+  my-word-table ;;their vocabulary
 ]
 
 colonists-own [
   start-lang
   start-lang-vec
   my-lang-table
+  my-word-table
 ]
 
 
@@ -109,7 +111,7 @@ to populate ;;run in setup. Create starting population
 
   ;;@OBS: check/fix/change these language mappings!
   let col-lang-list sublist lang-list 141 149 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
-  let slave-lang-list sublist lang-list 0 141 ;;@all the other languages
+  let slave-lang-list sublist lang-list 0 141 ;;@all the other languages ;;@@@REMOVE DUTCH CREOLE
 
   ;;@random starting language right now! (from these two lists)
   repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
@@ -126,7 +128,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
       set start-lang language
       set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
-      initialize-my-table ;;creates their language table
+      initialize-my-tables ;;creates their language table
 
       ;;@just random position right now:
       move-to one-of land-patches with [not any? slaves-here]
@@ -140,7 +142,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
       set start-lang language
       set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
-      initialize-my-table ;;creates their language table
+      initialize-my-tables ;;creates their language table
 
       ;;@just random position right now:
         move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
@@ -189,7 +191,7 @@ to communicate ;;agent procedure run in go
     ifelse success? [
       increase-odds chosen-feature speaker-value ;;function increases the odds for this value of this feature (right now simply +1)
     ]
-    [ ;;if unsuccessful, odds decrease:
+    [ ;;if unsuccessful, odds decrease (@does this even make sense?):
       decrease-odds chosen-feature speaker-value ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
     ]
 
@@ -332,14 +334,16 @@ end
 ;;distinktion: sandsynlighed? eller egentlig talt?
 
 
-to initialize-my-table ;;agent procedure, used in make-person
-  ;;every agent has ONE table! With 50 entries!
+to initialize-my-tables ;;agent procedure, used in make-person
+  ;;every agent has ONE table for WALS features! With 50 entries!
   ;;important: every table is unique to every agent! (turtles-own) So we don't overwrite content across agents...
   ;;key = WALS-feature name
   ;;value = a nested list, each sublist with two items: a possible/known feature value + the odds for using this instance
 
-  let start-lang-vec-odds ( map [i -> list i starting-odds] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (we've used 40 a lot)
+  ;;and ONE table for the vocabulary!
 
+  ;;1. WALS TABLE:
+  let start-lang-vec-odds ( map [i -> list i start-odds] start-lang-vec ) ;;this turns start-lang-vec into a nested list where each entry is followed by its odds (we've used 40 a lot)
   set my-lang-table table:make ;;initialize the empty table
 
   ;;loop to create each agent's language table based on their language vector:
@@ -354,10 +358,36 @@ to initialize-my-table ;;agent procedure, used in make-person
     ;;to begin with, each agent only knows one possible feature value (so e.g. the value entry for feature X9A could just look like this: [0 1] ;;(where 1 is the odds)
   ]
 
-  ;;@@@ADD UNIQUE 'WORDS:
-  ;;add a table entry with list of their unique words??? how to data structure this? separate table?
+  ;;2. VOCABULARY TABLE (for 'words' - unique for each language!):
   if include-words? [
-    ;
+
+    ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
+    let word-list []
+    foreach range nr-words [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
+      n ->
+      set word-list lput (word "word" n) word-list
+    ]
+
+    let start-word-vec map [i -> word start-lang i] word-list ;;result is the unique 'words' for each meaning for that language - e.g. [cSANoword0 cSANoword1 ...]
+
+    let start-word-vec-odds ( map [i -> list i start-odds] start-word-vec ) ;;this turns start-word-vec into a nested list where each 'unique word' is followed by its (starting) odds
+    ;;@^^right now the same starting odds for WALS features and words!
+    set my-word-table table:make ;;initialize the empty table
+
+    ;;loop to create each agent's word table:
+    foreach word-list [ ;;word-list looks like this: [word0 word1 word2 word 3 ...] (length depending on nr-words)
+      x ->
+      let key x ;;the word name/'meaning' - what we want to be the table key (e.g. word0 might be the meaning of 'bread')
+      let index position x word-list ;;the index of the current feature in feature-list (since we then want the corresponding item from start-word-vec):
+      let empty-list [] ;;used so value becomes a nested list in an existing list (the structure we want, so we can later keep adding nested lists). ie. [[3 1]] instead of [3 1]
+      let value lput (item index start-word-vec-odds) empty-list
+      table:put my-word-table key value ;;table:put adds this key-value combination to the agent's table
+
+      ;;to begin with, each agent only knows one possible word for each meaning - the word from their starting language!
+      ;;e.g. the value entry for word0 could just look like this: [[cSANo 1]] ;;(where 1 is the odds)
+  ]
+
+
   ]
 
 end
@@ -941,9 +971,9 @@ Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature elle
 
 BUTTON
 775
-455
+435
 870
-488
+468
 NIL
 color-by-lang
 T
@@ -958,9 +988,9 @@ NIL
 
 CHOOSER
 775
-410
+390
 870
-455
+435
 color-feature
 color-feature
 "X9A" "X10A"
@@ -968,9 +998,9 @@ color-feature
 
 TEXTBOX
 880
-435
+415
 1030
-476
+456
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
@@ -1008,9 +1038,9 @@ Sproglæring
 
 TEXTBOX
 835
-375
+365
 915
-400
+390
 Visualisering
 14
 0.0
@@ -1038,7 +1068,7 @@ SWITCH
 373
 include-words?
 include-words?
-1
+0
 1
 -1000
 
@@ -1065,9 +1095,9 @@ TEXTBOX
 INPUTBOX
 5
 445
-80
+60
 505
-starting-odds
+start-odds
 40.0
 1
 0
@@ -1145,9 +1175,9 @@ TEXTBOX
 1
 
 TEXTBOX
-280
+340
 365
-430
+490
 390
 Andre antagelser
 14
@@ -1155,14 +1185,96 @@ Andre antagelser
 1
 
 TEXTBOX
-270
-395
-420
-491
+315
+380
+465
+476
 - noget med status (fx større sandsynlighed for at europæeren er speaker)?\n- gennemsnitlig levealder?\n- forskellig læring i børn og voksne? (@ingen børn endnu)\n- ...
 11
 0.0
 1
+
+SWITCH
+465
+505
+570
+538
+discounting?
+discounting?
+1
+1
+-1000
+
+TEXTBOX
+450
+460
+600
+501
+- hvordan fordeles slaverne ud? (evt. så samme sprog ikke er samme sted?)
+11
+0.0
+1
+
+TEXTBOX
+595
+490
+825
+586
+Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
+11
+0.0
+1
+
+TEXTBOX
+825
+485
+1010
+551
+Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
+11
+0.0
+1
+
+TEXTBOX
+255
+485
+405
+511
+Parkvall: KUN hearer lærer af en interaktion!?
+11
+0.0
+1
+
+TEXTBOX
+170
+395
+320
+436
+@: forskel på odds increase for koordineret og ukoordineret?
+11
+0.0
+1
+
+CHOOSER
+225
+540
+492
+585
+success-criteria
+success-criteria
+"hearer draws only 1 value?" "(if hearer has value above x%?)" "if it's one of the 5 values hearer draws?"
+0
+
+INPUTBOX
+155
+320
+215
+380
+nr-words
+10.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
