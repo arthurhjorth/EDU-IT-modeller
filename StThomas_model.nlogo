@@ -8,6 +8,8 @@ globals [
   feature-list
   wals-table
 
+  word-list ;;[word0 word1 word2 ... ]
+
   color-list ;;for plotting
   agent-color-list ;;for visualizing
 
@@ -82,6 +84,13 @@ to initialize-variables ;;run in setup
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
 
+  set word-list []
+  ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
+    foreach range nr-words [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
+      n ->
+      set word-list lput (word "word" n) word-list
+    ]
+
   set chosen-table table:make ;;initialize the chosen-table:
   foreach feature-list [ ;;feature-list contains the 50 WALS feature names
     key -> ;;the WALS feature name - what we want to be the table key
@@ -150,30 +159,70 @@ to make-person [kind language] ;;function that creates a person and takes their 
   ]
 end
 
-to communicate ;;agent procedure run in go
-               ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
-
-    ;;1. Speaker chooses a hearer
+to communicate ;;agent procedure run in go ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
+  ;;1. Speaker chooses a hearer
     let partner my-partner-choice ;;using the agent reporter to select a partner
                                     ;;@tilføj evt: gem historie over hvem der har talt sammen?
 
-    ;;2. Choose which WALS feature to exchange (the 'conversation topic')
-    let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
+  ;;2. Choose which WALS feature to exchange (the 'conversation topic')
+    ;let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
 
-    ;;3. Speaker retrieves a specific value/instance of this WALS feature from their language table (to begin with they only know one instance anyway)
-    let speaker-input-list table:get my-lang-table chosen-feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-    let speaker-value weighted-one-of speaker-input-list ;;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
+    let chosen-features n-of nr-features-exchanged feature-list ;;can select multiple features
 
-    ;;4. Speaker asks hearer to retrieve a value for the WALS feature
-    let hearer-value "NA" ;;placeholder to initiate value outside ask block
-    ask partner [
-      let hearer-input-list table:get my-lang-table chosen-feature
-      set hearer-value weighted-one-of hearer-input-list ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
+  ;;3. Speaker retrieves a specific value/instance of this WALS feature from their language table (to begin with they only know one instance anyway)
+    ;let speaker-input-list table:get my-lang-table chosen-feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+    ;let speaker-value weighted-one-of speaker-input-list ;;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
+
+  let speaker-values []
+  foreach chosen-features [ ;;speaker now chooses a value for each feature in the 'conversation'
+    x ->
+    let speaker-input-list table:get my-lang-table x ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+    let the-value weighted-one-of speaker-input-list
+    set speaker-values lput the-value speaker-values
+  ]
+
+
+
+  ;;4. Speaker asks hearer to retrieve a value for the WALS feature
+    ;let hearer-value "NA" ;;placeholder to initiate value outside ask block
+    ;ask partner [
+     ; let hearer-input-list table:get my-lang-table chosen-feature
+      ;set hearer-value weighted-one-of hearer-input-list ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
+    ;]
+  let hearer-values []
+  ask partner [
+    foreach chosen-features [
+      x ->
+      let hearer-input-list table:get my-lang-table x
+      let the-value weighted-one-of hearer-input-list
+      set hearer-values lput the-value hearer-values
+
     ]
 
-    ;;5. Compare the values to see if the communication was coordinated/succesful
+  ]
+
+
+  ;;4.5: Also retrieve a word from vocabulary?
+  if include-words? [
+    ;;A. Choose which word meaning to utter:
+    let chosen-word one-of word-list ;;e.g. 'word3'
+
+    ;;A. Speaker retrieves a word from their vocabulary for this word meaning (e.g. 'cSANoword3'):
+    let speaker-word-list table:get my-word-table chosen-word
+    let speaker-word weighted-one-of speaker-word-list ;;using the weighted-one-of function
+
+    ;;B. Speaker asks hearer to retrieve a word:
+    let hearer-word "NA" ;;placeholder to initiate value outside ask block
+    ask partner [
+      let hearer-word-list table:get my-word-table chosen-word
+      set hearer-word weighted-one-of hearer-word-list ;;using the weighted-one-of function
+    ]
+  ]
+
+  ;;5. Compare the values to see if the communication was coordinated/succesful ;;@HOW TO DO THIS? (@RIGHT NOW ONLY LOOKS AT THE FIRST FEATURE EXCHANGED!)
+
     let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
-    ifelse speaker-value = hearer-value [ ;;@now simple binary decision understood/not understood - could add nuance somehow?
+    ifelse first speaker-values = first hearer-values [ ;;@now only looks at the first feature. @now simple binary decision understood/not understood - could add nuance somehow?
       set success? true
       set success-count success-count + 1 ;;total cumulative
       set successes-this-tick successes-this-tick + 1 ;;for plotting (and agreement list)
@@ -187,46 +236,52 @@ to communicate ;;agent procedure run in go
       set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
     ]
 
-    ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
+  ;;(evaluate words separately? or in conjunction)
+  if include-words? [
+    ;@evaluate/learn from the words uttered! save success separately? hmmm!!
+    ;if speaker-word = hearer-word
+  ]
+
+
+  ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
     ifelse success? [
-      increase-odds chosen-feature speaker-value ;;function increases the odds for this value of this feature (right now simply +1)
+      increase-odds first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
     ]
     [ ;;if unsuccessful, odds decrease (@does this even make sense?):
-      decrease-odds chosen-feature speaker-value ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
+      decrease-odds first chosen-features first speaker-values ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
     ]
 
-    ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
+  ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
     ask partner [
       ifelse success? [
-        increase-odds chosen-feature speaker-value ;;function increases the odds for this value of this feature (right now simply +1)
+        increase-odds first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
       ]
       [ ;;if unsuccessful communication:
-        ifelse known-value? chosen-feature speaker-value [
+        ifelse known-value? first chosen-features first speaker-values [
           ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          increase-odds chosen-feature speaker-value
+          increase-odds first chosen-features first speaker-values
         ]
         [ ;;hearer simply learns the value if they don't already know it:
-          learn-value chosen-feature speaker-value 1 ;;@now simply with starting odds of 1
+          learn-value first chosen-features first speaker-values 1 ;;@now simply with starting odds of 1
         ]
       ]
     ]
     ;;@overvej: lær mere af succes end ikke-succes?
 
   ;;8. Record what happened
-
-  let new-chosen list speaker-value hearer-value ;;two-item list of the new two values chosen for this feature, e.g. [4 1]
+  let new-chosen list first speaker-values first hearer-values ;;two-item list of the new two values chosen for this feature, e.g. [4 1]
 
   foreach new-chosen [ ;;for each of the two spoken values
    value-index ->
     if value-index = "?" [set value-index 0] ;;@now '?'-entries are recorded in index 0 (since there are no 0 values)
      ;;value 1 tilsvarer position 1, 2 tilsvarer position 2 osv...
-    let old-entry table:get chosen-table chosen-feature ;;old entry, 10-item list with each nr representing the nr of times that value (index position) has been chosen
+    let old-entry table:get chosen-table first chosen-features ;;old entry, 10-item list with each nr representing the nr of times that value (index position) has been chosen
     let new-entry replace-item value-index old-entry (item value-index old-entry + 1) ;;increases the number (count so far) at the position of the value index by 1 (for this feature)
-    table:put chosen-table chosen-feature new-entry
+    table:put chosen-table first chosen-features new-entry
 
   ]
 
-    ;;9. print what happened (just for testing):
+  ;;9. print what happened (just for testing):
 ;    print ""
 ;    print (word self " talked to " partner)
 ;    print word "Chosen feature: " chosen-feature
@@ -361,12 +416,7 @@ to initialize-my-tables ;;agent procedure, used in make-person
   ;;2. VOCABULARY TABLE (for 'words' - unique for each language!):
   if include-words? [
 
-    ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
-    let word-list []
-    foreach range nr-words [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
-      n ->
-      set word-list lput (word "word" n) word-list
-    ]
+    ;;word-list looks like this: [word0 word1 word2 word3 ...] with length depending on nr-words - so these are the word meanings
 
     let start-word-vec map [i -> word start-lang i] word-list ;;result is the unique 'words' for each meaning for that language - e.g. [cSANoword0 cSANoword1 ...]
 
@@ -1262,7 +1312,7 @@ CHOOSER
 585
 success-criteria
 success-criteria
-"hearer draws only 1 value?" "(if hearer has value above x%?)" "if it's one of the 5 values hearer draws?"
+"hearer draws only 1 value?" "(if hearer has value above x%?)" "(if one of the 5 values hearer draws?)"
 0
 
 INPUTBOX
