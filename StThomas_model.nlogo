@@ -40,6 +40,9 @@ slaves-own [
   start-lang-vec ;;vector with the feature values for their starting language @maybe doesn't need to be saved? although maybe for later comparison...
   my-lang-table ;;their language table! 50 entries, one for each WALS feature. Each entry is a nested list of their known values for this feature + associated odds
   my-word-table ;;their vocabulary
+  closest-agent ;;turtle set (of 1 or maybe more) used in my-partner-choice
+  nearby-agents ;;turtleset used in my-partner-choice
+  my-weighted-prox-list ;;used for weighted-proximity
 ]
 
 colonists-own [
@@ -47,6 +50,9 @@ colonists-own [
   start-lang-vec
   my-lang-table
   my-word-table
+  closest-agent
+  nearby-agents
+  my-weighted-prox-list
 ]
 
 
@@ -74,6 +80,7 @@ to setup
 
   populate ;;create starting population
   set people (turtle-set slaves colonists)
+  ask people [ initialize-agent-variables ]
   update-feature-plot
 end
 
@@ -101,6 +108,35 @@ to initialize-variables ;;run in setup
 
   set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
   set agent-color-list [white 14 104 45 53] ;;@ can add more
+
+
+
+
+end
+
+to initialize-agent-variables ;;agent procedure, run in setup
+
+  ;;Agent variables used in my-partner-choice:
+  set closest-agent people with-min [distance myself] ;;agentset of the closest agent (if exact tie, can contain more than one agent)
+  set nearby-agents other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within radius 10
+
+
+  ;;now for the list of all other turtles and their distances (used in weighted-proximity):
+  let turtle-distance-list [list self (round distance myself)] of other people ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
+  ;;we want: the lower the distance, the higher the odds... for the weighted-one-of function, the odds have to start from 1 (no 0's)... and the higher the odds, the higher probability of being chosen!
+  ;;therefore, a little transformation:
+  let distances map last turtle-distance-list
+  let max-plus-one max distances + 1
+  let trans-distances map [i -> max-plus-one - i] distances ;;for each distance, we subtract the distance from (the max distance + 1)
+  let turtle-list map first turtle-distance-list
+  ;;NOW CREATE A NESTED LIST COMBINING TURTLE-LIST AND TRANS-DISTANCES!:
+  set my-weighted-prox-list [] ;;an agent variable
+  foreach turtle-list [
+    i ->
+    let index position i turtle-list
+    let this-trans-dist (item index trans-distances)
+    set my-weighted-prox-list lput (list i this-trans-dist) my-weighted-prox-list
+  ]
 end
 
 to go
@@ -284,8 +320,8 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
   ;;9. print what happened (just for testing):
 ;    print ""
 ;    print (word self " talked to " partner)
-;    print word "Chosen feature: " chosen-feature
-;    print (word "Speaker said: " speaker-value ", hearer said: " hearer-value)
+;    print word "Chosen feature(s): " chosen-features
+;    print (word "Speaker said: " speaker-values ", hearer said: " hearer-values)
 ;    print (word "Successful?: " success?)
 end
 
@@ -299,13 +335,13 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
   ]
 
   if partner-choice = "closest-one" [
-    report min-one-of other people [distance myself] ;;the closest agent (if tie, random one of these)
+    report one-of closest-agent ;;the closest agent (if tie, random one of these)
   ]
 
   if partner-choice = "nearby" [
-    let nearby other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
-    ifelse any? nearby [
-        report one-of nearby ;;choose someone who's nearby
+    ;;nearby is an agentset of all agents within radius 10 (set in initialize-agent-variables)
+    ifelse any? nearby-agents [
+        report one-of nearby-agents ;;choose someone who's nearby
     ]
     [ ;;if nobody is nearby, simply random:
       report one-of other people
@@ -314,11 +350,10 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
 
   if partner-choice = "nearby-or-random" [
     ;;e.g. 50% chance of someone nearby, 50% chance of someone random
-    let nearby other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within this radius
-    ifelse any? nearby [
+    ifelse any? nearby-agents [
       let chance random-float 1
       ifelse chance < 0.50 [ ;;@can change this probability
-        report one-of nearby ;;50% chance of choosing someone nearby
+        report one-of nearby-agents ;;50% chance of choosing someone nearby
       ]
       [
         report one-of other people ;;and 50% chance of choosing a rando
@@ -330,30 +365,11 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
   ]
 
   if partner-choice = "weighted-proximity" [
-    let turtle-distance-list [list self (round distance myself)] of other people ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
-    ;;we want: the lower the distance, the higher the odds...
-    ;;for the weighted-one-of function, the odds have to start from 1 (no zeros)... and the higher the odds, the higher probability of being chosen!
-    ;;therefore, a little transformation:
-    let distances map last turtle-distance-list
-    let max-plus-one max distances + 1
-    let trans-distances map [i -> max-plus-one - i] distances ;;for each distance, we subtract the distance from (the max distance + 1)
-    let turtle-list map first turtle-distance-list
-    ;;NOW CREATE A NESTED LIST COMBINING TURTLE-LIST AND TRANS-DISTANCES!:
-    let input-list []
-    foreach turtle-list [
-      i ->
-      let index position i turtle-list
-      let this-trans-dist (item index trans-distances)
-      set input-list lput (list i this-trans-dist) input-list
-    ]
-
-    report weighted-one-of input-list ;;feed this list to the function to choose a turtle randomly, weighted by proximity (the closer, the higher odds)
+    ;;my-weighted-prox-list is created in initialize-agent-variables
+    report weighted-one-of my-weighted-prox-list ;;feed this list to the function to choose a turtle randomly, weighted by proximity (the closer, the higher odds)
   ]
 
-  ;;@maybe ADD: based on other people's language?
-
-
-
+  ;;@maybe ADD: based on other people's language/status/age/family ties?
 end
 
 ;;---REPORTERS FOR INTERFACE:
@@ -465,6 +481,7 @@ to update-feature-plot ;;run in go
 ;    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
 ;    let n length instances ;;how many values there are
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
+    set-plot-y-range 0 (nr-slaves + nr-colonists)
     let step 0.02 ;;tweak this to leave no gaps
     ;;the plotting loop:
     (foreach instances range n [
@@ -503,7 +520,8 @@ to update-feature-plot ;;run in go
     let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
     let n length instances ;;nr of values/instances for this feature, e.g. 3
     set-plot-x-range 0 n ;;scales the plot to fit the total number of instances/values
-    let step 0.02
+    set-plot-y-range 0 1
+    let step 0.001
     ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
@@ -533,7 +551,7 @@ to update-feature-plot ;;run in go
     let counts-list table:get chosen-table plot-feature
     ;;chosen-table is a table with counts of how many times each value has been chosen for this feature so far, through indexing using the value nr (? = 0)
                                                                 ;;i.e.: entry (and thus chosen-list) for key "X9A" = [0 1 0 2 0 0 0 0 0 0] = value 1 has been chosen once, value 3 has been chosen twice
-
+    ;;set-plot-y-range 0 (length agreement + 1)
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     let step 0.02 ;;tweak this to leave no gaps
     ;;the plotting loop:
@@ -970,7 +988,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-0
+2
 
 TEXTBOX
 1305
@@ -1198,8 +1216,8 @@ TEXTBOX
 5
 375
 170
-405
-@nr-features-exchanged and include-words? not functional yet
+416
+@success evaluation of words and multiple features not functional yet
 11
 0.0
 1
@@ -1209,7 +1227,7 @@ TEXTBOX
 230
 180
 271
-- sandsynligheder for interaktion baseret på status, placering, sprog osv...
+- sandsynligheder for interaktion baseret på status, placering, sprog osv...?
 11
 0.0
 1
@@ -1244,53 +1262,42 @@ TEXTBOX
 0.0
 1
 
-SWITCH
-465
-505
-570
-538
-discounting?
-discounting?
-1
-1
--1000
-
 TEXTBOX
-450
-460
-600
-501
+455
+480
+605
+521
 - hvordan fordeles slaverne ud? (evt. så samme sprog ikke er samme sted?)
 11
 0.0
 1
 
 TEXTBOX
-595
+630
 490
 825
-586
+585
 Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
 11
 0.0
 1
 
 TEXTBOX
-825
-485
-1010
-551
+835
+480
+1005
+555
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
 11
 0.0
 1
 
 TEXTBOX
-255
+250
 485
-405
-511
-Parkvall: KUN hearer lærer af en interaktion!?
+400
+526
+Parkvall: KUN hearer lærer af en interaktion!? TILFØJ SWITCH!
 11
 0.0
 1
@@ -1306,10 +1313,10 @@ TEXTBOX
 1
 
 CHOOSER
-225
-540
-492
-585
+335
+535
+602
+580
 success-criteria
 success-criteria
 "hearer draws only 1 value?" "(if hearer has value above x%?)" "(if one of the 5 values hearer draws?)"
@@ -1317,9 +1324,9 @@ success-criteria
 
 INPUTBOX
 155
-320
+310
 215
-380
+370
 nr-words
 10.0
 1
