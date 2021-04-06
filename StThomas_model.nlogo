@@ -155,9 +155,9 @@ end
 to populate ;;run in setup. Create starting population
 
   ;;@OBS: check/fix/change these language mappings!
-  let col-lang-list sublist lang-list 143 150 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
-  let slave-lang-list1 sublist lang-list 0 143 ;;@all the other languages ;;@@@REMOVE DUTCH CREOLE
-  let slave-lang-list remove-item 13 slave-lang-list1
+  let col-lang-list sublist lang-list 141 149 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
+  let slave-lang-list1 sublist lang-list 0 141 ;;@all the other languages
+  let slave-lang-list remove-item 12 slave-lang-list1
 
   ;;@random starting language right now! (from these two lists)
   repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
@@ -1182,7 +1182,7 @@ odds-increase
 0
 3
 1.0
-1
+0.1
 1
 NIL
 HORIZONTAL
@@ -1197,7 +1197,7 @@ odds-decrease
 -3
 0
 -1.0
-1
+0.1
 1
 NIL
 HORIZONTAL
