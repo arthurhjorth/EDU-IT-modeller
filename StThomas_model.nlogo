@@ -851,6 +851,7 @@ ask patches with [shade-of? pcolor sky] [set pcolor red]
   ask patches with [ count neighbors with [ pcolor = red ] >= 7 ] [set pcolor red]
   ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
   ask patches with [ count neighbors with [ pcolor = green ] >= 7 ] [set pcolor green]
+  ask patches with [pycor < -82] [set pcolor red]
 end
 
 to color-map
@@ -1550,7 +1551,7 @@ CHOOSER
 545
 choose-preset
 choose-preset
-"As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2"
+"As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
 0
 
 @#$#@#$#@
