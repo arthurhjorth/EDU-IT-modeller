@@ -4,6 +4,8 @@ globals [
   wals-list
   header-list
   lang-list
+  col-lang-list
+  slave-lang-list
   affiliation-list
   feature-list
   wals-table
@@ -88,6 +90,11 @@ end
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
+  ;;@OBS: check/fix/change these language mappings!:
+  set col-lang-list sublist lang-list 141 149 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
+  let slave-lang-list1 sublist lang-list 0 141 ;;@all the other languages
+  set slave-lang-list remove-item 12 slave-lang-list1 ;;not including Dutch creole (cVIDd)
+
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
 
@@ -108,10 +115,6 @@ to initialize-variables ;;run in setup
 
   set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
   set agent-color-list [white 14 104 45 53] ;;@ can add more
-
-
-
-
 end
 
 to initialize-agent-variables ;;agent procedure, run in setup
@@ -153,11 +156,6 @@ end
 
 
 to populate ;;run in setup. Create starting population
-
-  ;;@OBS: check/fix/change these language mappings!
-  let col-lang-list sublist lang-list 141 149 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
-  let slave-lang-list1 sublist lang-list 0 141 ;;@all the other languages
-  let slave-lang-list remove-item 12 slave-lang-list1
 
   ;;@random starting language right now! (from these two lists)
   repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
