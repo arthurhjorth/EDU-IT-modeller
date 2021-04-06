@@ -84,6 +84,7 @@ to setup
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
   update-feature-plot
+  update-convergence-plot
 end
 
 
@@ -148,6 +149,7 @@ to go
   ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
   update-feature-plot
+  update-convergence-plot
   set time ticks mod 12 ;;update time
   if year = 1940 [stop]
 
@@ -459,7 +461,7 @@ end
 
 
 ;;--- PLOTS
-to update-feature-plot ;;run in go
+to update-feature-plot ;;run in go (and setup)
   set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
   clear-plot
   ;;interface chooser decides what feature we focus on ('plot-feature')
@@ -568,6 +570,55 @@ to update-feature-plot ;;run in go
       set-plot-pen-color c ;;to get the right color in the legend
     ])
   ]
+
+
+end
+
+to update-convergence-plot ;;run in go (and setup). Visualizes convergence for the island as a whole
+  let proportion-list []
+  foreach feature-list [
+    the-feature ->
+    let counts-table table:counts [most-likely-value the-feature] of people ;;e.g.: {{table: [[2 61] [1 38] [3 1]]}} ;;key = value, entry = nr of agents with this as top pick
+    let counts-list table:to-list counts-table ;;make it a nested list, e.g.: [[2 61] [1 38] [3 1]]
+                                               ;;find the most common top pick (for this specific plot-feature):
+    let index position (max map last counts-list) (map last counts-list) ;;example: would be 0 (since item 0 is most common top pick, with 61 agents with value 2)
+    let global-top-value first item index counts-list ;;the value - e.g. 2
+                                                      ;;calculate the proportion of the population with this as their top pick:
+    let nr-top-pickers last item index counts-list ;;nr of agents picking this top value - e.g. 61
+    let nr-agents sum map last counts-list ;;e.g. 100 (61 + 38 + 1)
+    let proportion ( nr-top-pickers / nr-agents )
+    ;;and THAT proportion is what we want to plot!:
+    set proportion-list lput proportion proportion-list
+    ;;print proportion-list
+  ]
+  ;;proportion-list is now: [0.37 0.6 0.99 0.55 0.43 0.56 0.42 ...] with 50 entries, one for each feature, showing the proportion of agents with the most common top pick as their top pick!
+
+  ;;PLOTTING:
+  set-current-plot "Convergence plot"
+  clear-plot
+  let n 50 ;;nr of bars we want (the nr of WALS features)
+  set-plot-x-range 0 n
+  set-plot-y-range 0 1
+  let step 0.005 ; tweak this to leave no gaps
+  (foreach proportion-list range n [
+    [y i] ->
+    ;;let c one-of base-colors ;;random colors right now
+    create-temporary-plot-pen (word y) ;;the proportion, e.g. "0.37"
+    set-plot-pen-mode 1 ; bar mode
+    ;;set-plot-pen-color c
+    ifelse y >= 0.75 [
+      set-plot-pen-color 64 ;;green
+    ]
+    [
+      if y >= 0.50 [set-plot-pen-color 44] ;;yellow
+      if y < 0.50 [set-plot-pen-color 14] ;;red
+    ]
+    foreach (range 0 y step) [ _y -> plotxy i _y ]
+    set-plot-pen-color black
+    plotxy i y
+    ;;set-plot-pen-color c ; to get the right color in the legend
+  ])
+
 
 
 end
@@ -939,7 +990,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-4
+0
 
 INPUTBOX
 5
@@ -953,9 +1004,9 @@ nr-slaves
 Number
 
 PLOT
-1070
+985
 240
-1290
+1205
 480
 Feature plot
 Values
@@ -970,49 +1021,49 @@ true
 PENS
 
 CHOOSER
-1070
+985
 190
-1162
+1077
 235
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A"
-0
+4
 
 CHOOSER
-1165
+1080
 190
-1290
+1205
 235
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-2
+0
 
 TEXTBOX
-1305
-190
-1490
-411
+1215
+195
+1400
+416
 - max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
 12
 0.0
 1
 
 TEXTBOX
-1320
-420
-1490
-485
+1215
+400
+1385
+465
 @men fordi der er så mange features (50) og de kun vælger én hver gang, tager det lang tid at se forandring for bare en enkelt!
 11
 0.0
 1
 
 BUTTON
-1120
+1035
 480
-1240
+1155
 513
 NIL
 update-feature-plot
@@ -1027,9 +1078,9 @@ NIL
 1
 
 TEXTBOX
-1025
+940
 515
-1325
+1240
 545
 Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature eller plot-this, mens modellen ikke kører.
 11
@@ -1037,10 +1088,10 @@ Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature elle
 1
 
 BUTTON
-775
-435
-870
-468
+710
+430
+805
+463
 NIL
 color-by-lang
 T
@@ -1054,20 +1105,20 @@ NIL
 1
 
 CHOOSER
-775
-390
-870
-435
+710
+385
+805
+430
 color-feature
 color-feature
 "X9A" "X10A"
 0
 
 TEXTBOX
-880
-415
-1030
-456
+815
+410
+965
+451
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
@@ -1104,10 +1155,10 @@ Sproglæring
 1
 
 TEXTBOX
-835
-365
-915
-390
+770
+360
+850
+385
 Visualisering
 14
 0.0
@@ -1282,10 +1333,10 @@ Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på indivi
 1
 
 TEXTBOX
-835
-480
-1005
-555
+1455
+525
+1625
+600
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
 11
 0.0
@@ -1331,6 +1382,33 @@ nr-words
 1
 0
 Number
+
+PLOT
+1395
+10
+1625
+180
+Convergence plot
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+
+TEXTBOX
+1465
+190
+1615
+271
+convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
