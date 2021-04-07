@@ -234,12 +234,12 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     ;let speaker-input-list table:get my-lang-table chosen-feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
     ;let speaker-value weighted-one-of speaker-input-list ;;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
 
-  let speaker-values []
+  let speaker-choices []
   foreach chosen-features [ ;;speaker now chooses a value for each feature in the 'conversation'
     x ->
     let speaker-input-list table:get my-lang-table x ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
     let the-value weighted-one-of speaker-input-list
-    set speaker-values lput the-value speaker-values
+    set speaker-choices lput the-value speaker-choices
   ]
 
   ;;4. Speaker asks hearer to retrieve a value for the WALS feature
@@ -248,20 +248,17 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
      ; let hearer-input-list table:get my-lang-table chosen-feature
       ;set hearer-value weighted-one-of hearer-input-list ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
     ;]
-  let hearer-values []
+  let hearer-choices []
   ask partner [
     foreach chosen-features [
       x ->
       let hearer-input-list table:get my-lang-table x
       let the-value weighted-one-of hearer-input-list
-      set hearer-values lput the-value hearer-values
-
+      set hearer-choices lput the-value hearer-choices
     ]
-
   ]
 
-
-  ;;4.5: Also retrieve a word from vocabulary?
+  ;;4.5: Potentially also retrieve a word from vocabulary
   if include-words? [
     ;;A. Choose which word meaning to utter:
     let chosen-word one-of word-list ;;e.g. 'word3'
@@ -269,66 +266,66 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     ;;A. Speaker retrieves a word from their vocabulary for this word meaning (e.g. 'cSANoword3'):
     let speaker-word-list table:get my-word-table chosen-word
     let speaker-word weighted-one-of speaker-word-list ;;using the weighted-one-of function
+    set speaker-choices lput speaker-word speaker-choices ;;add the chosen word to the list with the chosen feature values (for joint comparison)
 
     ;;B. Speaker asks hearer to retrieve a word:
     let hearer-word "NA" ;;placeholder to initiate value outside ask block
     ask partner [
       let hearer-word-list table:get my-word-table chosen-word
       set hearer-word weighted-one-of hearer-word-list ;;using the weighted-one-of function
+      set hearer-choices lput hearer-word hearer-choices ;combine into a list with both the values and the word
     ]
   ]
 
-  ;;5. Compare the values to see if the communication was coordinated/succesful ;;@HOW TO DO THIS? (@RIGHT NOW ONLY LOOKS AT THE FIRST FEATURE EXCHANGED!)
+  ;;5. Compare the values to see if the communication was coordinated/succesful ;;(now overall success if nr of matches is above the chosen threshold)
 
-    let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
-    ifelse first speaker-values = first hearer-values [ ;;@now only looks at the first feature. @now simple binary decision understood/not understood - could add nuance somehow?
-      set success? true
-      set success-count success-count + 1 ;;total cumulative
-      set successes-this-tick successes-this-tick + 1 ;;for plotting (and agreement list)
-    ;;lav global liste ('agreement'), for hvert go laver vi ny liste, smider alle tingene ind - så det bliver en liste af lister
-      ;;hver liste er success/failure for hvert tick
-                                        ;ET tal per tick, en liste per tick. agreement = [[5 6] [2 5]]
-    ]
-    [
-      set success? false
-      set fail-count fail-count + 1 ;;total cumulative
-      set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
-    ]
+  let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
 
-  ;;(evaluate words separately? or in conjunction)
-  if include-words? [
-    ;@evaluate/learn from the words uttered! save success separately? hmmm!!
-    ;if speaker-word = hearer-word
+  ;;compare the two lists to make a TRUE/FALSE list to test success for each individual feature (and maybe a word)
+  let outcome-list (map = speaker-choices hearer-choices) ;;this returns a list of booleans. e.g. (map = [1 0 3 cSANoword3] [1 2 1 cSANOword3]) results in the list: [true false false true]
+  ;;(understood in this context means that the hearer and speaker both drew/chose the exact same value/word, nothing else matters)
+  let nr-understood length filter [i -> i = true] outcome-list ;;nr of trues in the list
+  let percent-understood nr-understood / length outcome-list ;;the percentage understood of the exchanged items
+  let percent-needed (%-understood-for-overall-success / 100) ;;from interface
+  ;;check if understanding is above the threshold:
+  ifelse percent-understood >= percent-needed [ ;;if percent successes (for all the features and words exchanged in this interaction) is above the threshold, OVERALL SUCCESS!
+    set success? true ;;measures overall success
+    set success-count success-count + 1 ;;total cumulative
+    set successes-this-tick successes-this-tick + 1 ;;for plotting (and agreement list)
   ]
-
+  [ ;;if not overall success:
+    set success? false
+    set fail-count fail-count + 1 ;;total cumulative
+    set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
+  ]
 
   ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
     ifelse success? [
-      increase-odds-success first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
+      increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
     ]
     [ ;;if unsuccessful, odds decrease (@does this even make sense?):
-      decrease-odds first chosen-features first speaker-values ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
+      decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
     ]
 
   ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
     ask partner [
       ifelse success? [
-        increase-odds-success first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
+        increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
       ]
       [ ;;if unsuccessful communication:
-        ifelse known-value? first chosen-features first speaker-values [
+        ifelse known-value? first chosen-features first speaker-choices [
           ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          increase-odds-unsuccess first chosen-features first speaker-values
+          increase-odds-unsuccess first chosen-features first speaker-choices
         ]
         [ ;;hearer simply learns the value if they don't already know it:
-          learn-value first chosen-features first speaker-values 1 ;;@now simply with starting odds of 1
+          learn-value first chosen-features first speaker-choices 1 ;;@now simply with starting odds of 1
         ]
       ]
     ]
     ;;@overvej: lær mere af succes end ikke-succes?
 
   ;;8. Record what happened
-  let new-chosen list first speaker-values first hearer-values ;;two-item list of the new two values chosen for this feature, e.g. [4 1]
+  let new-chosen list first speaker-choices first hearer-choices ;;two-item list of the new two values chosen for this feature, e.g. [4 1]
 
   foreach new-chosen [ ;;for each of the two spoken values
    value-index ->
@@ -344,7 +341,7 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 ;    print ""
 ;    print (word self " talked to " partner)
 ;    print word "Chosen feature(s): " chosen-features
-;    print (word "Speaker said: " speaker-values ", hearer said: " hearer-values)
+;    print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
 ;    print (word "Successful?: " success?)
 end
 
@@ -936,9 +933,9 @@ ticks
 30.0
 
 BUTTON
-695
+725
 530
-758
+788
 563
 NIL
 setup
@@ -953,9 +950,9 @@ NIL
 1
 
 BUTTON
-760
+790
 530
-823
+853
 563
 NIL
 go
@@ -1300,16 +1297,6 @@ Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features o
 0.0
 1
 
-CHOOSER
-15
-550
-245
-595
-hearer-evaluation
-hearer-evaluation
-"hearer draws only 1 value/word?" "(if hearer has value/word above x%?)" "(if one of the 3 values/words hearer draws?)"
-1
-
 INPUTBOX
 10
 65
@@ -1406,7 +1393,7 @@ TEXTBOX
 280
 1655
 616
-@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- alt under 'forståelse'\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
+@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
 13
 0.0
 1
@@ -1524,10 +1511,10 @@ NIL
 HORIZONTAL
 
 SLIDER
+510
 515
-520
-680
-553
+675
+548
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1539,10 +1526,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-15
-600
-245
-633
+10
+550
+240
+583
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1584,10 +1571,10 @@ TEXTBOX
 1
 
 CHOOSER
-685
-475
-830
-520
+715
+480
+860
+525
 choose-preset
 choose-preset
 "As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
@@ -1619,9 +1606,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-512
+510
 480
-682
+680
 513
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
@@ -1632,6 +1619,16 @@ kids-odds-inc-unsuccess
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+15
+585
+215
+630
+Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er succesfuld
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
