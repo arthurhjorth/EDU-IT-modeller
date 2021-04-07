@@ -45,8 +45,6 @@ slaves-own [
   closest-agent ;;turtle set (of 1 or maybe more) used in my-partner-choice
   nearby-agents ;;turtleset used in my-partner-choice
   my-weighted-prox-list ;;used for weighted-proximity
-  age
-  birth-month ;;so they don't all age and thereby die at the exact same time
 ]
 
 colonists-own [
@@ -57,8 +55,6 @@ colonists-own [
   closest-agent
   nearby-agents
   my-weighted-prox-list
-  age
-  birth-month
 ]
 
 
@@ -118,14 +114,13 @@ to initialize-variables ;;run in setup
   ]
 
 
-  set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexing that the same value is always the same color)
+  set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexin that the same value is always the same color)
   set agent-color-list [white 14 104 45 53] ;;@ can add more
 end
 
 to initialize-agent-variables ;;agent procedure, run in setup
 
   ;;Agent variables used in my-partner-choice:
-
   set closest-agent min-one-of other people [distance myself] ;;agentset of the closest other agent (if tie, random one)
   set nearby-agents other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within radius 10
 
@@ -150,20 +145,11 @@ end
 
 to go
   set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
-
-  ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
-
   set fails-this-tick 0 set successes-this-tick 0
   ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
   update-feature-plot
   update-convergence-plot
-
-  if deaths? [
-    ask people [
-      get-older ;;agents get older and maybe die
-    ]
-  ]
   set time ticks mod 12 ;;update time
   if year = 1940 [stop]
 
@@ -184,11 +170,6 @@ to make-person [kind language] ;;function that creates a person and takes their 
 
   if kind = "slave" [
     create-slaves 1 [
-      ;;@can change starting age!:
-      while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
-
-      set birth-month one-of month-names
-
       set shape "person" set size 6 set color black
       set start-lang language
       set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
@@ -203,11 +184,6 @@ to make-person [kind language] ;;function that creates a person and takes their 
 
   if kind = "colonist" [
     create-colonists 1 [
-      ;;@can change starting age!:
-      while [age <= 0] [ set age round random-normal 30 5 ] ;;everyone is at least 1 year old (normal distribution can give negative values)
-
-      set birth-month one-of month-names
-
       set shape "person-inspecting" set size 6 set color black
       set start-lang language
       set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
@@ -241,6 +217,8 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     let the-value weighted-one-of speaker-input-list
     set speaker-values lput the-value speaker-values
   ]
+
+
 
   ;;4. Speaker asks hearer to retrieve a value for the WALS feature
     ;let hearer-value "NA" ;;placeholder to initiate value outside ask block
@@ -393,21 +371,6 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
   ]
 
   ;;@maybe ADD: based on other people's language/status/age/family ties?
-end
-
-to get-older ;;agent reporter, run in go
-  if this-month = birth-month [set age age + 1] ;;get older
-
- ;;maybe die (@change age of death?!):
- ifelse [breed = colonists] of self [
-    ;;colonist dying age:
-    if age > 45 and random 4 = 0 [die] ;;if they're 45 or older, 25% risk of dying every month
-  ]
-  [ ;;slave dying age:
-    if age > 25 and random 8 = 0 [die] ;;if they're 25 or older, 12.5% risk of dying every month (so risk is lower, but starts earlier...)
-
-  ]
-
 end
 
 ;;---REPORTERS FOR INTERFACE:
@@ -925,9 +888,9 @@ ticks
 
 BUTTON
 695
-530
+555
 758
-563
+588
 NIL
 setup
 NIL
@@ -942,9 +905,9 @@ NIL
 
 BUTTON
 760
-530
+555
 823
-563
+588
 NIL
 go
 T
@@ -1014,7 +977,7 @@ INPUTBOX
 75
 205
 nr-slaves
-100.0
+50.0
 1
 0
 Number
@@ -1263,7 +1226,7 @@ INPUTBOX
 140
 205
 nr-colonists
-100.0
+50.0
 1
 0
 Number
@@ -1385,7 +1348,7 @@ SWITCH
 243
 deaths?
 deaths?
-0
+1
 1
 -1000
 
@@ -1394,7 +1357,7 @@ TEXTBOX
 280
 1655
 616
-@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- alt under 'forståelse'\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
+@not coded yet:\n- people-die?\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- alt under 'forståelse'\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
 13
 0.0
 1
@@ -1573,23 +1536,13 @@ TEXTBOX
 
 CHOOSER
 685
-475
+500
 830
-520
+545
 choose-preset
 choose-preset
 "As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
 0
-
-TEXTBOX
-110
-245
-210
-280
-@TWEAK AGE/DYING RATES!
-11
-0.0
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
