@@ -1390,11 +1390,11 @@ deaths?
 -1000
 
 TEXTBOX
-1425
-280
+1420
+270
 1655
-616
-@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- alt under 'forståelse'\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
+606
+@not coded yet:\n- children?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- alt under 'forståelse'\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre, 5) skibe kommer ind!
 13
 0.0
 1
@@ -1479,7 +1479,7 @@ TEXTBOX
 110
 355
 260
-381
+385
 (@slet partner-choice når odds-tilgangen er kodet)
 11
 0.0
