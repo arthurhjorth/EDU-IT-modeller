@@ -218,6 +218,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
         move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
     ]
   ]
+
 end
 
 to communicate ;;agent procedure run in go ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
@@ -259,9 +260,13 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
   ]
 
   ;;4.5: Potentially also retrieve a word from vocabulary
+  let chosen-word "NA"
   if include-words? [
     ;;A. Choose which word meaning to utter:
-    let chosen-word one-of word-list ;;e.g. 'word3'
+    set chosen-word one-of word-list ;;e.g. 'word3'
+    let chosen-topics chosen-features ;;better name, store it
+    set chosen-topics lput chosen-word chosen-topics ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
+
 
     ;;A. Speaker retrieves a word from their vocabulary for this word meaning (e.g. 'cSANoword3'):
     let speaker-word-list table:get my-word-table chosen-word
@@ -279,8 +284,6 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 
   ;;5. Compare the values to see if the communication was coordinated/succesful ;;(now overall success if nr of matches is above the chosen threshold)
 
-  let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
-
   ;;compare the two lists to make a TRUE/FALSE list to test success for each individual feature (and maybe a word)
   let outcome-list (map = speaker-choices hearer-choices) ;;this returns a list of booleans. e.g. (map = [1 0 3 cSANoword3] [1 2 1 cSANOword3]) results in the list: [true false false true]
   ;;(understood in this context means that the hearer and speaker both drew/chose the exact same value/word, nothing else matters)
@@ -288,6 +291,7 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
   let percent-understood nr-understood / length outcome-list ;;the percentage understood of the exchanged items
   let percent-needed (%-understood-for-overall-success / 100) ;;from interface
   ;;check if understanding is above the threshold:
+  let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
   ifelse percent-understood >= percent-needed [ ;;if percent successes (for all the features and words exchanged in this interaction) is above the threshold, OVERALL SUCCESS!
     set success? true ;;measures overall success
     set success-count success-count + 1 ;;total cumulative
@@ -299,8 +303,10 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
   ]
 
+  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS) - AND UPDATE BOTH FEATURES AND WORDS:
   ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
     ifelse success? [
+      ;;print (word "chosen-features: " chosen-features ", speaker-choices: " speaker-choices)
       increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
     ]
     [ ;;if unsuccessful, odds decrease (@does this even make sense?):
@@ -322,19 +328,39 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
         ]
       ]
     ]
-    ;;@overvej: lær mere af succes end ikke-succes?
 
-  ;;8. Record what happened
-  let new-chosen list first speaker-choices first hearer-choices ;;two-item list of the new two values chosen for this feature, e.g. [4 1]
+  ;;8. Record what happened (what was uttered - for feature plot)
+  ;('uttered' now counts both speaker's and hearer's choice/draw, no distinction)
+  let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
+  ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
 
-  foreach new-chosen [ ;;for each of the two spoken values
-   value-index ->
-    if value-index = "?" [set value-index 0] ;;@now '?'-entries are recorded in index 0 (since there are no 0 values)
-     ;;value 1 tilsvarer position 1, 2 tilsvarer position 2 osv...
-    let old-entry table:get chosen-table first chosen-features ;;old entry, 10-item list with each nr representing the nr of times that value (index position) has been chosen
-    let new-entry replace-item value-index old-entry (item value-index old-entry + 1) ;;increases the number (count so far) at the position of the value index by 1 (for this feature)
-    table:put chosen-table first chosen-features new-entry
+  let chosen-topics chosen-features ;;better name
+  if include-words? [set chosen-topics lput chosen-word chosen-topics] ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
 
+
+  let topic-pos 0 ;;keep track of what feautre/word we're recording now
+
+  foreach chosen-items [ ;;for each of the nested lists of two spoken values/words
+   val-indexes -> ;for speaker and hearer
+    foreach val-indexes [ ;;for the two: both hearer's and speaker's (a loop in a loop...)
+      val-index ->
+
+
+      if val-index = "?" [set val-index 0] ;;@now '?'-entries are recorded in index 0 (since there are no 0 values)
+      ;;value 1 tilsvarer position 1, 2 tilsvarer position 2 osv...
+
+      ifelse is-number? val-index [ ;;if it's a feature value:
+        let old-entry table:get chosen-table (item topic-pos chosen-topics) ;;old entry, 10-item list with each nr representing the total nr of times that value (index position) has been chosen
+        let new-entry replace-item val-index old-entry (item val-index old-entry + 1) ;;increases the number (count so far) at the position of the value index by 1 (for this feature)
+        table:put chosen-table (item topic-pos chosen-topics) new-entry
+      ]
+      [ ;if it's non-numeric, i.e. the words! (last item if included):
+
+        ;;@CAN ADD RECORD of all the words that have been chosen - either integrate in chosen-table or create separate structure
+      ]
+
+    ]
+    set topic-pos topic-pos + 1 ;;increment this for next iteration which will be the next nested list in chosen-items
   ]
 
   ;;9. print what happened (just for testing):
@@ -459,6 +485,7 @@ to initialize-my-tables ;;agent procedure, used in make-person
     let index position x feature-list ;;the index of the current feature in feature-list (since we then want the corresponding item from start-lang-vec):
     let empty-list [] ;;used so value becomes a nested list in an existing list (the structure we want, so we can later keep adding nested lists). ie. [[3 1]] instead of [3 1]
     let value lput (item index start-lang-vec-odds) empty-list
+
     table:put my-lang-table key value ;;table:put adds this key-value combination to the agent's table
 
     ;;to begin with, each agent only knows one possible feature value (so e.g. the value entry for feature X9A could just look like this: [0 1] ;;(where 1 is the odds)
@@ -846,8 +873,11 @@ end
 ;;downloadable link used here to import: https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv
 ;;we can always change this url if/when we find a better way to host the csv files online
 
+;;@NEW SHEETS where ?-values have been replaced with 0's!: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/edit#gid=1492588531
+;;new downloadable link: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv
+
 to import-csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/1OGV8slI_8c7p-oCiaybl-lCDb6V1rhk6WCmaMrDNXys/gviz/tq?tqx=out:csv" [
+  fetch:url-async "https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
     ;;now to convert it:
@@ -1384,7 +1414,7 @@ SWITCH
 243
 deaths?
 deaths?
-0
+1
 1
 -1000
 
@@ -1393,7 +1423,7 @@ TEXTBOX
 280
 1655
 616
-@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- success evalutation of words & multiple features\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
+@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
 13
 0.0
 1
