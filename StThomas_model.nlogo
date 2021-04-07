@@ -304,7 +304,7 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 
   ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
     ifelse success? [
-      increase-odds first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
+      increase-odds-success first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
     ]
     [ ;;if unsuccessful, odds decrease (@does this even make sense?):
       decrease-odds first chosen-features first speaker-values ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
@@ -313,12 +313,12 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
   ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
     ask partner [
       ifelse success? [
-        increase-odds first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
+        increase-odds-success first chosen-features first speaker-values ;;function increases the odds for this value of this feature (right now simply +1)
       ]
       [ ;;if unsuccessful communication:
         ifelse known-value? first chosen-features first speaker-values [
           ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          increase-odds first chosen-features first speaker-values
+          increase-odds-unsuccess first chosen-features first speaker-values
         ]
         [ ;;hearer simply learns the value if they don't already know it:
           learn-value first chosen-features first speaker-values 1 ;;@now simply with starting odds of 1
@@ -717,13 +717,25 @@ to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance 
   ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
-to increase-odds [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
+;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker)
+to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
   let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-increase ;;@can maybe change this increase depending on different things?
+  let new-odds old-odds + odds-increase-successful ;;@can maybe change this increase depending on different things?
+  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+end
+
+to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
+  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
+  let index position the-pair value-odds-list ;;the position of the value-odds pair
+  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
+  let new-odds old-odds + odds-increase-unsuccessful ;;@can maybe change this increase depending on different things?
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
@@ -1230,10 +1242,10 @@ Number
 SLIDER
 300
 445
-415
+497
 478
-odds-increase
-odds-increase
+odds-increase-successful
+odds-increase-successful
 0
 3
 1.0
@@ -1244,9 +1256,9 @@ HORIZONTAL
 
 SLIDER
 300
-480
-415
-513
+525
+500
+558
 odds-decrease
 odds-decrease
 -3
@@ -1296,7 +1308,7 @@ CHOOSER
 hearer-evaluation
 hearer-evaluation
 "hearer draws only 1 value/word?" "(if hearer has value/word above x%?)" "(if one of the 3 values/words hearer draws?)"
-0
+1
 
 INPUTBOX
 10
@@ -1497,30 +1509,30 @@ include-status?
 -1000
 
 SLIDER
-420
+510
 445
-520
+680
 478
 kids-odds-inc
 kids-odds-inc
 0
 5
-1.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-420
-480
+515
 520
-513
+680
+553
 kids-odds-dec
 kids-odds-dec
 -3
 0
--1.0
+0.0
 1
 1
 NIL
@@ -1562,10 +1574,10 @@ learning-update
 0
 
 TEXTBOX
-370
-525
-540
-581
+340
+570
+510
+626
 @tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?)
 11
 0.0
@@ -1590,6 +1602,36 @@ TEXTBOX
 11
 0.0
 1
+
+SLIDER
+300
+485
+500
+518
+odds-increase-unsuccessful
+odds-increase-unsuccessful
+0
+3
+1.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+512
+480
+682
+513
+kids-odds-inc-unsuccess
+kids-odds-inc-unsuccess
+0
+5
+2.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
