@@ -121,7 +121,7 @@ end
 to initialize-agent-variables ;;agent procedure, run in setup
 
   ;;Agent variables used in my-partner-choice:
-  set closest-agent people with-min [distance myself] ;;agentset of the closest agent (if exact tie, can contain more than one agent)
+  set closest-agent min-one-of other people [distance myself] ;;agentset of the closest other agent (if tie, random one)
   set nearby-agents other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within radius 10
 
 
@@ -336,7 +336,7 @@ to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choic
   ]
 
   if partner-choice = "closest-one" [
-    report one-of closest-agent ;;the closest agent (if tie, random one of these)
+    report closest-agent ;;the closest agent
   ]
 
   if partner-choice = "nearby" [
@@ -969,7 +969,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-0
+1
 
 INPUTBOX
 10
@@ -1247,16 +1247,6 @@ TEXTBOX
 1415
 575
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
-11
-0.0
-1
-
-TEXTBOX
-525
-445
-625
-525
-@: forskel på odds increase for success og failure? (og overall eller per feature/ord?)
 11
 0.0
 1
@@ -1539,7 +1529,7 @@ TEXTBOX
 525
 540
 581
-@tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn
+@tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?)
 11
 0.0
 1
