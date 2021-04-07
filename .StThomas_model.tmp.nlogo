@@ -680,7 +680,7 @@ to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance 
   ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
-;there is now a different command for successful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker)
+;there is now a different command for successful increase , unsuccessful increase and decrease
 to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
   let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
