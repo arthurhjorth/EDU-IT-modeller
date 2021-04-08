@@ -807,6 +807,8 @@ to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance 
     set the-table my-lang-table
   ]
   [ ;if it's a word:
+    print (word self " should have learned:
+ " feature value odds)
     set the-table my-word-table
   ]
 
@@ -827,6 +829,7 @@ to increase-odds-success [feature value] ;;agent reporter. increases the odds fo
     set the-table my-lang-table
   ]
   [ ;if it's a word:
+    print (word "a word! success increase! " self " should have learned: " feature " and " value)
     set the-table my-word-table
   ]
 
@@ -847,6 +850,7 @@ to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds 
     set the-table my-lang-table
   ]
   [ ;if it's a word:
+    print (word "a word! unsuccess increase! " self " should have learned: " feature " and " value)
     set the-table my-word-table
   ]
 
@@ -866,6 +870,7 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
     set the-table my-lang-table
   ]
   [ ;if it's a word:
+    print (word "a word! decrease! " self " should have learned: " feature " and " value)
     set the-table my-word-table
   ]
 
