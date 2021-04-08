@@ -369,32 +369,18 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
       ifelse s-choice = h-choice [
         ;;IF LOCAL SUCCESS for this item:
       ask partners [ ;asking both speaker and hearer
-        ifelse age > 17 [
-          increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-        ]
-        [
-          increase-odds-success-kids item pos chosen-topics item pos speaker-choices
-        ]
+          increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature
+          ;the kid/adult distinction in odds increase is now written down into the increase-odds-success procedure
       ]
     ]
       [ ;;IF LOCAL FAILURE for this item:
       ask speaker [ ;speaker:
-        ifelse age > 17 [
           decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...)
-        ]
-        [
-          decrease-odds-kids first chosen-features first speaker-choices
-        ]
       ]
       ask hearer [ ;hearer:
           ifelse known-value? item pos chosen-topics item pos speaker-choices [
           ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          ifelse age > 17 [
           increase-odds-unsuccess item pos chosen-topics item pos speaker-choices
-        ]
-          [
-          increase-odds-unsuccess-kids item pos chosen-topics item pos speaker-choices
-          ]
         ]
         [ ;;hearer simply learns the value if they don't already know it:
           learn-value item pos chosen-topics item pos speaker-choices 1 ;;@now simply with starting odds of 1
@@ -867,7 +853,17 @@ to increase-odds-success [feature value] ;;agent reporter. increases the odds fo
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-increase-successful ;;@can maybe change this increase depending on different things?
+
+  let increase "NA"
+  ifelse age > 17 [ ;the increase depends on whether they're a child
+    set increase odds-increase-successful ;set in interface
+  ]
+  [
+    set increase kids-odds-inc-success ;for kids, set in interface
+  ]
+
+  let new-odds old-odds + increase ;;@can maybe change this increase depending on different things?
+
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 
@@ -910,27 +906,16 @@ to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds 
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-increase-unsuccessful ;;@can maybe change this increase depending on different things?
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-end
 
-
-to increase-odds-unsuccess-kids [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
+  let increase "NA"
+  ifelse age > 17 [ ;the increase depends on whether they're a child
+    set increase odds-increase-unsuccessful ;set in interface
   ]
-  [ ;if it's a word:
-    set the-table my-word-table
+  [
+    set increase kids-odds-inc-unsuccess ;for kids, set in interface
   ]
 
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-inc-unsuccess ;;@can maybe change this increase depending on different things?
+  let new-odds old-odds + increase
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
@@ -951,7 +936,16 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-decrease ;;@can maybe change this decrease depending on different things?
+
+  let decrease "NA"
+  ifelse age > 17 [ ;the decrease depends on whether they're a child
+    set decrease odds-decrease ;set in interface
+  ]
+  [
+    set decrease kids-odds-dec ;for kids, set in interface
+  ]
+
+  let new-odds old-odds + decrease
   if new-odds < 1 [
     set new-odds 1
   ] ; the minimum odds for a known value is 1. If the new-odds results in a value of less than 1, 1 is put in its place. This is a simple fix, so we can decrease with a number bigger than 1.
@@ -962,31 +956,6 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
 ;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 ;
 
-end
-
-
-to decrease-odds-kids [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by -1! (but never to 0)
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-    let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-dec ;;@can maybe change this decrease depending on different things?
-  if new-odds < 1 [
-    set new-odds 1
-
-    ;  if old-odds > 3 [ ;;odds can never get below 3 ; this is to avoid 0-values when decrease is at -3
-    ;    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    ;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-  ]
 end
 
 
