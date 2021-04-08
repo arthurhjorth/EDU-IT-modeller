@@ -766,14 +766,29 @@ to-report known-value? [feature value] ;;agent reporter (uses the agent's my-lan
 end
 
 to-report known-values [feature] ;;agent reporter. for a specific WALS feature, returns a list of all the values the agent knows (just the values, no odds!)
-  let value-odds-list table:get my-lang-table feature
-  report map first value-odds-list
+  let item-odds-list "NA"
+  ifelse member? feature word-list [
+    ;if it's a word:
+    set item-odds-list table:get my-word-table feature
+  ]
+  [ ;if it's a feature:
+    set item-odds-list table:get my-lang-table feature
+  ]
+  report map first item-odds-list
 end
 
 to-report get-odds [feature value] ;;agent reporter. Returns the agent's associated odds for a specific value/instance of a specific WALS feature
   ifelse known-value? feature value [ ;;this only runs if the value is known!
-    let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature
-    let the-pair filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest
+    let item-odds-list "NA"
+    ifelse is-number? value [ ;if it's a feature:
+      set item-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature
+    ]
+    [ ;if it's a word:
+      set item-odds-list table:get my-word-table feature ;same but for the words
+    ]
+
+    ;;the nested list of known value-odds pairs associated with the WALS feature
+    let the-pair filter [i -> first i = value] item-odds-list ;;locates the value-odds pair of interest, discards the rest
     report item 1 item 0 the-pair ;;returns the odds associated with this value (item 1 item 0 starter inderst - så vi vil have det andet element fra den første liste)
   ]
   [ ;;@if they don't actually know this value, instead of an error and crashing, now returns NA:
@@ -1163,7 +1178,7 @@ INPUTBOX
 75
 205
 nr-slaves
-2.0
+10.0
 1
 0
 Number
@@ -1412,7 +1427,7 @@ INPUTBOX
 140
 205
 nr-colonists
-3.0
+10.0
 1
 0
 Number
