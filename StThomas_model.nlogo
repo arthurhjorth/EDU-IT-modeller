@@ -218,8 +218,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
   if kind = "slave" [
     create-slaves 1 [
       ;;@can change starting age!:
-      ;while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
-      while [age <= 0] [ set age round random-normal 7 5 ]
+      while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
 
 
       set birth-month one-of month-names
@@ -860,7 +859,7 @@ to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance 
   ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
-;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker)
+;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker) - for both kids and adults.
 to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
   let the-table "NA"
@@ -960,10 +959,16 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
   let new-odds old-odds + odds-decrease ;;@can maybe change this decrease depending on different things?
-  if old-odds > 1 [ ;;odds can never get below 1
-    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-  ]
+  if new-odds < 1 [
+    set new-odds 1
+  ] ; the minimum odds for a known value is 1. If the new-odds results in a value of less than 1, 1 is put in its place. This is a simple fix, so we can decrease with a number bigger than 1.
+
+;  if old-odds > 1 [ ;;odds can never get below 1
+;  if old-odds > 3 [ ;;odds can never get below 3 ; this is to avoid 0-values when decrease is at -3
+;    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+;
+
 end
 
 
@@ -982,9 +987,12 @@ to decrease-odds-kids [feature value] ;;agent reporter. decreases the odds for a
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
   let new-odds old-odds + kids-odds-dec ;;@can maybe change this decrease depending on different things?
-  if old-odds > 1 [ ;;odds can never get below 1
-    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+  if new-odds < 1 [
+    set new-odds 1
+
+    ;  if old-odds > 3 [ ;;odds can never get below 3 ; this is to avoid 0-values when decrease is at -3
+    ;    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+    ;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
   ]
 end
 
@@ -1005,6 +1013,7 @@ to-report my-value-prob [feature value] ;;agent reporter, takes a WALS feature a
                        ;;giver sandsynligheden for at agenten vælger netop denne value for denne feature
   ]
 end
+
 
 to-report most-likely-value [feature] ;;agent reporter, takes a WALS feature and reports the value with the highest odds for this agent for this feature
   let value-odds-list table:get my-lang-table feature
@@ -1494,7 +1503,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-2.0
+3.0
 1
 1
 NIL
@@ -1509,7 +1518,7 @@ odds-decrease
 odds-decrease
 -3
 0
--1.0
+-3.0
 1
 1
 NIL
@@ -1768,7 +1777,7 @@ kids-odds-dec
 kids-odds-dec
 -3
 0
--3.0
+0.0
 1
 1
 NIL
