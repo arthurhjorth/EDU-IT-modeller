@@ -1,4 +1,4 @@
-extensions [fetch import-a csv table profiler]
+extensions [fetch import-a csv table]
 
 globals [
   wals-list
@@ -61,17 +61,6 @@ colonists-own [
   birth-month
 ]
 
-plantations-own [
-  name
-]
-
-to profile
-  profiler:reset
-  setup
-  profiler:start
-  repeat 50 [go]
-  print profiler:report
-end
 
 
 to setup
@@ -89,7 +78,12 @@ to setup
   import-csv ;;gets WALS data from url, makes it into a table
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
-  make-plantations
+  ;;layout the world:
+  create-plantations 10 [
+    set color white set shape "house" set size 7
+    move-to one-of land-patches with [not any? turtles-here] ;;@randomly placed right now
+  ]
+
   populate ;;create starting population
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
@@ -97,30 +91,6 @@ to setup
   update-convergence-plot
 end
 
-to make-plantations
-  ;;layout the world
-  ;;data from Hall (1992: 5) (modified to the csv 'percent of total enslaved')
-  ;;here generalised to the whole time period...
-
-  let plant-names ["koonings" "west eijnd" "krum" "erasmus baij" "windt" "noort" "friedrichs" "orcaen" "fransmans" "dorp" "qvarteer" "oost"]
-
-  ;;positions:
-  let plant-patches (patch-set patch -86 0 patch -63 3 patch -30 1 patch -21 17 patch -5 -16 patch -2 8 patch 26 -2 patch 53 -7 patch 54 -32 patch 80 -6 patch 83 -33 patch 110 -22) ;;12 different positions
-  set plant-patches sort-on [pxcor] plant-patches ;(from left to right based on pxcor)
-
-  create-plantations 12 [
-    set color white set shape "house" set size 7
-    set name first plant-names
-    set plant-names but-first plant-names ;removes the first item from the name list (since it's now taken) (this code block is run by one plantation at a time)
-
-    ;;move to spot:
-    move-to first plant-patches
-    set plant-patches but-first plant-patches
-  ]
-
-
-
-end
 
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
@@ -184,10 +154,7 @@ to go
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
 
   set fails-this-tick 0 set successes-this-tick 0
-
-  repeat convs-per-month [ ask people [ communicate ] ] ;runtime error
-
-  ;ask people [ communicate ] ;;procedure where agents talk to each other
+  ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
   update-feature-plot
   update-convergence-plot
@@ -218,9 +185,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
   if kind = "slave" [
     create-slaves 1 [
       ;;@can change starting age!:
-      ;while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
-      while [age <= 0] [ set age round random-normal 7 5 ]
-
+      while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
 
       set birth-month one-of month-names
 
@@ -257,11 +222,6 @@ to make-person [kind language] ;;function that creates a person and takes their 
 end
 
 to communicate ;;agent procedure run in go ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
-    ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input)
-
-    ;set speaker
-    ;set hearer
-
   ;;1. Speaker chooses a hearer
     let partner my-partner-choice ;;using the agent reporter to select a partner
                                     ;;@tilføj evt: gem historie over hvem der har talt sammen?
@@ -269,7 +229,7 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
   ;;2. Choose which WALS feature to exchange (the 'conversation topic')
     ;let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
 
-    let chosen-features n-of nr-features-exchanged feature-list ;;can select multiple features
+    let chosen-features n-of n-features-exchanged feature-list ;;can select multiple features
 
   ;;3. Speaker retrieves a specific value/instance of this WALS feature from their language table (to begin with they only know one instance anyway)
     ;let speaker-input-list table:get my-lang-table chosen-feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
@@ -283,7 +243,12 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     set speaker-choices lput the-value speaker-choices
   ]
 
-  ;;4. Speaker asks hearer to retrieve a value for each of the WALS features
+  ;;4. Speaker asks hearer to retrieve a value for the WALS feature
+    ;let hearer-value "NA" ;;placeholder to initiate value outside ask block
+    ;ask partner [
+     ; let hearer-input-list table:get my-lang-table chosen-feature
+      ;set hearer-value weighted-one-of hearer-input-list ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
+    ;]
   let hearer-choices []
   ask partner [
     foreach chosen-features [
@@ -296,11 +261,11 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 
   ;;4.5: Potentially also retrieve a word from vocabulary
   let chosen-word "NA"
-  let chosen-topics "NA"
   if include-words? [
     ;;A. Choose which word meaning to utter:
     set chosen-word one-of word-list ;;e.g. 'word3'
-    set chosen-topics lput chosen-word chosen-features ;;better name, store it ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
+    let chosen-topics chosen-features ;;better name, store it
+    set chosen-topics lput chosen-word chosen-topics ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
 
 
     ;;A. Speaker retrieves a word from their vocabulary for this word meaning (e.g. 'cSANoword3'):
@@ -338,86 +303,50 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
   ]
 
-  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS) - AND UPDATE BOTH FEATURES AND WORDS (RIGHT NOW ONLY FEATURES):
 
+
+  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS) - AND UPDATE BOTH FEATURES AND WORDS:
   ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
+ifelse success? [
+  ;;print (word "chosen-features: " chosen-features ", speaker-choices: " speaker-choices)
+    increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
+  ]
 
-   let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
-    ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
-    foreach chosen-topics [ ;;loop through each topic and update everything ;;@ADD this to be conditional on 'learning-update' rules!!
-      x ->
-      let pos position x chosen-topics ;;the position
-      let choices item pos chosen-items
-      let s-choice first choices
-      let h-choice last choices
-      ifelse s-choice = h-choice [
-        ;;IF LOCAL SUCCESS for this item, speaker does this:
-      ifelse age > 17 [
-        increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-      ]
-      [
-      increase-odds-success-kids item pos chosen-topics item pos speaker-choices
-      ]
 
-        ;;and asks hearer to do this:
-        ask partner [
-        ifelse age > 17 [
-          increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
+    [ ;;if unsuccessful, odds decrease (@does this even make sense?):
+      decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
+    ]
+
+
+  ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
+    ask partner [
+      ifelse success? [
+        increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
+      ]
+      [ ;;if unsuccessful communication:
+        ifelse known-value? first chosen-features first speaker-choices [
+          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
+          increase-odds-unsuccess first chosen-features first speaker-choices
         ]
-        [
-          increase-odds-success-kids item pos chosen-topics item pos speaker-choices
+        [ ;;hearer simply learns the value if they don't already know it:
+          learn-value first chosen-features first speaker-choices 1 ;;@now simply with starting odds of 1
         ]
       ]
     ]
 
-
-      [ ;;IF LOCAL FAILURE for this item, speaker does this:
-      ifelse age > 17 [
-        decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...)
-      ]
-      [
-        decrease-odds-kids first chosen-features first speaker-choices
-      ]
-        ;and asks hearer to do this:
-        ask partner [
-          ifelse known-value? item pos chosen-topics item pos speaker-choices [
-          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          ifelse age > 17 [
-          increase-odds-unsuccess item pos chosen-topics item pos speaker-choices
-        ]
-          [
-          increase-odds-unsuccess-kids item pos chosen-topics item pos speaker-choices
-          ]
-        ]
-        [ ;;hearer simply learns the value if they don't already know it:
-          learn-value item pos chosen-topics item pos speaker-choices 1 ;;@now simply with starting odds of 1
-        ]
-        ]
-      ]
-   ] ;;end of looping through chosen-topics
-
-  ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
-;    ask partner [
-;      ifelse success? [
-;        increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-;      ]
-;      [ ;;if unsuccessful communication:
-;        ifelse known-value? first chosen-features first speaker-choices [
-;          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-;          increase-odds-unsuccess first chosen-features first speaker-choices
-;        ]
-;        [ ;;hearer simply learns the value if they don't already know it:
-;          learn-value first chosen-features first speaker-choices 1 ;;@now simply with starting odds of 1
-;        ]
-;      ]
-;    ]
-
   ;;8. Record what happened (what was uttered - for feature plot)
   ;('uttered' now counts both speaker's and hearer's choice/draw, no distinction)
+  let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
+  ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
+
+  let chosen-topics chosen-features ;;better name
+  if include-words? [set chosen-topics lput chosen-word chosen-topics] ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
+
+
+  let topic-pos 0 ;;keep track of what feautre/word we're recording now
 
   foreach chosen-items [ ;;for each of the nested lists of two spoken values/words
-    val-indexes -> ;for speaker and hearer
-    let topic-pos position val-indexes chosen-items ;;keep track of what feautre/word we're recording now
+   val-indexes -> ;for speaker and hearer
     foreach val-indexes [ ;;for the two: both hearer's and speaker's (a loop in a loop...)
       val-index ->
 
@@ -433,12 +362,10 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
       [ ;if it's non-numeric, i.e. the words! (last item if included):
 
         ;;@CAN ADD RECORD of all the words that have been chosen - either integrate in chosen-table or create separate structure
-
-
-
       ]
 
     ]
+    set topic-pos topic-pos + 1 ;;increment this for next iteration which will be the next nested list in chosen-items
   ]
 
   ;;9. print what happened (just for testing):
@@ -447,13 +374,6 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 ;    print word "Chosen feature(s): " chosen-features
 ;    print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
 ;    print (word "Successful?: " success?)
-end
-
-
-to-report weighted-partner-choice
-  ;
-  ;weighted-one-of nested-list ;[[random 1] [closest-one 2] ...]
-
 end
 
 to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
@@ -506,8 +426,6 @@ end
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
 
-  ;@LEVEALDER SLIDER
-
  ;;maybe die (@change age of death?!):
  ifelse [breed = colonists] of self [
     ;;colonist dying age:
@@ -519,6 +437,21 @@ to get-older ;;agent reporter, run in go
   ]
 
 end
+
+;to-report adult?
+;  if [breed = colonists] of self [
+;    ifelse [age > 15] [report true]
+;  [report false]
+;  ]
+;
+;  if [breed = slaves] of self [
+;    if [age > 15] [report true]
+;  [report false]
+;  ]
+;end
+
+
+
 
 ;;---REPORTERS FOR INTERFACE:
 
@@ -631,7 +564,7 @@ to update-feature-plot ;;run in go (and setup)
 ;    let n length instances ;;how many values there are
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     set-plot-y-range 0 (nr-slaves + nr-colonists)
-    let step 0.005 ;;tweak this to leave no gaps
+    let step 0.02 ;;tweak this to leave no gaps
     ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
@@ -766,55 +699,29 @@ to update-convergence-plot ;;run in go (and setup). Visualizes convergence for t
     plotxy i y
     ;;set-plot-pen-color c ; to get the right color in the legend
   ])
-
-
-
 end
-
 
 
 ;;---USEFUL FUNCTIONS AND REPORTERS FOR HANDLING AGENTS' LANGUAGE TABLES:
 
 to-report known-value? [feature value] ;;agent reporter (uses the agent's my-lang-table), takes a feature and value as input
   ;;reports a boolean: whether or not an agent already knows this specific value/instance of this specific WALS feature
-
-  let item-odds-list "NA"
-  ifelse is-number? value [ ;if it's a feature:
-  set item-odds-list table:get my-lang-table feature ;;the list of known values and odds associated with the WALS feature
-  ]
-  [ ;if it's a word:
-    set item-odds-list table:get my-word-table feature
-  ]
+  let value-odds-list table:get my-lang-table feature ;;the list of known values and odds associated with the WALS feature
 
   ;;now to remove the odds which we don't care about for this:
-  let value-list map first item-odds-list ;;a list of all known values for this feature (with the odds removed)
+  let value-list map first value-odds-list ;;a list of all known values for this feature (with the odds removed)
   ifelse member? value value-list [report true] [report false] ;;checks whether the value of interest (input to this reporter) is in the known value list
 end
 
 to-report known-values [feature] ;;agent reporter. for a specific WALS feature, returns a list of all the values the agent knows (just the values, no odds!)
-  let item-odds-list "NA"
-  ifelse member? feature word-list [
-    ;if it's a word:
-    set item-odds-list table:get my-word-table feature
-  ]
-  [ ;if it's a feature:
-    set item-odds-list table:get my-lang-table feature
-  ]
-  report map first item-odds-list
+  let value-odds-list table:get my-lang-table feature
+  report map first value-odds-list
 end
 
 to-report get-odds [feature value] ;;agent reporter. Returns the agent's associated odds for a specific value/instance of a specific WALS feature
   ifelse known-value? feature value [ ;;this only runs if the value is known!
-    let item-odds-list "NA"
-    ifelse is-number? value [ ;if it's a feature:
-      set item-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature
-    ]
-    [ ;if it's a word:
-      set item-odds-list table:get my-word-table feature ;same but for the words
-    ]
-
-    ;;the nested list of known value-odds pairs associated with the WALS feature
-    let the-pair filter [i -> first i = value] item-odds-list ;;locates the value-odds pair of interest, discards the rest
+    let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature
+    let the-pair filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest
     report item 1 item 0 the-pair ;;returns the odds associated with this value (item 1 item 0 starter inderst - så vi vil have det andet element fra den første liste)
   ]
   [ ;;@if they don't actually know this value, instead of an error and crashing, now returns NA:
@@ -822,7 +729,7 @@ to-report get-odds [feature value] ;;agent reporter. Returns the agent's associa
   ]
 end
 
-to-report weighted-one-of [nested-list] ;;agent reporter, more general [[valg1 odds] [valg2 odds] [valg3 odds] ...]
+to-report weighted-one-of [nested-list] ;;agent reporter, more general
                                                ;;for a nested list (first = item, second = odds), based on the odds, returns one of the items (randomness involved each time)
   let odds-list map last nested-list ;;list of just the odds
   let odds-total sum odds-list ;;all the odds added together
@@ -843,151 +750,49 @@ to-report weighted-one-of [nested-list] ;;agent reporter, more general [[valg1 o
 end
 
 to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance + associated odds for a specific WALS feature to the agent's my-lang-table
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let new-value list value odds ;;e.g. in the form [3 1] or for words: [cSANoword3 1]
-  let old-entry table:get the-table feature ;;the value-odds-list (or words and odds)
+  let new-value list value odds ;;e.g. in the form [3 1]
+  let old-entry table:get my-lang-table feature ;;the value-odds-list
   let new-entry lput new-value old-entry
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry
-
-
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry
   ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
 ;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker)
+
 to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-increase-successful ;;@can maybe change this increase depending on different things?
+  let new-odds old-odds + odds-increase-successful
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
-
-
-to increase-odds-success-kids [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-inc-success ;;@can maybe change this increase depending on different things?
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-
-end
-
-
 
 to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
   let new-odds old-odds + odds-increase-unsuccessful ;;@can maybe change this increase depending on different things?
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+  table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
-
-
-to increase-odds-unsuccess-kids [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-inc-unsuccess ;;@can maybe change this increase depending on different things?
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-end
-
-
 
 to decrease-odds [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by -1! (but never to 0)
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-    let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+  let value-odds-list table:get my-lang-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
   let new-odds old-odds + odds-decrease ;;@can maybe change this decrease depending on different things?
   if old-odds > 1 [ ;;odds can never get below 1
     let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+    table:put my-lang-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
   ]
 end
-
-
-to decrease-odds-kids [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by -1! (but never to 0)
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-    let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-dec ;;@can maybe change this decrease depending on different things?
-  if old-odds > 1 [ ;;odds can never get below 1
-    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-  ]
-end
-
 
 to-report my-value-prob [feature value] ;;agent reporter, takes a WALS feature and value/instance, calculates the probability that an agent chooses this value (odds --> probability)
   ;;returns 0 if they don't know the value!
@@ -1033,6 +838,7 @@ end
 
 ;;@could maybe write a function to determine the odds increase/decrease depending on lots of things
   ;;how do we want to do this? more inputs? what to include?
+
 
 
 ;;--- NON-AGENT REPORTERS:
@@ -1119,13 +925,6 @@ end
 ;;- how to get a particular feature value for a particular language from the WALS table:
   ;;let lang-vec table:get wals-table "cSANo" ;;write the language ID code here
   ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
-
-;;@ALTERNATIVT KAN FILEN HENTES LOKALT MED DENNE FUNKTION (men den skal vælges manuelt hver gang...) :
-to test-fetch-user-file-verbose-syntax
-  clear-all
-  fetch:user-file-async [text -> show text]
-end
-
 
 
 ;;---GRAPHICS:
@@ -1259,12 +1058,12 @@ PENS
 CHOOSER
 110
 310
-220
+202
 355
 partner-choice
 partner-choice
-"random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
-0
+"random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
+1
 
 INPUTBOX
 10
@@ -1302,7 +1101,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A"
-0
+4
 
 CHOOSER
 1080
@@ -1411,7 +1210,7 @@ Samtaler
 TEXTBOX
 80
 280
-185
+205
 298
 Partner-selektion
 14
@@ -1421,7 +1220,7 @@ Partner-selektion
 TEXTBOX
 370
 365
-450
+460
 383
 Sproglæring
 14
@@ -1431,7 +1230,7 @@ Sproglæring
 TEXTBOX
 815
 365
-895
+905
 390
 Visualisering
 14
@@ -1441,13 +1240,13 @@ Visualisering
 SLIDER
 5
 490
-145
+187
 523
-nr-features-exchanged
-nr-features-exchanged
+n-features-exchanged
+n-features-exchanged
 1
 10
-5.0
+1.0
 1
 1
 NIL
@@ -1456,7 +1255,7 @@ HORIZONTAL
 SWITCH
 10
 30
-130
+150
 63
 include-words?
 include-words?
@@ -1494,7 +1293,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-2.0
+1.0
 1
 1
 NIL
@@ -1521,7 +1320,7 @@ INPUTBOX
 140
 205
 nr-colonists
-10.0
+100.0
 1
 0
 Number
@@ -1642,7 +1441,7 @@ TEXTBOX
 280
 1655
 616
-@not coded yet:\n- include-kids?\n- newcomers? (chooser: hvordan deles de ud (plantage: random/most similar/most dissimilar))\n- odds i partner-selektion\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
+@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre\n- plot for lexical items
 13
 0.0
 1
@@ -1753,7 +1552,7 @@ kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-5.0
+1.0
 1
 1
 NIL
@@ -1768,7 +1567,7 @@ kids-odds-dec
 kids-odds-dec
 -3
 0
--3.0
+0.0
 1
 1
 NIL
@@ -1776,14 +1575,14 @@ HORIZONTAL
 
 SLIDER
 10
-550
+590
 240
-583
+623
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
 100
-40.0
+50.0
 5
 1
 %
@@ -1791,9 +1590,9 @@ HORIZONTAL
 
 TEXTBOX
 95
-530
+570
 170
-548
+588
 Forståelse
 14
 0.0
@@ -1806,15 +1605,15 @@ CHOOSER
 440
 learning-update
 learning-update
-"If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones"
+"If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones" "(... more options)"
 0
 
 TEXTBOX
 340
 570
-645
+510
 626
-@tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?) IF OVERALL FAILURE, NOBODY LEARNS
+@tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?)
 11
 0.0
 1
@@ -1827,13 +1626,13 @@ CHOOSER
 choose-preset
 choose-preset
 "As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
-0
+4
 
 TEXTBOX
-110
-245
-210
-280
+150
+160
+250
+205
 @TWEAK AGE/DYING RATES!
 11
 0.0
@@ -1863,7 +1662,7 @@ kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
 5
-5.0
+2.0
 1
 1
 NIL
@@ -1871,38 +1670,28 @@ HORIZONTAL
 
 TEXTBOX
 15
-585
+625
 215
-630
-Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er overall successful
+670
+Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er succesfuld
 11
 0.0
 1
 
 SLIDER
-145
-160
-237
-193
-levealder
-levealder
-0
+5
+525
+190
+558
+n-interactions-per-month
+n-interactions-per-month
+1
 100
-50.0
+10.0
 1
 1
 NIL
 HORIZONTAL
-
-TEXTBOX
-715
-590
-900
-646
-Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
-11
-0.0
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
