@@ -1,4 +1,4 @@
-extensions [fetch import-a csv table]
+extensions [fetch import-a csv table profiler]
 
 globals [
   wals-list
@@ -64,6 +64,15 @@ colonists-own [
 plantations-own [
   name
 ]
+
+to profile
+  profiler:reset
+  setup
+  profiler:start
+  repeat 50 [go]
+  print profiler:report
+end
+
 
 to setup
   clear-all
