@@ -253,7 +253,6 @@ to make-person [kind language] ;;function that creates a person and takes their 
         move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
     ]
   ]
-
 end
 
 to communicate ;;agent procedure run in go ;;no longer coded from the speaker's perspective! (so every agent does NOT get to be speaker every tick)
@@ -1229,9 +1228,9 @@ PENS
 
 CHOOSER
 110
-310
+345
 220
-355
+390
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
@@ -1287,21 +1286,11 @@ plot-this
 
 TEXTBOX
 1215
-195
-1400
-416
+255
+1395
+476
 - max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
 12
-0.0
-1
-
-TEXTBOX
-1215
-400
-1385
-465
-@men fordi der er så mange features (50) og de kun vælger én hver gang, tager det lang tid at se forandring for bare en enkelt!
-11
 0.0
 1
 
@@ -1371,29 +1360,29 @@ TEXTBOX
 
 TEXTBOX
 100
-470
+505
 155
-488
+523
 Samtaler
 14
 0.0
 1
 
 TEXTBOX
-80
-280
-185
-298
+55
+310
+160
+328
 Partner-selektion
 14
 0.0
 1
 
 TEXTBOX
+440
 375
-365
-455
-383
+520
+393
 Sproglæring
 14
 0.0
@@ -1411,9 +1400,9 @@ Visualisering
 
 SLIDER
 5
-490
+525
 145
-523
+558
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1457,10 +1446,10 @@ start-odds
 Number
 
 SLIDER
-300
-445
-497
-478
+285
+450
+482
+483
 odds-increase-successful
 odds-increase-successful
 0
@@ -1472,10 +1461,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-300
-525
-500
-558
+285
+530
+485
+563
 odds-decrease
 odds-decrease
 -3
@@ -1498,20 +1487,20 @@ nr-colonists
 Number
 
 TEXTBOX
-930
-575
-1135
-655
+1020
+595
+1425
+640
 Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
 11
 0.0
 1
 
 TEXTBOX
-1245
-500
-1415
-575
+1200
+550
+1495
+595
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
 11
 0.0
@@ -1529,10 +1518,10 @@ nr-words
 Number
 
 PLOT
-1395
+1290
 10
-1625
-180
+1525
+185
 Convergence plot
 NIL
 NIL
@@ -1546,10 +1535,10 @@ false
 PENS
 
 TEXTBOX
-1430
-180
-1615
-250
+1295
+185
+1520
+245
 convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
 11
 0.0
@@ -1609,20 +1598,20 @@ deaths?
 -1000
 
 TEXTBOX
-1425
-280
-1655
-616
-@not coded yet:\n- include-kids?\n- newcomers? (chooser: hvordan deles de ud (plantage: random/most similar/most dissimilar))\n- odds i partner-selektion\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
+1410
+295
+1640
+520
+@not coded yet:\n- include-kids?\n- newcomers? and distribution-method\n- odds i partner-selektion\n- learning-update\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
 13
-0.0
+12.0
 1
 
 SWITCH
-10
-245
 100
-278
+210
+190
+243
 children?
 children?
 0
@@ -1630,10 +1619,10 @@ children?
 -1000
 
 SWITCH
-100
-210
-205
-243
+10
+245
+115
+278
 newcomers?
 newcomers?
 0
@@ -1642,9 +1631,9 @@ newcomers?
 
 TEXTBOX
 40
-390
+425
 190
-408
+443
 Tilføj odds for hver mulighed:
 11
 0.0
@@ -1652,9 +1641,9 @@ Tilføj odds for hver mulighed:
 
 INPUTBOX
 10
-405
+440
 80
-465
+500
 random-one
 1.0
 1
@@ -1663,9 +1652,9 @@ Number
 
 INPUTBOX
 80
-405
+440
 145
-465
+500
 nearby-one
 1.0
 1
@@ -1674,9 +1663,9 @@ Number
 
 INPUTBOX
 145
-405
+440
 210
-465
+500
 distant-one
 1.0
 1
@@ -1685,9 +1674,9 @@ Number
 
 INPUTBOX
 10
-300
+335
 100
-360
+395
 convs-per-month
 2.0
 1
@@ -1696,9 +1685,9 @@ Number
 
 TEXTBOX
 110
-355
+390
 260
-381
+416
 (@slet partner-choice når odds-tilgangen er kodet)
 11
 0.0
@@ -1706,9 +1695,9 @@ TEXTBOX
 
 SWITCH
 145
-490
+525
 265
-523
+558
 include-status?
 include-status?
 1
@@ -1716,10 +1705,10 @@ include-status?
 -1000
 
 SLIDER
-510
-445
-692
-478
+495
+450
+677
+483
 kids-odds-inc-success
 kids-odds-inc-success
 0
@@ -1731,10 +1720,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-510
-515
-675
-548
+495
+520
+660
+553
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1747,9 +1736,9 @@ HORIZONTAL
 
 SLIDER
 10
-550
+585
 240
-583
+618
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1762,29 +1751,29 @@ HORIZONTAL
 
 TEXTBOX
 95
-530
+565
 170
-548
+583
 Forståelse
 14
 0.0
 1
 
 CHOOSER
-300
-395
-692
-440
+285
+400
+677
+445
 learning-update
 learning-update
 "If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones"
 0
 
 TEXTBOX
-340
-570
-645
-626
+325
+575
+630
+631
 @tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?) IF OVERALL FAILURE, NOBODY LEARNS
 11
 0.0
@@ -1801,20 +1790,20 @@ choose-preset
 0
 
 TEXTBOX
-110
-245
-210
-280
+125
+250
+225
+285
 @TWEAK AGE/DYING RATES!
 11
 0.0
 1
 
 SLIDER
-300
+285
+490
 485
-500
-518
+523
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -1826,10 +1815,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-510
-480
-680
-513
+495
+485
+665
+518
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -1842,9 +1831,9 @@ HORIZONTAL
 
 TEXTBOX
 15
-585
-215
-630
+620
+235
+665
 Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er overall successful
 11
 0.0
@@ -1866,13 +1855,23 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-715
-590
-900
-646
+710
+575
+895
+631
 Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
 11
 0.0
+1
+
+CHOOSER
+10
+280
+215
+325
+distribution-method
+distribution-method
+"random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
 1
 
 @#$#@#$#@
