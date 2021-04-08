@@ -268,12 +268,7 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     set speaker-choices lput the-value speaker-choices
   ]
 
-  ;;4. Speaker asks hearer to retrieve a value for the WALS feature
-    ;let hearer-value "NA" ;;placeholder to initiate value outside ask block
-    ;ask partner [
-     ; let hearer-input-list table:get my-lang-table chosen-feature
-      ;set hearer-value weighted-one-of hearer-input-list ;;@OBS: how do we want to handle '?'-entries?! (not accounted for right now)
-    ;]
+  ;;4. Speaker asks hearer to retrieve a value for each of the WALS features
   let hearer-choices []
   ask partner [
     foreach chosen-features [
@@ -290,8 +285,7 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
   if include-words? [
     ;;A. Choose which word meaning to utter:
     set chosen-word one-of word-list ;;e.g. 'word3'
-    set chosen-topics chosen-features ;;better name, store it
-    set chosen-topics lput chosen-word chosen-topics ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
+    set chosen-topics lput chosen-word chosen-features ;;better name, store it ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
 
 
     ;;A. Speaker retrieves a word from their vocabulary for this word meaning (e.g. 'cSANoword3'):
@@ -1551,7 +1545,7 @@ INPUTBOX
 100
 360
 convs-per-month
-5.0
+1.0
 1
 0
 Number
