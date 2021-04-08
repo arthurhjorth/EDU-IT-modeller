@@ -184,8 +184,10 @@ to go
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
 
   set fails-this-tick 0 set successes-this-tick 0
-  ;repeat convs-per-month [ ask people [ communicate ] ] ;runtime error
-  ask people [ communicate ] ;;procedure where agents talk to each other
+
+  repeat convs-per-month [ ask people [ communicate ] ] ;runtime error
+
+  ;ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
   update-feature-plot
   update-convergence-plot
@@ -253,8 +255,10 @@ to make-person [kind language] ;;function that creates a person and takes their 
 end
 
 to communicate ;;agent procedure run in go ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
-  repeat convs-per-month [
     ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input)
+
+    ;set speaker
+    ;set hearer
 
   ;;1. Speaker chooses a hearer
     let partner my-partner-choice ;;using the agent reporter to select a partner
@@ -414,9 +418,6 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 ;    print word "Chosen feature(s): " chosen-features
 ;    print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
 ;    print (word "Successful?: " success?)
-
-
-  ] ;;end of repeat convs-per-month
 end
 
 to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
@@ -468,6 +469,8 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
+
+  ;@LEVEALDER SLIDER
 
  ;;maybe die (@change age of death?!):
  ifelse [breed = colonists] of self [
@@ -1095,11 +1098,11 @@ PENS
 CHOOSER
 110
 310
-202
+220
 355
 partner-choice
 partner-choice
-"random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
+"random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
 0
 
 INPUTBOX
@@ -1283,7 +1286,7 @@ nr-features-exchanged
 nr-features-exchanged
 1
 10
-1.0
+2.0
 1
 1
 NIL
@@ -1478,7 +1481,7 @@ TEXTBOX
 280
 1655
 616
-@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
+@not coded yet:\n- include-kids?\n- newcomers? (chooser: hvordan deles de ud (plantage: random/most similar/most dissimilar))\n- odds i partner-selektion\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
 13
 0.0
 1
@@ -1490,7 +1493,7 @@ SWITCH
 278
 children?
 children?
-1
+0
 1
 -1000
 
@@ -1589,7 +1592,7 @@ kids-odds-inc
 kids-odds-inc
 0
 5
-2.0
+3.0
 1
 1
 NIL
@@ -1619,7 +1622,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-50.0
+40.0
 5
 1
 %
@@ -1642,7 +1645,7 @@ CHOOSER
 440
 learning-update
 learning-update
-"If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones" "(... more options)"
+"If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones"
 0
 
 TEXTBOX
@@ -1711,6 +1714,31 @@ TEXTBOX
 215
 630
 Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er overall successful
+11
+0.0
+1
+
+SLIDER
+145
+160
+237
+193
+levealder
+levealder
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+715
+590
+900
+646
+Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
 11
 0.0
 1
