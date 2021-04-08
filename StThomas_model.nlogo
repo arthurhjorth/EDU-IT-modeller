@@ -61,7 +61,9 @@ colonists-own [
   birth-month
 ]
 
-
+plantations-own [
+  name
+]
 
 to setup
   clear-all
@@ -78,12 +80,7 @@ to setup
   import-csv ;;gets WALS data from url, makes it into a table
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
-  ;;layout the world:
-  create-plantations 10 [
-    set color white set shape "house" set size 7
-    move-to one-of land-patches with [not any? turtles-here] ;;@randomly placed right now
-  ]
-
+  make-plantations
   populate ;;create starting population
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
@@ -91,6 +88,30 @@ to setup
   update-convergence-plot
 end
 
+to make-plantations
+  ;;layout the world
+  ;;data from Hall (1992: 5) (modified to the csv 'percent of total enslaved')
+  ;;here generalised to the whole time period...
+
+  let plant-names ["koonings" "west eijnd" "krum" "erasmus baij" "windt" "noort" "friedrichs" "orcaen" "fransmans" "dorp" "qvarteer" "oost"]
+
+  ;;positions:
+  let plant-patches (patch-set patch -86 0 patch -63 3 patch -30 1 patch -21 17 patch -5 -16 patch -2 8 patch 26 -2 patch 53 -7 patch 54 -32 patch 80 -6 patch 83 -33 patch 110 -22) ;;12 different positions
+  set plant-patches sort-on [pxcor] plant-patches ;(from left to right based on pxcor)
+
+  create-plantations 12 [
+    set color white set shape "house" set size 7
+    set name first plant-names
+    set plant-names but-first plant-names ;removes the first item from the name list (since it's now taken) (this code block is run by one plantation at a time)
+
+    ;;move to spot:
+    move-to first plant-patches
+    set plant-patches but-first plant-patches
+  ]
+
+
+
+end
 
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
@@ -544,7 +565,7 @@ to update-feature-plot ;;run in go (and setup)
 ;    let n length instances ;;how many values there are
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     set-plot-y-range 0 (nr-slaves + nr-colonists)
-    let step 0.02 ;;tweak this to leave no gaps
+    let step 0.01 ;;tweak this to leave no gaps
     ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
@@ -908,6 +929,13 @@ end
   ;;let lang-vec table:get wals-table "cSANo" ;;write the language ID code here
   ;;output-print item 0 lang-vec ;;write the feature as the item position (in relation to feature-list!)
 
+;;@ALTERNATIVT KAN FILEN HENTES LOKALT MED DENNE FUNKTION (men den skal vælges manuelt hver gang...) :
+to test-fetch-user-file-verbose-syntax
+  clear-all
+  fetch:user-file-async [text -> show text]
+end
+
+
 
 ;;---GRAPHICS:
 
@@ -1053,7 +1081,7 @@ INPUTBOX
 75
 205
 nr-slaves
-100.0
+1.0
 1
 0
 Number
@@ -1302,7 +1330,7 @@ INPUTBOX
 140
 205
 nr-colonists
-100.0
+1.0
 1
 0
 Number
