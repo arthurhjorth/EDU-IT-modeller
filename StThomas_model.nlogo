@@ -243,6 +243,9 @@ to make-person [kind language] ;;function that creates a person and takes their 
 end
 
 to communicate ;;agent procedure run in go ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
+  repeat convs-per-month [
+    ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input)
+
   ;;1. Speaker chooses a hearer
     let partner my-partner-choice ;;using the agent reporter to select a partner
                                     ;;@tilføj evt: gem historie over hvem der har talt sammen?
@@ -282,10 +285,11 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 
   ;;4.5: Potentially also retrieve a word from vocabulary
   let chosen-word "NA"
+  let chosen-topics "NA"
   if include-words? [
     ;;A. Choose which word meaning to utter:
     set chosen-word one-of word-list ;;e.g. 'word3'
-    let chosen-topics chosen-features ;;better name, store it
+    set chosen-topics chosen-features ;;better name, store it
     set chosen-topics lput chosen-word chosen-topics ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
 
 
@@ -324,45 +328,62 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
   ]
 
-  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS) - AND UPDATE BOTH FEATURES AND WORDS:
+  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS) - AND UPDATE BOTH FEATURES AND WORDS (RIGHT NOW ONLY FEATURES):
   ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
-    ifelse success? [
-      ;;print (word "chosen-features: " chosen-features ", speaker-choices: " speaker-choices)
-      increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-    ]
-    [ ;;if unsuccessful, odds decrease (@does this even make sense?):
-      decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...) ;;@add complete unlearning? but only if they know other values! hmmm...
-    ]
+   let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
+    ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
+    foreach chosen-topics [ ;;loop through each topicand update everything ;;@ADD this to be conditional on 'learning-update' rules!!
+      x ->
+      let pos position x chosen-topics ;;the position
+      let choices item pos chosen-items
+      let s-choice first choices
+      let h-choice last choices
+      ifelse s-choice = h-choice [
+        ;;IF LOCAL SUCCESS for this item, speaker does this:
+        increase-odds-success first chosen-topics first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
+        ;;and asks hearer to do this:
+        ask partner [
+          increase-odds-success first chosen-topics first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
+        ]
 
-  ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
-    ask partner [
-      ifelse success? [
-        increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
       ]
-      [ ;;if unsuccessful communication:
-        ifelse known-value? first chosen-features first speaker-choices [
+      [ ;;IF LOCAL FAILURE for this item, speaker does this:
+        decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...)
+        ;and asks hearer to do this:
+        ask partner [
+          ifelse known-value? first chosen-topics first speaker-choices [
           ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          increase-odds-unsuccess first chosen-features first speaker-choices
+          increase-odds-unsuccess first chosen-topics first speaker-choices
         ]
         [ ;;hearer simply learns the value if they don't already know it:
-          learn-value first chosen-features first speaker-choices 1 ;;@now simply with starting odds of 1
+          learn-value first chosen-topics first speaker-choices 1 ;;@now simply with starting odds of 1
+        ]
         ]
       ]
-    ]
+   ] ;;end of looping through chosen-topics
+
+  ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
+;    ask partner [
+;      ifelse success? [
+;        increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
+;      ]
+;      [ ;;if unsuccessful communication:
+;        ifelse known-value? first chosen-features first speaker-choices [
+;          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
+;          increase-odds-unsuccess first chosen-features first speaker-choices
+;        ]
+;        [ ;;hearer simply learns the value if they don't already know it:
+;          learn-value first chosen-features first speaker-choices 1 ;;@now simply with starting odds of 1
+;        ]
+;      ]
+;    ]
 
   ;;8. Record what happened (what was uttered - for feature plot)
   ;('uttered' now counts both speaker's and hearer's choice/draw, no distinction)
-  let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
-  ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
-
-  let chosen-topics chosen-features ;;better name
-  if include-words? [set chosen-topics lput chosen-word chosen-topics] ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
-
-
-  let topic-pos 0 ;;keep track of what feautre/word we're recording now
 
   foreach chosen-items [ ;;for each of the nested lists of two spoken values/words
-   val-indexes -> ;for speaker and hearer
+    val-indexes -> ;for speaker and hearer
+    let topic-pos position val-indexes chosen-items ;;keep track of what feautre/word we're recording now
     foreach val-indexes [ ;;for the two: both hearer's and speaker's (a loop in a loop...)
       val-index ->
 
@@ -381,7 +402,6 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
       ]
 
     ]
-    set topic-pos topic-pos + 1 ;;increment this for next iteration which will be the next nested list in chosen-items
   ]
 
   ;;9. print what happened (just for testing):
@@ -390,6 +410,9 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 ;    print word "Chosen feature(s): " chosen-features
 ;    print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
 ;    print (word "Successful?: " success?)
+
+
+  ] ;;end of repeat convs-per-month
 end
 
 to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
@@ -565,7 +588,7 @@ to update-feature-plot ;;run in go (and setup)
 ;    let n length instances ;;how many values there are
     set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
     set-plot-y-range 0 (nr-slaves + nr-colonists)
-    let step 0.01 ;;tweak this to leave no gaps
+    let step 0.005 ;;tweak this to leave no gaps
     ;;the plotting loop:
     (foreach instances range n [
       [s i] ->
@@ -1073,7 +1096,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity"
-1
+0
 
 INPUTBOX
 10
@@ -1081,7 +1104,7 @@ INPUTBOX
 75
 205
 nr-slaves
-1.0
+100.0
 1
 0
 Number
@@ -1111,7 +1134,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A"
-4
+0
 
 CHOOSER
 1080
@@ -1330,7 +1353,7 @@ INPUTBOX
 140
 205
 nr-colonists
-1.0
+100.0
 1
 0
 Number
@@ -1451,7 +1474,7 @@ TEXTBOX
 280
 1655
 616
-@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- convs-per-month\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
+@not coded yet:\n- include-kids?\n- newcomers?\n- odds i partner-selektion\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) hent filer lokalt (hvis i zip-mappe), 4) over-chooser som pre-setter parametre
 13
 0.0
 1
@@ -1621,7 +1644,7 @@ learning-update
 TEXTBOX
 340
 570
-510
+645
 626
 @tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?)
 11
@@ -1683,7 +1706,7 @@ TEXTBOX
 585
 215
 630
-Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er succesfuld
+Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er overall successful
 11
 0.0
 1
