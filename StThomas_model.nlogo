@@ -175,6 +175,7 @@ to go
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
 
   set fails-this-tick 0 set successes-this-tick 0
+  ;repeat convs-per-month [ ask people [ communicate ] ] ;runtime error
   ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
   update-feature-plot
@@ -1081,7 +1082,7 @@ INPUTBOX
 75
 205
 nr-slaves
-1.0
+50.0
 1
 0
 Number
@@ -1330,7 +1331,7 @@ INPUTBOX
 140
 205
 nr-colonists
-1.0
+50.0
 1
 0
 Number
@@ -1527,7 +1528,7 @@ INPUTBOX
 100
 360
 convs-per-month
-1.0
+5.0
 1
 0
 Number
