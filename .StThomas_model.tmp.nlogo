@@ -154,28 +154,29 @@ end
 
 to initialize-agent-variables ;;agent procedure, run in setup
 
-  ;;Agent variables used in my-partner-choice:
+  ;;distance Agent variables previously used in my-partner-choice:
 
-  set closest-agent min-one-of other people [distance myself] ;;agentset of the closest other agent (if tie, random one)
-  set nearby-agents other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within radius 10
+;  set closest-agent min-one-of other people [distance myself] ;;agentset of the closest other agent (if tie, random one)
+;  set nearby-agents other people in-radius 10 ;;@can change this proximity number. ;;nearby is an agentset of all agents within radius 10
+;
+;
+;  ;;now for the list of all other turtles and their distances (used in weighted-proximity):
+;  let turtle-distance-list [list self (round distance myself)] of other people ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
+;  ;;we want: the lower the distance, the higher the odds... for the weighted-one-of function, the odds have to start from 1 (no 0's)... and the higher the odds, the higher probability of being chosen!
+;  ;;therefore, a little transformation:
+;  let distances map last turtle-distance-list
+;  let max-plus-one max distances + 1
+;  let trans-distances map [i -> max-plus-one - i] distances ;;for each distance, we subtract the distance from (the max distance + 1)
+;  let turtle-list map first turtle-distance-list
+;  ;;NOW CREATE A NESTED LIST COMBINING TURTLE-LIST AND TRANS-DISTANCES!:
+;  set my-weighted-prox-list [] ;;an agent variable
+;  foreach turtle-list [
+;    i ->
+;    let index position i turtle-list
+;    let this-trans-dist (item index trans-distances)
+;    set my-weighted-prox-list lput (list i this-trans-dist) my-weighted-prox-list
+;  ]
 
-
-  ;;now for the list of all other turtles and their distances (used in weighted-proximity):
-  let turtle-distance-list [list self (round distance myself)] of other people ;;nested list of slaves + their distance to the partner-seeker. i.e.: [ [(slave 10) 119] [(slave 17) 104] ...]
-  ;;we want: the lower the distance, the higher the odds... for the weighted-one-of function, the odds have to start from 1 (no 0's)... and the higher the odds, the higher probability of being chosen!
-  ;;therefore, a little transformation:
-  let distances map last turtle-distance-list
-  let max-plus-one max distances + 1
-  let trans-distances map [i -> max-plus-one - i] distances ;;for each distance, we subtract the distance from (the max distance + 1)
-  let turtle-list map first turtle-distance-list
-  ;;NOW CREATE A NESTED LIST COMBINING TURTLE-LIST AND TRANS-DISTANCES!:
-  set my-weighted-prox-list [] ;;an agent variable
-  foreach turtle-list [
-    i ->
-    let index position i turtle-list
-    let this-trans-dist (item index trans-distances)
-    set my-weighted-prox-list lput (list i this-trans-dist) my-weighted-prox-list
-  ]
 end
 
 to go
@@ -218,7 +219,8 @@ to make-person [kind language] ;;function that creates a person and takes their 
   if kind = "slave" [
     create-slaves 1 [
       ;;@can change starting age!:
-      ;while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
+      while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
+
 
       set birth-month one-of month-names
 
@@ -251,39 +253,51 @@ to make-person [kind language] ;;function that creates a person and takes their 
         move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
     ]
   ]
-
 end
 
-to communicate ;;agent procedure run in go ;;coded from the speaker's perspective (so every agent gets to be speaker every tick right now)
-    ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input)
+to communicate ;;agent procedure run in go ;;no longer coded from the speaker's perspective! (so every agent does NOT get to be speaker every tick)
+    ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input) - see go
 
-    ;set speaker
-    ;set hearer
-
-  ;;1. Speaker chooses a hearer
-    let partner my-partner-choice ;;using the agent reporter to select a partner
+  ;;0. Find a talking buddy
+  let partner my-partner-choice ;;using the agent reporter to select a partner
                                     ;;@tilføj evt: gem historie over hvem der har talt sammen?
+  let partners (turtle-set self partner) ;a way to address both speaker and hearer at the same time
 
-  ;;2. Choose which WALS feature to exchange (the 'conversation topic')
-    ;let chosen-feature one-of feature-list ;;randomly chosen right now (feature-list is a global variable with all 50 features)
-
-    let chosen-features n-of nr-features-exchanged feature-list ;;can select multiple features
-
-  ;;3. Speaker retrieves a specific value/instance of this WALS feature from their language table (to begin with they only know one instance anyway)
-    ;let speaker-input-list table:get my-lang-table chosen-feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-    ;let speaker-value weighted-one-of speaker-input-list ;;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
-
-  let speaker-choices []
-  foreach chosen-features [ ;;speaker now chooses a value for each feature in the 'conversation'
-    x ->
-    let speaker-input-list table:get my-lang-table x ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-    let the-value weighted-one-of speaker-input-list
-    set speaker-choices lput the-value speaker-choices
+  ;;1. Set speaker and hearer
+  let speaker "NA" let hearer "NA"
+  ifelse include-status? [
+    ;if status included, slaves never speak to europeans:
+    let same? reduce = [breed] of partners ;boolean, reports true if the two are of same breed, false if they're of different breeds
+    ifelse same? [
+      ;if they're the same, it's randomly set anyway:
+      ifelse random 2 = 1 [set speaker self set hearer partner] [set hearer self set speaker partner]
+    ]
+    [ ;if they're different, i.e. one slave and one colonist, colonist is always speaker:
+      set speaker one-of partners with [breed = colonists]
+      set hearer one-of partners with [breed = slaves]
+    ]
+  ]
+  [ ;if status isn't included, speaker and hearer are set at random:
+    ifelse random 2 = 1 [set speaker self set hearer partner] [set hearer self set speaker partner]
   ]
 
-  ;;4. Speaker asks hearer to retrieve a value for each of the WALS features
+  ;;2. Choose which WALS feature(s) to exchange (the 'conversation topic')
+  let chosen-features n-of nr-features-exchanged feature-list ;;can select multiple features. Randomly chosen right now (feature-list is a global variable with all 50 features)
+
+  ;;3. Ask speaker to retrieve a specific value for each WALS feature from their language table
+  let speaker-choices []
+  ask speaker [
+    foreach chosen-features [ ;;speaker now chooses a value for each feature in the 'conversation'
+      x ->
+      let speaker-input-list table:get my-lang-table x ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+      let the-value weighted-one-of speaker-input-list ;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
+      set speaker-choices lput the-value speaker-choices ;speaker-choices is a list with all the final chosen values
+    ]
+  ]
+
+  ;;4. Likewise, ask hearer to retrieve a value for each of the WALS features
   let hearer-choices []
-  ask partner [
+  ask hearer [
     foreach chosen-features [
       x ->
       let hearer-input-list table:get my-lang-table x
@@ -294,35 +308,38 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
 
   ;;4.5: Potentially also retrieve a word from vocabulary
   let chosen-word "NA"
-  let chosen-topics "NA"
+  let chosen-topics chosen-features
   if include-words? [
     ;;A. Choose which word meaning to utter:
     set chosen-word one-of word-list ;;e.g. 'word3'
-    set chosen-topics lput chosen-word chosen-features ;;better name, store it ;;so the list is of all the categories/topics in this interaction, e.g. ["X9A" "X29A" "word3"]
+    set chosen-topics lput chosen-word chosen-features ;;better name, store it ;;so the list is of ALL topics in this interaction, features and words, e.g. ["X9A" "X29A" "word3"]
 
 
     ;;A. Speaker retrieves a word from their vocabulary for this word meaning (e.g. 'cSANoword3'):
-    let speaker-word-list table:get my-word-table chosen-word
-    let speaker-word weighted-one-of speaker-word-list ;;using the weighted-one-of function
-    set speaker-choices lput speaker-word speaker-choices ;;add the chosen word to the list with the chosen feature values (for joint comparison)
+    let speaker-word "NA"
+    ask speaker [
+      let speaker-word-list table:get my-word-table chosen-word
+      set speaker-word weighted-one-of speaker-word-list ;;using the weighted-one-of function
+      set speaker-choices lput speaker-word speaker-choices ;;add the chosen word to the list with the chosen feature values (for joint comparison later)
+    ]
 
-    ;;B. Speaker asks hearer to retrieve a word:
+    ;;B. Likewise, hearer retrieves a word:
     let hearer-word "NA" ;;placeholder to initiate value outside ask block
-    ask partner [
+    ask hearer [
       let hearer-word-list table:get my-word-table chosen-word
       set hearer-word weighted-one-of hearer-word-list ;;using the weighted-one-of function
       set hearer-choices lput hearer-word hearer-choices ;combine into a list with both the values and the word
     ]
   ]
 
-  ;;5. Compare the values to see if the communication was coordinated/succesful ;;(now overall success if nr of matches is above the chosen threshold)
+  ;;5. Compare the values to see if the communication was coordinated/succesful ;;(overall success if nr of matches is above the chosen threshold)
 
   ;;compare the two lists to make a TRUE/FALSE list to test success for each individual feature (and maybe a word)
   let outcome-list (map = speaker-choices hearer-choices) ;;this returns a list of booleans. e.g. (map = [1 0 3 cSANoword3] [1 2 1 cSANOword3]) results in the list: [true false false true]
   ;;(understood in this context means that the hearer and speaker both drew/chose the exact same value/word, nothing else matters)
   let nr-understood length filter [i -> i = true] outcome-list ;;nr of trues in the list
   let percent-understood nr-understood / length outcome-list ;;the percentage understood of the exchanged items
-  let percent-needed (%-understood-for-overall-success / 100) ;;from interface
+  let percent-needed (%-understood-for-overall-success / 100) ;;threshold from interface
   ;;check if understanding is above the threshold:
   let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
   ifelse percent-understood >= percent-needed [ ;;if percent successes (for all the features and words exchanged in this interaction) is above the threshold, OVERALL SUCCESS!
@@ -336,82 +353,43 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
     set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
   ]
 
-  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS) - AND UPDATE BOTH FEATURES AND WORDS (RIGHT NOW ONLY FEATURES):
+  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS)
 
-  ;;6. Speaker updates their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
-
-   let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
+  ;;6. They update their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
+  let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
     ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
-    foreach chosen-topics [ ;;loop through each topic and update everything ;;@ADD this to be conditional on 'learning-update' rules!!
+
+  foreach chosen-topics [ ;;loop through each topic and update everything ;;@ADD this to be conditional on 'learning-update' rules!!
       x ->
-      let pos position x chosen-topics ;;the position
+      let pos position x chosen-topics ;;the position (for mapping to chosen-items)
       let choices item pos chosen-items
       let s-choice first choices
       let h-choice last choices
       ifelse s-choice = h-choice [
-        ;;IF LOCAL SUCCESS for this item, speaker does this:
-      ifelse age > 17 [
-        increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-      ]
-      [
-      increase-odds-success-kids item pos chosen-topics item pos speaker-choices
-      ]
-
-        ;;and asks hearer to do this:
-        ask partner [
-        ifelse age > 17 [
-          increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-        ]
-        [
-          increase-odds-success-kids item pos chosen-topics item pos speaker-choices
-        ]
+        ;;IF LOCAL SUCCESS for this item:
+      ask partners [ ;asking both speaker and hearer
+          increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature
+          ;the kid/adult distinction in odds increase is now written down into the increase-odds-success procedure
       ]
     ]
-
-
-      [ ;;IF LOCAL FAILURE for this item, speaker does this:
-      ifelse age > 17 [
-        decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...)
+      [ ;;IF LOCAL FAILURE for this item:
+      ask speaker [ ;speaker:
+          decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...)
       ]
-      [
-        decrease-odds-kids first chosen-features first speaker-choices
-      ]
-        ;and asks hearer to do this:
-        ask partner [
+      ask hearer [ ;hearer:
           ifelse known-value? item pos chosen-topics item pos speaker-choices [
           ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          ifelse age > 17 [
           increase-odds-unsuccess item pos chosen-topics item pos speaker-choices
-        ]
-          [
-          increase-odds-unsuccess-kids item pos chosen-topics item pos speaker-choices
-          ]
         ]
         [ ;;hearer simply learns the value if they don't already know it:
           learn-value item pos chosen-topics item pos speaker-choices 1 ;;@now simply with starting odds of 1
         ]
-        ]
       ]
+    ] ;end of if local failure
    ] ;;end of looping through chosen-topics
 
-  ;;7. Speaker asks hearer to update their language table ;;@HOW DO WE WANT TO DO THIS?
-;    ask partner [
-;      ifelse success? [
-;        increase-odds-success first chosen-features first speaker-choices ;;function increases the odds for this value of this feature (right now simply +1)
-;      ]
-;      [ ;;if unsuccessful communication:
-;        ifelse known-value? first chosen-features first speaker-choices [
-;          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-;          increase-odds-unsuccess first chosen-features first speaker-choices
-;        ]
-;        [ ;;hearer simply learns the value if they don't already know it:
-;          learn-value first chosen-features first speaker-choices 1 ;;@now simply with starting odds of 1
-;        ]
-;      ]
-;    ]
-
-  ;;8. Record what happened (what was uttered - for feature plot)
-  ;('uttered' now counts both speaker's and hearer's choice/draw, no distinction)
+  ;;7. Record what happened (what was uttered - for feature plot)
+  ;('uttered' now counts both speaker's and hearer's choice/draw, no distinction in chosen-table)
 
   foreach chosen-items [ ;;for each of the nested lists of two spoken values/words
     val-indexes -> ;for speaker and hearer
@@ -426,25 +404,24 @@ to communicate ;;agent procedure run in go ;;coded from the speaker's perspectiv
       ifelse is-number? val-index [ ;;if it's a feature value:
         let old-entry table:get chosen-table (item topic-pos chosen-topics) ;;old entry, 10-item list with each nr representing the total nr of times that value (index position) has been chosen
         let new-entry replace-item val-index old-entry (item val-index old-entry + 1) ;;increases the number (count so far) at the position of the value index by 1 (for this feature)
-        table:put chosen-table (item topic-pos chosen-topics) new-entry
+        table:put chosen-table (item topic-pos chosen-topics) new-entry ;chosen-table is a record of all feature values uttered
       ]
       [ ;if it's non-numeric, i.e. the words! (last item if included):
 
         ;;@CAN ADD RECORD of all the words that have been chosen - either integrate in chosen-table or create separate structure
-
-
+        ;@DO IT HERE
 
       ]
-
     ]
   ]
 
-  ;;9. print what happened (just for testing):
-;    print ""
-;    print (word self " talked to " partner)
-;    print word "Chosen feature(s): " chosen-features
-;    print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
-;    print (word "Successful?: " success?)
+  ;;8. print what happened (just for testing):
+  print ""
+  print (word speaker " talked to " hearer)
+  print word "Chosen topics): " chosen-topics
+  print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
+  print (word "Percent understood: " percent-understood)
+  print (word "Overall succes?: " success?)
 end
 
 
@@ -608,163 +585,165 @@ end
 
 ;;--- PLOTS
 to update-feature-plot ;;run in go (and setup)
-  set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
-  clear-plot
-  ;;interface chooser decides what feature we focus on ('plot-feature')
+  if ticks mod 6 != 0 [ ;only updates every 6 months
+    set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
+    clear-plot
+    ;;interface chooser decides what feature we focus on ('plot-feature')
 
-  if plot-this = "max value (count)" [ ;;for each possible value, counts and plots how many agents has that as their most likely choice (highest odds)
+    if plot-this = "max value (count)" [ ;;for each possible value, counts and plots how many agents has that as their most likely choice (highest odds)
 
-    ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
-    let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
-                                                                     ;;@not including values that are possible but aren't in the population at all
-    let counts table:counts values ;;we don't actually care about these counts...
-    let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
-    let n length instances ;;nr of values/instances for this feature, e.g. 3
-
-
-    let counts-table table:counts [most-likely-value plot-feature] of people ;;using the handy most-likely-value agent reporter
-    ;;[most-likely-value plot-feature] of people is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
-    ;;table:counts makes it into a table where the entry is the occurences of the key in the list, e.g. {{table: [[1 2] [2 1] [3 3]]}}
-;    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
-;    let n length instances ;;how many values there are
-    set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
-    set-plot-y-range 0 (nr-slaves + nr-colonists)
-    let step 0.005 ;;tweak this to leave no gaps
-    ;;the plotting loop:
-    (foreach instances range n [
-      [s i] ->
-
-      let y "NA" ;;placeholder before the ifelse that sets it
-       ifelse table:has-key? counts-table s [ ;;if it has the key:
-       set y table:get counts-table s ;;nr of agents with this value as their top choice (looks it up in the table)
-      ]
-     [ ;;if it doesn't have the key, it means no agents have it as their top value (but we still want to visualize the 0 bar, that's why we're keeping this here)
-       set y 0
-      ]
+      ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
+      let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+                                                                       ;;@not including values that are possible but aren't in the population at all
+      let counts table:counts values ;;we don't actually care about these counts...
+      let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
+      let n length instances ;;nr of values/instances for this feature, e.g. 3
 
 
+      let counts-table table:counts [most-likely-value plot-feature] of people ;;using the handy most-likely-value agent reporter
+                                                                               ;;[most-likely-value plot-feature] of people is a list of all agent's top choice for the feature, e.g. [1 2 1 3 3 3]
+                                                                               ;;table:counts makes it into a table where the entry is the occurences of the key in the list, e.g. {{table: [[1 2] [2 1] [3 3]]}}
+                                                                               ;    let instances sort table:keys counts ;;instance = a specific value for a WALS feature (getting confusing here - the value is the table key :)) ;;so instances is a list, e.g. [1 2 3 4]
+                                                                               ;    let n length instances ;;how many values there are
+      set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
+      set-plot-y-range 0 (nr-slaves + nr-colonists)
+      let step 0.005 ;;tweak this to leave no gaps
+                     ;;the plotting loop:
+      (foreach instances range n [
+        [s i] ->
 
-      let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
-      create-temporary-plot-pen (word s) ;;the instance/value name made into a string
-      set-plot-pen-mode 1 ;;bar mode
-      set-plot-pen-color c
-      foreach (range 0 y step) [_y -> plotxy i _y]
-      set-plot-pen-color black
-      plotxy i y
-      set-plot-pen-color c ;;to get the right color in the legend
-    ])
+        let y "NA" ;;placeholder before the ifelse that sets it
+        ifelse table:has-key? counts-table s [ ;;if it has the key:
+          set y table:get counts-table s ;;nr of agents with this value as their top choice (looks it up in the table)
+        ]
+        [ ;;if it doesn't have the key, it means no agents have it as their top value (but we still want to visualize the 0 bar, that's why we're keeping this here)
+          set y 0
+        ]
 
-  ]
 
-  if plot-this = "average probability" [ ;;for each possible value, plots the average probability of choosing that value across all agents!
-    ;;for each value for plot-feature (the chosen WALS feature), we calculate the average probability (across agents) for each value/instance for this feature
-    ;;using the handy 'avg-value-prob' reporter
-    ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
 
-    let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
-                                                                     ;;@not including values that are possible but aren't in the population at all
-    let counts table:counts values ;;we don't actually care about these counts...
-    let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
-    let n length instances ;;nr of values/instances for this feature, e.g. 3
-    set-plot-x-range 0 n ;;scales the plot to fit the total number of instances/values
-    set-plot-y-range 0 1
-    let step 0.001
-    ;;the plotting loop:
-    (foreach instances range n [
-      [s i] ->
-      ;;let y table:get counts s ;;@CHANGE THIS TO THE AVERAGE PROBABILITY FOR THIS VALUE
-      let y avg-value-prob plot-feature s ;;uses the reporter 'avg-value-prob' with the current feature and instance/value as input - so y is the average probability across agents
-
-      let c item s color-list
-      create-temporary-plot-pen (word s)
-      set-plot-pen-mode 1
-      set-plot-pen-color c
-      foreach (range 0 y step) [_y -> plotxy i _y]
-      set-plot-pen-color black
-      plotxy i y
-      set-plot-pen-color c
+        let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+        create-temporary-plot-pen (word s) ;;the instance/value name made into a string
+        set-plot-pen-mode 1 ;;bar mode
+        set-plot-pen-color c
+        foreach (range 0 y step) [_y -> plotxy i _y]
+        set-plot-pen-color black
+        plotxy i y
+        set-plot-pen-color c ;;to get the right color in the legend
       ])
 
-  ]
+    ]
 
-  if plot-this = "times chosen" [ ;;for each possible value, plot count of how many times it's been actually spoken/chosen in this run (CUMULATIVE!)
-    ;;for setting the range/plotting bars
-    let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
-                                                                     ;;@not including values that are possible but aren't in the population at all
-    let counts2 table:counts values ;;we don't actually care about these counts...
-    let instances sort table:keys counts2 ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
-    let n length instances ;;nr of values/instances for this feature, e.g. 3
+    if plot-this = "average probability" [ ;;for each possible value, plots the average probability of choosing that value across all agents!
+                                           ;;for each value for plot-feature (the chosen WALS feature), we calculate the average probability (across agents) for each value/instance for this feature
+                                           ;;using the handy 'avg-value-prob' reporter
+                                           ;;we want to visualize ALL the possible values (in the population) all the time (no change of nr of bars)!
 
-    let counts-list table:get chosen-table plot-feature
-    ;;chosen-table is a table with counts of how many times each value has been chosen for this feature so far, through indexing using the value nr (? = 0)
-                                                                ;;i.e.: entry (and thus chosen-list) for key "X9A" = [0 1 0 2 0 0 0 0 0 0] = value 1 has been chosen once, value 3 has been chosen twice
-    ;;set-plot-y-range 0 (length agreement + 1)
-    set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
-    let step 0.02 ;;tweak this to leave no gaps
-    ;;the plotting loop:
-    (foreach instances range n [
-      [s i] ->
-      let y item s counts-list ;;the nr of times this value has been chosen (using indexing because that's the structure of chosen-table and counts-list)
-      let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
-      create-temporary-plot-pen (word s) ;;the instance/value name made into a string
-      set-plot-pen-mode 1 ;;bar mode
-      set-plot-pen-color c
-      let wee (range 0 y step)
-      foreach (range 0 y step) [_y -> plotxy i _y]
-      set-plot-pen-color black
-      plotxy i y
-      set-plot-pen-color c ;;to get the right color in the legend
-    ])
-  ]
+      let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+                                                                       ;;@not including values that are possible but aren't in the population at all
+      let counts table:counts values ;;we don't actually care about these counts...
+      let instances sort table:keys counts ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
+      let n length instances ;;nr of values/instances for this feature, e.g. 3
+      set-plot-x-range 0 n ;;scales the plot to fit the total number of instances/values
+      set-plot-y-range 0 1
+      let step 0.001
+      ;;the plotting loop:
+      (foreach instances range n [
+        [s i] ->
+        ;;let y table:get counts s ;;@CHANGE THIS TO THE AVERAGE PROBABILITY FOR THIS VALUE
+        let y avg-value-prob plot-feature s ;;uses the reporter 'avg-value-prob' with the current feature and instance/value as input - so y is the average probability across agents
 
+        let c item s color-list
+        create-temporary-plot-pen (word s)
+        set-plot-pen-mode 1
+        set-plot-pen-color c
+        foreach (range 0 y step) [_y -> plotxy i _y]
+        set-plot-pen-color black
+        plotxy i y
+        set-plot-pen-color c
+      ])
+
+    ]
+
+    if plot-this = "times chosen" [ ;;for each possible value, plot count of how many times it's been actually spoken/chosen in this run (CUMULATIVE!)
+                                    ;;for setting the range/plotting bars
+      let values reduce sentence [known-values plot-feature] of people ;;list with all known values for all people, i.e. [3 2 1 1 3 2 1 3 2 2 3 1 1 ...]
+                                                                       ;;@not including values that are possible but aren't in the population at all
+      let counts2 table:counts values ;;we don't actually care about these counts...
+      let instances sort table:keys counts2 ;;but we care about how many unique values there are in the population (the keys)! (this is instances), e.g. [1 2 3]
+      let n length instances ;;nr of values/instances for this feature, e.g. 3
+
+      let counts-list table:get chosen-table plot-feature
+      ;;chosen-table is a table with counts of how many times each value has been chosen for this feature so far, through indexing using the value nr (? = 0)
+      ;;i.e.: entry (and thus chosen-list) for key "X9A" = [0 1 0 2 0 0 0 0 0 0] = value 1 has been chosen once, value 3 has been chosen twice
+      ;;set-plot-y-range 0 (length agreement + 1)
+      set-plot-x-range 0 n ;;scales the plot to fit the number of instances/values we need to visualize
+      let step 0.02 ;;tweak this to leave no gaps
+                    ;;the plotting loop:
+      (foreach instances range n [
+        [s i] ->
+        let y item s counts-list ;;the nr of times this value has been chosen (using indexing because that's the structure of chosen-table and counts-list)
+        let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+        create-temporary-plot-pen (word s) ;;the instance/value name made into a string
+        set-plot-pen-mode 1 ;;bar mode
+        set-plot-pen-color c
+        let wee (range 0 y step)
+        foreach (range 0 y step) [_y -> plotxy i _y]
+        set-plot-pen-color black
+        plotxy i y
+        set-plot-pen-color c ;;to get the right color in the legend
+      ])
+    ]
+  ] ;end of ticks mod 6
 
 end
 
 to update-convergence-plot ;;run in go (and setup). Visualizes convergence for the island as a whole
-  let proportion-list []
-  foreach feature-list [
-    the-feature ->
-    let counts-table table:counts [most-likely-value the-feature] of people ;;e.g.: {{table: [[2 61] [1 38] [3 1]]}} ;;key = value, entry = nr of agents with this as top pick
-    let counts-list table:to-list counts-table ;;make it a nested list, e.g.: [[2 61] [1 38] [3 1]]
-                                               ;;find the most common top pick (for this specific plot-feature):
-    let index position (max map last counts-list) (map last counts-list) ;;example: would be 0 (since item 0 is most common top pick, with 61 agents with value 2)
-    let global-top-value first item index counts-list ;;the value - e.g. 2
-                                                      ;;calculate the proportion of the population with this as their top pick:
-    let nr-top-pickers last item index counts-list ;;nr of agents picking this top value - e.g. 61
-    let nr-agents sum map last counts-list ;;e.g. 100 (61 + 38 + 1)
-    let proportion ( nr-top-pickers / nr-agents )
-    ;;and THAT proportion is what we want to plot!:
-    set proportion-list lput proportion proportion-list
-    ;;print proportion-list
+  if ticks mod 6 != 0 [
+    let proportion-list []
+    foreach feature-list [
+      the-feature ->
+      let counts-table table:counts [most-likely-value the-feature] of people ;;e.g.: {{table: [[2 61] [1 38] [3 1]]}} ;;key = value, entry = nr of agents with this as top pick
+      let counts-list table:to-list counts-table ;;make it a nested list, e.g.: [[2 61] [1 38] [3 1]]
+                                                 ;;find the most common top pick (for this specific plot-feature):
+      let index position (max map last counts-list) (map last counts-list) ;;example: would be 0 (since item 0 is most common top pick, with 61 agents with value 2)
+      let global-top-value first item index counts-list ;;the value - e.g. 2
+                                                        ;;calculate the proportion of the population with this as their top pick:
+      let nr-top-pickers last item index counts-list ;;nr of agents picking this top value - e.g. 61
+      let nr-agents sum map last counts-list ;;e.g. 100 (61 + 38 + 1)
+      let proportion ( nr-top-pickers / nr-agents )
+      ;;and THAT proportion is what we want to plot!:
+      set proportion-list lput proportion proportion-list
+      ;;print proportion-list
+    ]
+    ;;proportion-list is now: [0.37 0.6 0.99 0.55 0.43 0.56 0.42 ...] with 50 entries, one for each feature, showing the proportion of agents with the most common top pick as their top pick!
+
+    ;;PLOTTING:
+    set-current-plot "Convergence plot"
+    clear-plot
+    let n 50 ;;nr of bars we want (the nr of WALS features)
+    set-plot-x-range 0 n
+    set-plot-y-range 0 1
+    let step 0.005 ; tweak this to leave no gaps
+    (foreach proportion-list range n [
+      [y i] ->
+      ;;let c one-of base-colors ;;random colors right now
+      create-temporary-plot-pen (word y) ;;the proportion, e.g. "0.37"
+      set-plot-pen-mode 1 ; bar mode
+                          ;;set-plot-pen-color c
+      ifelse y >= 0.75 [
+        set-plot-pen-color 64 ;;green
+      ]
+      [
+        if y >= 0.50 [set-plot-pen-color 44] ;;yellow
+        if y < 0.50 [set-plot-pen-color 14] ;;red
+      ]
+      foreach (range 0 y step) [ _y -> plotxy i _y ]
+      set-plot-pen-color black
+      plotxy i y
+      ;;set-plot-pen-color c ; to get the right color in the legend
+    ])
   ]
-  ;;proportion-list is now: [0.37 0.6 0.99 0.55 0.43 0.56 0.42 ...] with 50 entries, one for each feature, showing the proportion of agents with the most common top pick as their top pick!
-
-  ;;PLOTTING:
-  set-current-plot "Convergence plot"
-  clear-plot
-  let n 50 ;;nr of bars we want (the nr of WALS features)
-  set-plot-x-range 0 n
-  set-plot-y-range 0 1
-  let step 0.005 ; tweak this to leave no gaps
-  (foreach proportion-list range n [
-    [y i] ->
-    ;;let c one-of base-colors ;;random colors right now
-    create-temporary-plot-pen (word y) ;;the proportion, e.g. "0.37"
-    set-plot-pen-mode 1 ; bar mode
-    ;;set-plot-pen-color c
-    ifelse y >= 0.75 [
-      set-plot-pen-color 64 ;;green
-    ]
-    [
-      if y >= 0.50 [set-plot-pen-color 44] ;;yellow
-      if y < 0.50 [set-plot-pen-color 14] ;;red
-    ]
-    foreach (range 0 y step) [ _y -> plotxy i _y ]
-    set-plot-pen-color black
-    plotxy i y
-    ;;set-plot-pen-color c ; to get the right color in the legend
-  ])
-
 
 
 end
@@ -858,7 +837,7 @@ to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance 
   ;;@now doesn't catch if they already know the value (can add that safety?) - or should only be used in conjunction with known-value?
 end
 
-;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker)
+;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker) - for both kids and adults.
 to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
   let the-table "NA"
@@ -873,32 +852,33 @@ to increase-odds-success [feature value] ;;agent reporter. increases the odds fo
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-increase-successful ;;@can maybe change this increase depending on different things?
+
+  let increase "NA"
+  ifelse is-adult? [ ;the increase depends on whether they're a child
+    set increase odds-increase-successful ;set in interface
+  ]
+  [
+    set increase kids-odds-inc-success ;for kids, set in interface
+  ]
+
+  let new-odds old-odds + increase ;;@can maybe change this increase depending on different things?
+
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 
 end
 
-
-to increase-odds-success-kids [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
+to-report is-adult?
+  ifelse age > 17 [
+    report true
   ]
-  [ ;if it's a word:
-    set the-table my-word-table
+  [
+    report false
   ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-inc-success ;;@can maybe change this increase depending on different things?
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-
 end
+
+
+
 
 
 
@@ -916,27 +896,16 @@ to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds 
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-increase-unsuccessful ;;@can maybe change this increase depending on different things?
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-end
 
-
-to increase-odds-unsuccess-kids [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
+  let increase "NA"
+  ifelse age > 17 [ ;the increase depends on whether they're a child
+    set increase odds-increase-unsuccessful ;set in interface
   ]
-  [ ;if it's a word:
-    set the-table my-word-table
+  [
+    set increase kids-odds-inc-unsuccess ;for kids, set in interface
   ]
 
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-inc-unsuccess ;;@can maybe change this increase depending on different things?
+  let new-odds old-odds + increase
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
@@ -957,33 +926,26 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
   let index position the-pair value-odds-list ;;the position of the value-odds pair
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + odds-decrease ;;@can maybe change this decrease depending on different things?
-  if old-odds > 1 [ ;;odds can never get below 1
-    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-  ]
-end
 
-
-to decrease-odds-kids [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by -1! (but never to 0)
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-    let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
+  let decrease "NA"
+  ifelse age > 17 [ ;the decrease depends on whether they're a child
+    set decrease odds-decrease ;set in interface
   ]
-  [ ;if it's a word:
-    set the-table my-word-table
+  [
+    set decrease kids-odds-dec ;for kids, set in interface
   ]
 
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-dec ;;@can maybe change this decrease depending on different things?
-  if old-odds > 1 [ ;;odds can never get below 1
-    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-  ]
+  let new-odds old-odds + decrease
+  if new-odds < 1 [
+    set new-odds 1
+  ] ; the minimum odds for a known value is 1. If the new-odds results in a value of less than 1, 1 is put in its place. This is a simple fix, so we can decrease with a number bigger than 1.
+
+;  if old-odds > 1 [ ;;odds can never get below 1
+;  if old-odds > 3 [ ;;odds can never get below 3 ; this is to avoid 0-values when decrease is at -3
+;    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+;
+
 end
 
 
@@ -1003,6 +965,7 @@ to-report my-value-prob [feature value] ;;agent reporter, takes a WALS feature a
                        ;;giver sandsynligheden for at agenten vælger netop denne value for denne feature
   ]
 end
+
 
 to-report most-likely-value [feature] ;;agent reporter, takes a WALS feature and reports the value with the highest odds for this agent for this feature
   let value-odds-list table:get my-lang-table feature
@@ -1153,9 +1116,9 @@ to color-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-225
+230
 10
-955
+960
 357
 -1
 -1
@@ -1214,9 +1177,9 @@ NIL
 1
 
 MONITOR
-230
+235
 305
-287
+292
 350
 Month
 this-month
@@ -1225,9 +1188,9 @@ this-month
 11
 
 MONITOR
-285
+290
 305
-342
+347
 350
 Year
 year
@@ -1256,9 +1219,9 @@ PENS
 
 CHOOSER
 110
-310
+345
 220
-355
+390
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
@@ -1270,7 +1233,7 @@ INPUTBOX
 75
 205
 nr-slaves
-1000.0
+10.0
 1
 0
 Number
@@ -1314,21 +1277,11 @@ plot-this
 
 TEXTBOX
 1215
-195
-1400
-416
+255
+1395
+476
 - max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
 12
-0.0
-1
-
-TEXTBOX
-1215
-400
-1385
-465
-@men fordi der er så mange features (50) og de kun vælger én hver gang, tager det lang tid at se forandring for bare en enkelt!
-11
 0.0
 1
 
@@ -1398,29 +1351,29 @@ TEXTBOX
 
 TEXTBOX
 100
-470
+505
 155
-488
+523
 Samtaler
 14
 0.0
 1
 
 TEXTBOX
-80
-280
-185
-298
+55
+310
+160
+328
 Partner-selektion
 14
 0.0
 1
 
 TEXTBOX
-370
-365
-450
-383
+440
+375
+520
+393
 Sproglæring
 14
 0.0
@@ -1438,9 +1391,9 @@ Visualisering
 
 SLIDER
 5
-490
+525
 145
-523
+558
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1484,30 +1437,30 @@ start-odds
 Number
 
 SLIDER
-300
-445
-497
-478
+285
+450
+482
+483
 odds-increase-successful
 odds-increase-successful
 0
 3
-0.0
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-300
-525
-500
-558
+285
+530
+485
+563
 odds-decrease
 odds-decrease
 -3
 0
-0.0
+-3.0
 1
 1
 NIL
@@ -1519,26 +1472,26 @@ INPUTBOX
 140
 205
 nr-colonists
-100.0
+10.0
 1
 0
 Number
 
 TEXTBOX
-930
-575
-1135
-655
+1020
+595
+1425
+640
 Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
 11
 0.0
 1
 
 TEXTBOX
-1245
-500
-1415
-575
+1200
+550
+1495
+595
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
 11
 0.0
@@ -1556,10 +1509,10 @@ nr-words
 Number
 
 PLOT
-1395
+1290
 10
-1625
-180
+1525
+185
 Convergence plot
 NIL
 NIL
@@ -1573,10 +1526,10 @@ false
 PENS
 
 TEXTBOX
-1430
-180
-1615
-250
+1295
+185
+1520
+245
 convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
 11
 0.0
@@ -1636,20 +1589,20 @@ deaths?
 -1000
 
 TEXTBOX
-1425
-280
-1655
-616
-@not coded yet:\n- include-kids?\n- newcomers? (chooser: hvordan deles de ud (plantage: random/most similar/most dissimilar))\n- odds i partner-selektion\n- include-status? (if on: colonists always speaker in slave-colonist interactions)\n- learning-update\n- kidds-odds-inc & kids-odds-dec\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
+1410
+295
+1640
+520
+@not coded yet:\n- include-kids?\n- newcomers? and distribution-method\n- odds i partner-selektion\n- learning-update\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
 13
-0.0
+12.0
 1
 
 SWITCH
-10
-245
 100
-278
+210
+190
+243
 children?
 children?
 0
@@ -1657,10 +1610,10 @@ children?
 -1000
 
 SWITCH
-100
-210
-205
-243
+10
+245
+115
+278
 newcomers?
 newcomers?
 0
@@ -1669,9 +1622,9 @@ newcomers?
 
 TEXTBOX
 40
-390
+425
 190
-408
+443
 Tilføj odds for hver mulighed:
 11
 0.0
@@ -1679,9 +1632,9 @@ Tilføj odds for hver mulighed:
 
 INPUTBOX
 10
-405
+440
 80
-465
+500
 random-one
 1.0
 1
@@ -1690,9 +1643,9 @@ Number
 
 INPUTBOX
 80
-405
+440
 145
-465
+500
 nearby-one
 1.0
 1
@@ -1701,9 +1654,9 @@ Number
 
 INPUTBOX
 145
-405
+440
 210
-465
+500
 distant-one
 1.0
 1
@@ -1712,20 +1665,20 @@ Number
 
 INPUTBOX
 10
-300
+335
 100
-360
+395
 convs-per-month
-1.0
+2.0
 1
 0
 Number
 
 TEXTBOX
 110
-355
+390
 260
-381
+416
 (@slet partner-choice når odds-tilgangen er kodet)
 11
 0.0
@@ -1733,9 +1686,9 @@ TEXTBOX
 
 SWITCH
 145
-490
+525
 265
-523
+558
 include-status?
 include-status?
 1
@@ -1743,10 +1696,10 @@ include-status?
 -1000
 
 SLIDER
-510
-445
-692
-478
+495
+450
+677
+483
 kids-odds-inc-success
 kids-odds-inc-success
 0
@@ -1758,15 +1711,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-510
-515
-675
-548
+495
+520
+660
+553
 kids-odds-dec
 kids-odds-dec
 -3
 0
--3.0
+0.0
 1
 1
 NIL
@@ -1774,9 +1727,9 @@ HORIZONTAL
 
 SLIDER
 10
-550
+585
 240
-583
+618
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1789,29 +1742,29 @@ HORIZONTAL
 
 TEXTBOX
 95
-530
+565
 170
-548
+583
 Forståelse
 14
 0.0
 1
 
 CHOOSER
-300
-395
-692
-440
+285
+400
+677
+445
 learning-update
 learning-update
 "If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones"
 0
 
 TEXTBOX
-340
-570
-645
-626
+325
+575
+630
+631
 @tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?) IF OVERALL FAILURE, NOBODY LEARNS
 11
 0.0
@@ -1828,35 +1781,35 @@ choose-preset
 0
 
 TEXTBOX
-110
-245
-210
-280
+125
+250
+225
+285
 @TWEAK AGE/DYING RATES!
 11
 0.0
 1
 
 SLIDER
-300
+285
+490
 485
-500
-518
+523
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
 3
-0.0
+1.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-510
-480
-680
-513
+495
+485
+665
+518
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -1869,19 +1822,19 @@ HORIZONTAL
 
 TEXTBOX
 15
-585
-215
-630
+620
+235
+665
 Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er overall successful
 11
 0.0
 1
 
 SLIDER
-145
-160
-237
-193
+140
+165
+232
+198
 levealder
 levealder
 0
@@ -1893,13 +1846,23 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-715
-590
-900
-646
+710
+575
+895
+631
 Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
 11
 0.0
+1
+
+CHOOSER
+10
+280
+215
+325
+distribution-method
+distribution-method
+"random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
 1
 
 @#$#@#$#@

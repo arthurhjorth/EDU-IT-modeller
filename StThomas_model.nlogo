@@ -799,6 +799,15 @@ to-report get-odds [feature value] ;;agent reporter. Returns the agent's associa
   ]
 end
 
+to-report is-adult?
+  ifelse age > 17 [
+    report true
+  ]
+  [
+    report false
+  ]
+end
+
 to-report weighted-one-of [nested-list] ;;agent reporter, more general [[valg1 odds] [valg2 odds] [valg3 odds] ...]
                                                ;;for a nested list (first = item, second = odds), based on the odds, returns one of the items (randomness involved each time)
   let odds-list map last nested-list ;;list of just the odds
@@ -854,7 +863,7 @@ to increase-odds-success [feature value] ;;agent reporter. increases the odds fo
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
 
   let increase "NA"
-  ifelse age > 17 [ ;the increase depends on whether they're a child
+  ifelse is-adult? [ ;the increase depends on whether they're a child
     set increase odds-increase-successful ;set in interface
   ]
   [
@@ -863,27 +872,6 @@ to increase-odds-success [feature value] ;;agent reporter. increases the odds fo
 
   let new-odds old-odds + increase ;;@can maybe change this increase depending on different things?
 
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-
-end
-
-
-to increase-odds-success-kids [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-  let new-odds old-odds + kids-odds-inc-success ;;@can maybe change this increase depending on different things?
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 
@@ -907,7 +895,7 @@ to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds 
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
 
   let increase "NA"
-  ifelse age > 17 [ ;the increase depends on whether they're a child
+  ifelse is-adult? [ ;the increase depends on whether they're a child
     set increase odds-increase-unsuccessful ;set in interface
   ]
   [
@@ -937,7 +925,7 @@ to decrease-odds [feature value] ;;agent reporter. decreases the odds for a spec
   let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
 
   let decrease "NA"
-  ifelse age > 17 [ ;the decrease depends on whether they're a child
+  ifelse is-adult? [ ;the decrease depends on whether they're a child
     set decrease odds-decrease ;set in interface
   ]
   [
@@ -1242,7 +1230,7 @@ INPUTBOX
 75
 205
 nr-slaves
-1.0
+10.0
 1
 0
 Number
@@ -1481,7 +1469,7 @@ INPUTBOX
 140
 205
 nr-colonists
-1.0
+10.0
 1
 0
 Number
