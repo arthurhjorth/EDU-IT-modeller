@@ -353,44 +353,71 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
     set fails-this-tick fails-this-tick + 1 ;;for plotting (and agreement list)
   ]
 
-  ;;@CHANGE SO THEY UPDATE BASED ON THE 'LEARNING-UPDATE' INTERFACE CHOOSER (EITHER ALL OR ONLY SOME ITEMS)
-
-  ;;6. They update their language table depending on the outcome ;;@HOW DO WE WANT TO DO THIS?
+  ;;6. They update their language tables depending on the outcome and settings under 'Sproglæring':
   let chosen-items (map list speaker-choices hearer-choices) ;;new nested list, i.e. from [0 2 "cSANoword3"] and [1 3 cSANoword3] ---> to: [[0 1] [2 3] [cSANoword3 cSANoword3]]
     ;;^^nested list, each two-item list is the values (+ word) chosen for speaker and hearer
 
-  foreach chosen-topics [ ;;loop through each topic and update everything ;;@ADD this to be conditional on 'learning-update' rules!!
-      x ->
-      let pos position x chosen-topics ;;the position (for mapping to chosen-items)
+  ;LOOP through each topic and update hearer/speaker's odds depending on settings:
+  foreach chosen-topics [
+      the-topic -> ;x is either a feature ('X9A') or a word meaning ('word3')
+      let pos position the-topic chosen-topics ;;the position (for mapping to chosen-items)
       let choices item pos chosen-items
       let s-choice first choices
       let h-choice last choices
-      ifelse s-choice = h-choice [
-        ;;IF LOCAL SUCCESS for this item:
-      ask partners [ ;asking both speaker and hearer
-          increase-odds-success item pos chosen-topics item pos speaker-choices ;;function increases the odds for this value of this feature
-          ;the kid/adult distinction in odds increase is now written down into the increase-odds-success procedure
+      let local-success? "NA"
+      ifelse s-choice = h-choice [set local-success? true] [set local-success? false] ;whether this specific item was a match ('local success')
+
+    ;IF OVERALL SUCCESS:
+    if success? [
+      if if-overall-success = "Both increase all speaker's values" [
+        ask partners [ increase-odds-success the-topic s-choice ] ;both increase odds for every item in every loop iteration
       ]
-    ]
-      [ ;;IF LOCAL FAILURE for this item:
-      ask speaker [ ;speaker:
-          decrease-odds first chosen-features first speaker-choices ;;function decreases the odds (now simply -1, but never lower than 1...)
-      ]
-      ask hearer [ ;hearer:
-          ifelse known-value? item pos chosen-topics item pos speaker-choices [
-          ;;hearer increases their odds if they already know speaker's value (but hearer just didn't pick it this time):
-          increase-odds-unsuccess item pos chosen-topics item pos speaker-choices
-        ]
-        [ ;;hearer simply learns the value if they don't already know it:
-          learn-value item pos chosen-topics item pos speaker-choices 1 ;;@now simply with starting odds of 1
+      if if-overall-success = "Both increase successful/matching values only" [
+        if local-success? [
+          ask partners [ increase-odds-success the-topic s-choice ] ;both increase odds for every matching/locally sucessful item
         ]
       ]
-    ] ;end of if local failure
+      if if-overall-success = "Hearer increases all speaker's values" [
+        ask hearer [ increase-odds-success the-topic s-choice ] ;only hearer increases odds for every item (if not known, they LEARN it!)
+      ]
+      if if-overall-success = "Hearer increases successful/matching values only" [
+        if local-success? [
+          ask hearer [ increase-odds-success the-topic s-choice ] ;hearer increases odds for every matching/locally sucessful item
+        ]
+      ]
+    ] ;end of if overall success
+
+    ;IF OVERALL FAILURE:
+    if not success? [
+      ;check if the switch is on:
+      let people-affected "NA"
+      ifelse hearer-learns-from-failure? [
+        ;if hearer instead learns from failure:
+        set people-affected speaker
+        ;if switch on, hearer instead increases ALL speaker's values:
+        ask hearer [ increase-odds-unsuccess the-topic s-choice ] ;only hearer increases odds (by unsuccessful rate) for every item (if not known, they LEARN it!)
+      ]
+      [ ;if hearer and speaker both follow if-overall-failure:
+        set people-affected partners ;speaker AND hearer
+      ]
+
+      if if-overall-failure = "Both decrease all speaker's values (if known)" [
+        ask people-affected [ decrease-odds the-topic s-choice ] ;both (or just speaker, depending on switch) decrease odds for every item (that they know)
+      ]
+      if if-overall-failure = "Both decrease unsuccessful values only (if known)" [
+        if not local-success? [
+          ask people-affected [ decrease-odds the-topic s-choice ] ;both (or just speaker, depending on switch) decrease odds for every non-matching item (that they know)
+        ]
+      ]
+
+      ;don't need to include code for: if if-overall-failure = "Nothing happens" - since... nothing happens ;-)
+
+    ] ;end of if overall failure
    ] ;;end of looping through chosen-topics
+
 
   ;;7. Record what happened (what was uttered - for feature plot)
   ;('uttered' now counts both speaker's and hearer's choice/draw, no distinction in chosen-table)
-
   foreach chosen-items [ ;;for each of the nested lists of two spoken values/words
     val-indexes -> ;for speaker and hearer
     let topic-pos position val-indexes chosen-items ;;keep track of what feautre/word we're recording now
@@ -416,12 +443,12 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
   ]
 
   ;;8. print what happened (just for testing):
-  print ""
-  print (word speaker " talked to " hearer)
-  print word "Chosen topics): " chosen-topics
-  print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
-  print (word "Percent understood: " percent-understood)
-  print (word "Overall succes?: " success?)
+;  print ""
+;  print (word speaker " talked to " hearer)
+;  print word "Chosen topics): " chosen-topics
+;  print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
+;  print (word "Percent understood: " percent-understood)
+;  print (word "Overall succes?: " success?)
 end
 
 
@@ -515,6 +542,7 @@ to color-by-lang
   ]
 end
 
+
 ;;hvor langt er deres sprog fra hinanden?
 ;;simpleste måde:
 ;;for hver feature: hvad er mode? (typetal)
@@ -585,7 +613,7 @@ end
 
 ;;--- PLOTS
 to update-feature-plot ;;run in go (and setup)
-  if ticks mod 6 != 0 [ ;only updates every 6 months
+  if ticks mod 6 = 0 [ ;only updates every 6 months
     set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
     clear-plot
     ;;interface chooser decides what feature we focus on ('plot-feature')
@@ -699,7 +727,7 @@ to update-feature-plot ;;run in go (and setup)
 end
 
 to update-convergence-plot ;;run in go (and setup). Visualizes convergence for the island as a whole
-  if ticks mod 6 != 0 [
+  if ticks mod 6 = 0 [ ;only updates every 6 months
     let proportion-list []
     foreach feature-list [
       the-feature ->
@@ -847,8 +875,10 @@ to learn-value [feature value odds] ;;agent reporter. Adds a new value/instance 
 end
 
 ;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker) - for both kids and adults.
-to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
+to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature (or word)
+
+  ;if not known-value? feature value [learn-value feature value 1] ;if the value is not known, it is automatically redirected to be learned with starting odds 1!!
+
   let the-table "NA"
   ifelse is-number? value [ ;if it's a feature:
     set the-table my-lang-table
@@ -874,74 +904,81 @@ to increase-odds-success [feature value] ;;agent reporter. increases the odds fo
 
   let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
   table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-
 end
 
 
 
 to increase-odds-unsuccess [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature - now simply by 1!
   ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
+  ifelse known-value? feature value [
 
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
+    let the-table "NA"
+    ifelse is-number? value [ ;if it's a feature:
+      set the-table my-lang-table
+    ]
+    [ ;if it's a word:
+      set the-table my-word-table
+    ]
 
-  let increase "NA"
-  ifelse is-adult? [ ;the increase depends on whether they're a child
-    set increase odds-increase-unsuccessful ;set in interface
-  ]
-  [
-    set increase kids-odds-inc-unsuccess ;for kids, set in interface
-  ]
+    let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+    let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
+    let index position the-pair value-odds-list ;;the position of the value-odds pair
+    let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
 
-  let new-odds old-odds + increase
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+    let increase "NA"
+    ifelse is-adult? [ ;the increase depends on whether they're a child
+      set increase odds-increase-unsuccessful ;set in interface
+    ]
+    [
+      set increase kids-odds-inc-unsuccess ;for kids, set in interface
+    ]
+
+    let new-odds old-odds + increase
+    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+  ]
+  [ ;if they don't know it, simply learn it with starting odds of the odds increase:
+    learn-value feature value odds-increase-unsuccessful
+  ]
 end
 
 
 
 to decrease-odds [feature value] ;;agent reporter. decreases the odds for a specific value/instance of a specific WALS feature - now simply by -1! (but never to 0)
-  ;;@can make it so it only runs if the value is known? (like get-odds function) - but probably not necessary if we always use it together with known-value anyway!
+  if known-value? feature value [ ;only runs if the value is known
+
     let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
-  ]
-  [ ;if it's a word:
-    set the-table my-word-table
-  ]
+    ifelse is-number? value [ ;if it's a feature:
+      set the-table my-lang-table
+    ]
+    [ ;if it's a word:
+      set the-table my-word-table
+    ]
 
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
+    let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+    let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
+    let index position the-pair value-odds-list ;;the position of the value-odds pair
+    let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
 
-  let decrease "NA"
-  ifelse is-adult? [ ;the decrease depends on whether they're a child
-    set decrease odds-decrease ;set in interface
-  ]
-  [
-    set decrease kids-odds-dec ;for kids, set in interface
-  ]
+    let decrease "NA"
+    ifelse is-adult? [ ;the decrease depends on whether they're a child
+      set decrease odds-decrease ;set in interface
+    ]
+    [
+      set decrease kids-odds-dec ;for kids, set in interface
+    ]
 
-  let new-odds old-odds + decrease
-  if new-odds < 1 [
-    set new-odds 1
-  ] ; the minimum odds for a known value is 1. If the new-odds results in a value of less than 1, 1 is put in its place. This is a simple fix, so we can decrease with a number bigger than 1.
+    let new-odds old-odds + decrease
+    if new-odds < 1 [
+      set new-odds 1
+    ] ; the minimum odds for a known value is 1. If the new-odds results in a value of less than 1, 1 is put in its place. This is a simple fix, so we can decrease with a number bigger than 1.
 
-;  if old-odds > 1 [ ;;odds can never get below 1
-;  if old-odds > 3 [ ;;odds can never get below 3 ; this is to avoid 0-values when decrease is at -3
-;    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
-;
+    ;  if old-odds > 1 [ ;;odds can never get below 1
+    ;  if old-odds > 3 [ ;;odds can never get below 3 ; this is to avoid 0-values when decrease is at -3
+    ;    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+    ;    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
+
+  ] ;end of if known-value?
 
 end
 
@@ -1230,7 +1267,7 @@ INPUTBOX
 75
 205
 nr-slaves
-10.0
+50.0
 1
 0
 Number
@@ -1367,10 +1404,10 @@ Partner-selektion
 1
 
 TEXTBOX
-440
-375
-520
-393
+415
+360
+495
+378
 Sproglæring
 14
 0.0
@@ -1395,7 +1432,7 @@ nr-features-exchanged
 nr-features-exchanged
 1
 10
-2.0
+3.0
 1
 1
 NIL
@@ -1435,14 +1472,14 @@ Number
 
 SLIDER
 285
-450
-482
-483
+430
+440
+463
 odds-increase-successful
 odds-increase-successful
 0
 3
-3.0
+1.0
 1
 1
 NIL
@@ -1451,13 +1488,13 @@ HORIZONTAL
 SLIDER
 285
 530
-485
+440
 563
 odds-decrease
 odds-decrease
 -3
 0
--3.0
+-1.0
 1
 1
 NIL
@@ -1469,7 +1506,7 @@ INPUTBOX
 140
 205
 nr-colonists
-10.0
+50.0
 1
 0
 Number
@@ -1693,30 +1730,30 @@ include-status?
 -1000
 
 SLIDER
-495
-450
-677
-483
+440
+430
+595
+463
 kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-5.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-495
-520
-660
-553
+440
+530
+595
+563
 kids-odds-dec
 kids-odds-dec
 -3
 0
-0.0
+-1.0
 1
 1
 NIL
@@ -1724,14 +1761,14 @@ HORIZONTAL
 
 SLIDER
 10
-585
+615
 240
-618
+648
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
 100
-40.0
+60.0
 5
 1
 %
@@ -1739,9 +1776,9 @@ HORIZONTAL
 
 TEXTBOX
 95
-565
+595
 170
-583
+613
 Forståelse
 14
 0.0
@@ -1749,23 +1786,13 @@ Forståelse
 
 CHOOSER
 285
-400
-677
-445
-learning-update
-learning-update
-"If overall success, both increase all" "If overall success, both increase successful, decrease the rest" "Only hearer updates all" "Only hearer updates successful ones"
+385
+595
+430
+if-overall-success
+if-overall-success
+"Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
 0
-
-TEXTBOX
-325
-575
-630
-631
-@tilføj succesfuld/ikke-succesfuld læringsregler for hearer, for speaker, og for voksne/børn (hvordan vil vi strukturere det?) IF OVERALL FAILURE, NOBODY LEARNS
-11
-0.0
-1
 
 CHOOSER
 715
@@ -1789,9 +1816,9 @@ TEXTBOX
 
 SLIDER
 285
-490
-485
-523
+615
+465
+648
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -1803,10 +1830,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-495
-485
-665
-518
+465
+615
+645
+648
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -1819,10 +1846,10 @@ HORIZONTAL
 
 TEXTBOX
 15
-620
-235
-665
-Hvor mange % af de udvekslede features og evt. ord, hearer skal forstå for at interaktionen er overall successful
+650
+255
+706
+Hvor mange % af de udvekslede features og ord hearer skal forstå for at interaktionen er overall successful (forståelse = eksakt match)
 11
 0.0
 1
@@ -1860,6 +1887,67 @@ CHOOSER
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
+1
+
+SWITCH
+285
+575
+465
+608
+hearer-learns-from-failure?
+hearer-learns-from-failure?
+0
+1
+-1000
+
+TEXTBOX
+285
+370
+385
+388
+If overall success:
+12
+0.0
+1
+
+TEXTBOX
+285
+470
+435
+488
+If overall failure:
+12
+0.0
+1
+
+CHOOSER
+285
+485
+595
+530
+if-overall-failure
+if-overall-failure
+"Nothing happens" "Both decrease all speaker's values (if known)" "Both decrease unsuccessful values only (if known)"
+1
+
+TEXTBOX
+470
+570
+660
+610
+If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
+11
+0.0
+1
+
+TEXTBOX
+95
+560
+270
+585
+If on: colonists are always speakers in colonist-slave interactions
+11
+0.0
 1
 
 @#$#@#$#@
