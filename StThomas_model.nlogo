@@ -509,18 +509,26 @@ to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
 
   ;@LEVEALDER SLIDER
+  ;;; new, simple dying age for :
+if age = dying-age [die]
 
- ;;maybe die (@change age of death?!):
- ifelse [breed = colonists] of self [
-    ;;colonist dying age:
-    if age > 45 and random 4 = 0 [die] ;;if they're 45 or older, 25% risk of dying every month
-  ]
-  [ ;;slave dying age:
-    if age > 25 and random 8 = 0 [die] ;;if they're 25 or older, 12.5% risk of dying every month (so risk is lower, but starts earlier...)
-
-  ]
+; ;;maybe die (@change age of death?!):
+; ifelse [breed = colonists] of self [
+;    ;;colonist dying age:
+;
+;    if age > 45 and random 4 = 0 [die] ;;if they're 45 or older, 25% risk of dying every month
+;  ]
+;  [ ;;slave dying age:
+;    if age = dying-age [die]
+;
+;
+;  ]
 
 end
+
+
+
+
 
 ;;---REPORTERS FOR INTERFACE:
 
@@ -1647,9 +1655,9 @@ children?
 -1000
 
 SWITCH
-10
+110
 245
-115
+215
 278
 newcomers?
 newcomers?
@@ -1807,16 +1815,6 @@ choose-preset
 "As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
 0
 
-TEXTBOX
-125
-250
-225
-285
-@TWEAK AGE/DYING RATES!
-11
-0.0
-1
-
 SLIDER
 285
 615
@@ -1858,12 +1856,12 @@ Hvor mange % af de udvekslede features og ord hearer skal forstå for at interak
 1
 
 SLIDER
-140
-165
-232
-198
-levealder
-levealder
+10
+245
+102
+278
+dying-age
+dying-age
 0
 100
 50.0
