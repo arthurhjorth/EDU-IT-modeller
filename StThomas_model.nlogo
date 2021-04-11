@@ -63,7 +63,6 @@ colonists-own [
 
 plantations-own [
   name
-  members
 ]
 
 to profile
@@ -92,7 +91,6 @@ to setup
 
   make-plantations
   populate ;;create starting population
-  ;@@alocate-people
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
   update-feature-plot
@@ -118,7 +116,6 @@ to make-plantations
     ;;move to spot:
     move-to first plant-patches
     set plant-patches but-first plant-patches
-    set members people
   ]
 
 
@@ -185,8 +182,7 @@ end
 to go
   set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
 
-  ; @@ no longer needed because of new partner choice? ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
-
+  ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
 
   set fails-this-tick 0 set successes-this-tick 0
 
@@ -215,13 +211,6 @@ to populate ;;run in setup. Create starting population
   repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
   repeat nr-colonists [ make-person "colonist" (one-of col-lang-list) ]
 end
-
-;to alocate-people ;@@@@@@@@
- ; let population (turtle-set slaves colonists)
-  ;ask population [ move-to one-of plantations ]
-  ;hide-turtle
-
-;end
 
 
 to make-person [kind language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
@@ -1702,7 +1691,7 @@ INPUTBOX
 440
 145
 500
-on-my-plantation
+nearby-one
 1.0
 1
 0
@@ -1713,7 +1702,7 @@ INPUTBOX
 440
 210
 500
-neighbour-plantation
+distant-one
 1.0
 1
 0
