@@ -884,34 +884,37 @@ end
 
 ;; we now have an odds-manipulator for succesful increase (successful speaker + hearer), unsuccessful increase (unsuccessful hearer) and decrease (unsuccessful speaker) - for both kids and adults.
 to increase-odds-success [feature value] ;;agent reporter. increases the odds for a specific value/instance of a specific WALS feature (or word)
+  ifelse known-value? feature value [
 
-  ;if not known-value? feature value [learn-value feature value 1] ;if the value is not known, it is automatically redirected to be learned with starting odds 1!!
+    let the-table "NA"
+    ifelse is-number? value [ ;if it's a feature:
+      set the-table my-lang-table
+    ]
+    [ ;if it's a word:
+      set the-table my-word-table
+    ]
 
-  let the-table "NA"
-  ifelse is-number? value [ ;if it's a feature:
-    set the-table my-lang-table
+    let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
+    let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
+    let index position the-pair value-odds-list ;;the position of the value-odds pair
+    let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
+
+    let increase "NA"
+    ifelse is-adult? [ ;the increase depends on whether they're a child
+      set increase odds-increase-successful ;set in interface
+    ]
+    [
+      set increase kids-odds-inc-success ;for kids, set in interface
+    ]
+
+    let new-odds old-odds + increase ;;@can maybe change this increase depending on different things?
+
+    let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
+    table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
   ]
-  [ ;if it's a word:
-    set the-table my-word-table
+  [ ;if they don't know it, simply learn it with starting odds of the odds increase:
+    learn-value feature value odds-increase-successful
   ]
-
-  let value-odds-list table:get the-table feature ;;the nested list of known value-odds pairs associated with the WALS feature (e.g. [[0 2] [1 4] [2 1]]
-  let the-pair item 0 filter [i -> first i = value] value-odds-list ;;locates the value-odds pair of interest, discards the rest (e.g. [[1 4]])
-  let index position the-pair value-odds-list ;;the position of the value-odds pair
-  let old-odds item 1 the-pair ;;the-pair is a non-nested list for these purposes
-
-  let increase "NA"
-  ifelse is-adult? [ ;the increase depends on whether they're a child
-    set increase odds-increase-successful ;set in interface
-  ]
-  [
-    set increase kids-odds-inc-success ;for kids, set in interface
-  ]
-
-  let new-odds old-odds + increase ;;@can maybe change this increase depending on different things?
-
-  let new-entry replace-subitem 1 index value-odds-list new-odds ;;using the replace-subitem function, indexing from the innermost list and outwards
-  table:put the-table feature new-entry ;;table:put automatically overwrites the old entry for this feature
 end
 
 
