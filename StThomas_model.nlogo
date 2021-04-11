@@ -63,6 +63,8 @@ colonists-own [
 
 plantations-own [
   name
+  members
+  neighbour
 ]
 
 to profile
@@ -93,6 +95,7 @@ to setup
   populate ;;create starting population
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
+  ask people [ alocate-to-plantation ] ;
   update-feature-plot
   update-convergence-plot
 end
@@ -204,6 +207,19 @@ to go
   tick
 end
 
+to alocate-to-plantation
+  move-to one-of plantations
+  ask plantations [set members turtles-here] ;@@@how can i use people-here? do i have to make it a breed? (the reason is that i read that it now also sees itself as a member of itself
+  ;- it seems to possibly be problematic
+  ;ask plantations [set members colonists-here]
+
+  ask plantation 0
+  [  create-link-with plantation 2
+  ]
+  ;
+  ;set neighbour min-one-of other plantation [distance myself]
+  ;ask plantations [ set neighbour closest]
+end
 
 to populate ;;run in setup. Create starting population
 
@@ -1694,7 +1710,7 @@ INPUTBOX
 440
 145
 500
-nearby-one
+on-my-plantation
 1.0
 1
 0
@@ -1705,7 +1721,7 @@ INPUTBOX
 440
 210
 500
-distant-one
+neighbour-plantation
 1.0
 1
 0
