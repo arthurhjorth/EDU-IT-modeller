@@ -47,6 +47,7 @@ slaves-own [
   my-weighted-prox-list ;;used for weighted-proximity
   age
   birth-month ;;so they don't all age and thereby die at the exact same time
+  my-plantation ;used to choose partner
 ]
 
 colonists-own [
@@ -59,6 +60,7 @@ colonists-own [
   my-weighted-prox-list
   age
   birth-month
+  my-plantation
 ]
 
 plantations-own [
@@ -482,8 +484,16 @@ end
 
 
 to-report weighted-partner-choice
-  ;
-  ;weighted-one-of nested-list ;[[random 1] [closest-one 2] ...]
+  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
+  ;let partner-choice-odds [["random" 1] ["my plantation" 2] ["neighbour plant" 3] ]
+
+  ;weighted-one-of nested-list [[random 1] [closest-one 2] ...]
+  ;weighted-one-of partner-choice-odds
+  ;if random
+  ;if my plantation
+  ;if neighbour plant
+
+
 
 end
 
@@ -1713,7 +1723,7 @@ INPUTBOX
 80
 500
 random-one
-1.0
+2.0
 1
 0
 Number
@@ -1724,7 +1734,7 @@ INPUTBOX
 145
 500
 on-my-plantation
-1.0
+3.0
 1
 0
 Number
