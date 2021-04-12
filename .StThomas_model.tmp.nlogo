@@ -12,10 +12,6 @@ globals [
 
   word-list ;;[word0 word1 word2 ... ]
 
-  ship-list
-  ship-header-list
-  ship-table ;the one we use!
-
   color-list ;;for plotting
   agent-color-list ;;for visualizing
 
@@ -291,17 +287,6 @@ to make-person [kind language] ;;function that creates a person and takes their 
     ]
   ]
 end
-
-to ship-arrival
-  ;
-
-
-
-end
-
-
-
-
 
 to communicate ;;agent procedure run in go ;;no longer coded from the speaker's perspective! (so every agent does NOT get to be speaker every tick)
     ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input) - see go
@@ -1152,7 +1137,7 @@ end
 ;;new downloadable link: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv
 
 to import-csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/1RA6wBtIiiOQG242R0iB0qV60n_xPCMBQQ_EmBhqr-tw/gviz/tq?tqx=out:csv" [
+  fetch:url-async "" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
     ;;now to convert it:
@@ -1189,57 +1174,7 @@ to test-fetch-user-file-verbose-syntax
   fetch:user-file-async [text -> show text]
 end
 
-to import-ship-csv
-  ;link: https://docs.google.com/spreadsheets/d/1cix8SjPmDMSGAqhhvZcabdJwXdvZgjsyd1hvltlwj-4/edit?usp=sharing
-  ;downloadable link: https://docs.google.com/spreadsheets/d/1cix8SjPmDMSGAqhhvZcabdJwXdvZgjsyd1hvltlwj-4/gviz/tq?tqx=out:csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/1cix8SjPmDMSGAqhhvZcabdJwXdvZgjsyd1hvltlwj-4/gviz/tq?tqx=out:csv" [
-    text ->
-    let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
-    show whole-file
-    ;convert it:
-    set ship-list []
-    set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    set ship-header-list item 0 ship-list ;["Language" "Year arrived with slaves" "Slaves arrived 1st port" "Estimated slave influx with sd" "Estimated slave influx simple mean"]
-    set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 103 103 103] ["wolNA" 1674 103 103 103] ...]
 
-
-    let year-list map [i -> item 1 i] ship-list ;list with all the years
-    ;178 skibe i alt! men kun 67 unikke år! men hver table key skal være unik! derfor:
-    ;lav key med både år OG måned (som vi finder på, siden aldrig mere end 12 samme år):
-
-
-    let fixed-time-list []
-
-    foreach year-list [
-      y ->
-      let ship-count frequency y year-list ;hvor mange skibe der kom det årstal (bruger frequency reporter)
-
-      let month "jan"
-
-      let new-name (word y month) ;e.g. 1688Jan
-
-      set fixed-time-list lput new-name fixed-time-list
-
-
-    ]
-
-
-
-
-    set ship-table table:make ;initialize empty table
-
-
-
-    ;;loop to create the ship table based on the list:
-  foreach ship-list [ ;;wals-list is a list of lists:
-    x -> ;;x is each sublist in the form ["wolNA" 1673 103 103 103]
-    let key item 1 x ;;item 1 in this sublist is the year the ship arrived - what we want to be the table key
-    let value remove-item 1 x ;;the table value should be just the rest of the info, not the year (language, nr slaves, estimated nr with sd, estimated nr with mean)
-    table:put ship-table key value ;;table:put adds this key-value combination to the table
-  ]
-  ]
-
-end
 
 
 
