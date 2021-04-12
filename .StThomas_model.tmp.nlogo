@@ -547,7 +547,7 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if this-month = birth-month [if random-float 1 < risk-premature-death-yearly [die]]
+  if this-month = birth-month [if random-float 1 < risk-premature-death-per-year [die]]
 
   ;@LEVEALDER SLIDER
   ;;; new, simple dying age for :
@@ -1995,12 +1995,12 @@ If on: colonists are always speakers in colonist-slave interactions
 1
 
 SLIDER
-10
-280
-220
-313
-risk-premature-death-yearly
-risk-premature-death-yearly
+720
+655
+967
+688
+risk-premature-death-per-year
+risk-premature-death-per-year
 0
 1
 0.01
