@@ -9,6 +9,7 @@ globals [
   affiliation-list
   feature-list
   wals-table
+  partner-choice-list
 
   word-list ;;[word0 word1 word2 ... ]
 
@@ -143,6 +144,20 @@ to initialize-variables ;;run in setup
 
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
+
+  ;@@@@@@ HEEEELP :( i dont understand why the first line below doesn't work
+  ;set partner-choice-list (map list ["random" "my plantation" "neighbour plant"] [random-one on-my-plantation neighbour-plantation] );nested list of odds for the different partner choice options ie: random-one, on-my-plantation and neighbour-plantation
+  ;observer> show ( map list ["a" "b" "c" "d"] [1 2 3 4] )
+;observer: [["a" 1] ["b" 2] ["c" 3] ["d" 4]]
+  ;let a random-one
+ ; let b on-my-plantation
+  ;let c neighbour-plantation
+  ;let partner-choice-odds (map list ["random" "my plantation" "neighbour plant"] [a b c] )
+  ;set mylist [[2 4] [3 5]]
+
+  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
+  ;@@@set partner-choice-list [["random" 2] ["my plantation" 2] ["neighbour plant" 3] ]
+  ;@@@@@@@
 
   set word-list []
   ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
@@ -547,17 +562,20 @@ end
 
 
 to-report weighted-partner-choice
-  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
-  ;let partner-choice-odds [["random" 1] ["my plantation" 2] ["neighbour plant" 3] ]
+ ; let the-value weighted-one-of partner-choice-list ;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
 
-  ;weighted-one-of nested-list [[random 1] [closest-one 2] ...]
-  ;weighted-one-of partner-choice-odds
-  ;if random
-  ;if my plantation
-  ;if neighbour plant
+  ;if the-value = "random" [
+   ; report one-of other people
+ ; ]
 
+  ;if the-value = "my plantation" [
+   ; report one-of other people here
+  ;]
 
-
+    ;if the-value = "neighbour plant" [
+   ; let neighbour-link ask my-plantation [ ask my-links [ show other-end ] ]
+   ; report one-of other people at neighbour-link
+  ;]
 end
 
 to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
@@ -2097,6 +2115,17 @@ nr-children-per-woman
 1
 NIL
 HORIZONTAL
+
+INPUTBOX
+10
+490
+80
+550
+random-one
+10.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
