@@ -213,12 +213,25 @@ to alocate-to-plantation
   ;- it seems to possibly be problematic
   ;ask plantations [set members colonists-here]
 
-  ask plantation 0
-  [  create-link-with plantation 2
+  ask plantation 0 [ ;@@@ preferably the closest plantations that are neighbours for illustrative purposes - otherwise it doesn't matter
+  create-link-to plantation 1
   ]
-  ;
-  ;set neighbour min-one-of other plantation [distance myself]
-  ;ask plantations [ set neighbour closest]
+  ask plantation 2 [
+  create-link-to plantation 3
+  ]
+  ask plantation 4 [
+  create-link-to plantation 5
+  ]
+  ask plantation 6 [
+  create-link-to plantation 7
+  ]
+  ask plantation 8 [
+  create-link-to plantation 9
+  ]
+  ask plantation 10 [
+  create-link-to plantation 11
+  ]
+  ask plantations [ ask my-links [ hide-link ] ]
 end
 
 to populate ;;run in setup. Create starting population
