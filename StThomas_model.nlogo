@@ -15,6 +15,7 @@ globals [
   ship-list
   ship-header-list
   ship-table ;the one we use!
+  year-month-list
 
   color-list ;;for plotting
   agent-color-list ;;for visualizing
@@ -96,13 +97,14 @@ to setup
 
   ;;get the data files and initialize variables:
   import-csv ;;gets WALS data from url, makes it into a table
+  import-ship-csv
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
   make-plantations
   populate ;;create starting population
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
-  ask people [ allocate-to-plantation ] ;
+  ask people [ allocate-to-plantation ]
   update-feature-plot
   update-convergence-plot
 end
@@ -135,8 +137,6 @@ end
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
-  show lang-list
-  show "here"
   ;;@OBS: check/fix/change these language mappings!:
   set col-lang-list sublist lang-list 24 32 ;;the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"] ;["LnldGER" "LengGER" "LfraROM" "sweGER" "LdeuGER" "LporROM" "LspaROM" "danGER"]
   set slave-lang-list sublist lang-list 0 24 ;now the full slave-lang-list
@@ -164,7 +164,6 @@ to initialize-variables ;;run in setup
 end
 
 to initialize-agent-variables ;;agent procedure, run in setup
-
   ;;distance Agent variables previously used in my-partner-choice:
 
 ;  set closest-agent min-one-of other people [distance myself] ;;agentset of the closest other agent (if tie, random one)
@@ -215,11 +214,9 @@ to go
   tick
 end
 
-to allocate-to-plantation
+to allocate-to-plantation ;agent procedure, run in setup (and in go when new ships arrive!)
   move-to one-of plantations
-  ask plantations [set members turtles-here] ;@@@how can i use people-here? do i have to make it a breed? (the reason is that i read that it now also sees itself as a member of itself
-  ;- it seems to possibly be problematic
-  ;ask plantations [set members colonists-here]
+  set my-plantation plantations-here
 
   ask plantation 0 [ ;@@@ preferably the closest plantations that are neighbours for illustrative purposes - otherwise it doesn't matter
   create-link-to plantation 1
@@ -239,8 +236,19 @@ to allocate-to-plantation
   ask plantation 10 [
   create-link-to plantation 11
   ]
-  ask plantations [ ask my-links [ hide-link ] ]
+
+
+  ask plantations [
+    ask my-links [ hide-link ]
+
+    update-my-members
+  ]
 end
+
+to update-my-members ;plantation procedure, run in allocate-to-plantation (so it updates after each new arrival)
+    set members (turtle-set colonists-here slaves-here) ;all people on the plantation
+end
+
 
 to populate ;;run in setup. Create starting population
 
@@ -292,8 +300,17 @@ to make-person [kind language] ;;function that creates a person and takes their 
   ]
 end
 
-to ship-arrival
-  ;
+to ship-arrival ;@@@IN THE MAKING - @IDA
+  let time-now (word year this-month) ;e.g. "1674Jan"
+  if table:has-key? ship-table time-now [ ;checks if a ship should arrive at this time (if the key + entry exists)
+    ;OBS: ship-table not right format yet
+
+
+    let nr-arrived 0
+    let ship-lang 0
+
+    ;print (word "A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!")
+  ]
 
 
 
@@ -1127,16 +1144,10 @@ end
 ;;from this guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/
 ;;result: https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p
 
-;;trying with imgur works!
-
-;;trying with Google slides (guide: https://www.labnol.org/internet/direct-links-for-google-drive/28356/):
-;;template: https://docs.google.com/presentation/d/FILE_ID/export/png?pageid=p1
-;;slides link: https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/edit?usp=sharing (work out sizing!)
-;;  fetch:url-async "https://docs.google.com/presentation/d/1MzR9xRm1d4FTTP9kcAgdfIPvJUZ2JCp99CfH5DGcvTk/export/png?pageid=p1" [ ;;@DOESN'T WORK
-
 to import-img
-  ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [
-  fetch:url-async "http://86.52.121.12/stthomas.png" [ ;;works! (but NL web? hmmm)
+  ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [ ;from drive
+  fetch:url-async "http://86.52.121.12/stthomas.png" [
+    ;^^from Arthur's server ;works! BUT NL web...!!!
 
     p ->
     import-a:pcolors p
@@ -1190,55 +1201,32 @@ to test-fetch-user-file-verbose-syntax
 end
 
 to import-ship-csv
-  ;link: https://docs.google.com/spreadsheets/d/1cix8SjPmDMSGAqhhvZcabdJwXdvZgjsyd1hvltlwj-4/edit?usp=sharing
-  ;downloadable link: https://docs.google.com/spreadsheets/d/1cix8SjPmDMSGAqhhvZcabdJwXdvZgjsyd1hvltlwj-4/gviz/tq?tqx=out:csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/1cix8SjPmDMSGAqhhvZcabdJwXdvZgjsyd1hvltlwj-4/gviz/tq?tqx=out:csv" [
+  ;link: https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/edit?usp=sharing
+  ;downloadable link: https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/gviz/tq?tqx=out:csv
+  fetch:url-async "https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/gviz/tq?tqx=out:csv" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
-    show whole-file
     ;convert it:
     set ship-list []
     set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    set ship-header-list item 0 ship-list ;["Language" "Year arrived with slaves" "Slaves arrived 1st port" "Estimated slave influx with sd" "Estimated slave influx simple mean"]
-    set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 103 103 103] ["wolNA" 1674 103 103 103] ...]
-
-
+    set ship-header-list item 0 ship-list ;["Language" "Year-arrived" "Month-fake" "Slaves-arrived" "Estimated-slave-influx-with-sd" "Estimated-slave-influx-simple-mean"] ;matching ship-list!
+    set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 "Jan" 103 103 103] ["wolNA" 1674 "Jan" 103 103 103] ... ]
     let year-list map [i -> item 1 i] ship-list ;list with all the years
-    ;178 skibe i alt! men kun 67 unikke år! men hver table key skal være unik! derfor:
-    ;lav key med både år OG måned (som vi finder på, siden aldrig mere end 12 samme år):
-
-
-    let fixed-time-list []
-
-    foreach year-list [
-      y ->
-      let ship-count frequency y year-list ;hvor mange skibe der kom det årstal (bruger frequency reporter)
-
-      let month "jan"
-
-      let new-name (word y month) ;e.g. 1688Jan
-
-      set fixed-time-list lput new-name fixed-time-list
-
-
-    ]
-
-
-
-
+    ;177 skibe i alt!
+    ;lav key med både år OG måned (som vi har fundet på, siden aldrig mere end 12 samme år):
+    set year-month-list []
     set ship-table table:make ;initialize empty table
 
-
-
-    ;;loop to create the ship table based on the list:
-  foreach ship-list [ ;;wals-list is a list of lists:
-    x -> ;;x is each sublist in the form ["wolNA" 1673 103 103 103]
-    let key item 1 x ;;item 1 in this sublist is the year the ship arrived - what we want to be the table key
-    let value remove-item 1 x ;;the table value should be just the rest of the info, not the year (language, nr slaves, estimated nr with sd, estimated nr with mean)
-    table:put ship-table key value ;;table:put adds this key-value combination to the table
+    ;;LOOP to create the ship table based on the list:
+    foreach ship-list [ ;;wals-list is a list of lists:
+      x -> ;;x is each sublist in the form ["wolNA" 1673 "Jan" 103 103 103] ;@OBS: MAKE SURE EACH ENTRY HAS SOMETHING FOR EACH VALUE (SAME LENGTH)!
+      let key (word item 1 x item 2 x) ;;year + (fake) month, i.e. "1673Jan"
+      let value remove-item 1 x ;remove the year the table value should be just the rest of the info, not the year, so: ["wolNA" "Jan" 103 103 103]
+      set value remove-item 1 value ;remove the month
+      set year-month-list lput key year-month-list ;mostly for testing (to double check that there are no duplicates, i.e. entries overwritten in ship-table)
+      table:put ship-table key value ;;table:put adds this key-value combination to the table
+    ]
   ]
-  ]
-
 end
 
 
