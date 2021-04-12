@@ -1373,9 +1373,9 @@ PENS
 
 CHOOSER
 110
-385
+395
 220
-430
+440
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
@@ -1416,7 +1416,7 @@ CHOOSER
 235
 plot-feature
 plot-feature
-"X9A" "X10A" "X18A" "X27A" "X28A"
+"X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
 0
 
 CHOOSER
@@ -1490,7 +1490,7 @@ CHOOSER
 435
 color-feature
 color-feature
-"X9A" "X10A"
+"X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
 0
 
 TEXTBOX
@@ -1505,9 +1505,9 @@ TEXTBOX
 
 TEXTBOX
 100
-545
+555
 155
-563
+573
 Samtaler
 14
 0.0
@@ -1545,9 +1545,9 @@ Visualisering
 
 SLIDER
 5
-565
+575
 145
-598
+608
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1776,9 +1776,9 @@ newcomers?
 
 TEXTBOX
 40
-465
+475
 190
-483
+493
 Tilføj odds for hver mulighed:
 11
 0.0
@@ -1786,9 +1786,9 @@ Tilføj odds for hver mulighed:
 
 INPUTBOX
 10
-480
+490
 80
-540
+550
 random-one
 2.0
 1
@@ -1797,9 +1797,9 @@ Number
 
 INPUTBOX
 80
-480
+490
 145
-540
+550
 on-my-plantation
 3.0
 1
@@ -1808,9 +1808,9 @@ Number
 
 INPUTBOX
 145
-480
+490
 210
-540
+550
 neighbour-plantation
 1.0
 1
@@ -1819,9 +1819,9 @@ Number
 
 INPUTBOX
 10
-375
+385
 100
-435
+445
 convs-per-month
 2.0
 1
@@ -1830,9 +1830,9 @@ Number
 
 TEXTBOX
 110
-430
+440
 260
-456
+466
 (@slet partner-choice når odds-tilgangen er kodet)
 11
 0.0
@@ -1840,9 +1840,9 @@ TEXTBOX
 
 SWITCH
 145
-565
+575
 265
-598
+608
 include-status?
 include-status?
 1
@@ -1881,9 +1881,9 @@ HORIZONTAL
 
 SLIDER
 10
-655
+665
 240
-688
+698
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1896,9 +1896,9 @@ HORIZONTAL
 
 TEXTBOX
 95
-635
+645
 170
-653
+663
 Forståelse
 14
 0.0
@@ -1956,9 +1956,9 @@ HORIZONTAL
 
 TEXTBOX
 15
-690
+700
 255
-746
+756
 Hvor mange % af de udvekslede features og ord hearer skal forstå for at interaktionen er overall successful (forståelse = eksakt match)
 11
 0.0
@@ -1991,9 +1991,9 @@ Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en fe
 
 CHOOSER
 10
-320
+330
 215
-365
+375
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
@@ -2052,9 +2052,9 @@ If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL
 
 TEXTBOX
 95
-600
+610
 270
-625
+635
 If on: colonists are always speakers in colonist-slave interactions
 11
 0.0
