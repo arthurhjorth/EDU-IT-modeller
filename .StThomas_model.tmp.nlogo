@@ -1315,10 +1315,10 @@ ticks
 30.0
 
 BUTTON
-725
-530
-788
-563
+740
+595
+803
+628
 NIL
 setup
 NIL
@@ -1332,10 +1332,10 @@ NIL
 1
 
 BUTTON
-790
-530
-853
-563
+805
+595
+868
+628
 NIL
 go
 T
@@ -1397,7 +1397,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
-0
+1
 
 INPUTBOX
 20
@@ -1435,7 +1435,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-0
+5
 
 CHOOSER
 1080
@@ -1445,7 +1445,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-0
+1
 
 TEXTBOX
 1215
@@ -1485,10 +1485,10 @@ Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature elle
 1
 
 BUTTON
-755
-435
 850
-468
+460
+945
+493
 NIL
 color-by-lang
 T
@@ -1502,20 +1502,20 @@ NIL
 1
 
 CHOOSER
-755
-390
 850
-435
+415
+945
+460
 color-feature
 color-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
 0
 
 TEXTBOX
+740
+420
 860
-391
-980
-456
+485
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
@@ -1552,10 +1552,10 @@ Learning update
 1
 
 TEXTBOX
-780
-365
-895
-396
+740
+375
+855
+406
 Visualisation
 14
 0.0
@@ -1564,7 +1564,7 @@ Visualisation
 SLIDER
 0
 675
-145
+170
 708
 nr-features-exchanged
 nr-features-exchanged
@@ -1609,9 +1609,9 @@ start-odds
 Number
 
 SLIDER
-300
+285
 555
-455
+465
 588
 odds-increase-successful
 odds-increase-successful
@@ -1847,10 +1847,10 @@ TEXTBOX
 1
 
 SWITCH
-145
-675
-280
-708
+0
+710
+135
+743
 include-status?
 include-status?
 0
@@ -1858,9 +1858,9 @@ include-status?
 -1000
 
 SLIDER
-455
+465
 555
-610
+625
 588
 kids-odds-inc-success
 kids-odds-inc-success
@@ -1888,15 +1888,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-325
+315
 380
-555
+565
 413
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
 100
-50.0
+100.0
 5
 1
 %
@@ -1923,17 +1923,17 @@ if-overall-success
 0
 
 CHOOSER
-715
-480
-860
-525
+730
+545
+932
+590
 choose-preset
 choose-preset
-"As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
+"As Jansson Parkvall 2013" "As Satterfield 2008" "No Preset"
 0
 
 SLIDER
-300
+290
 740
 480
 773
@@ -1988,10 +1988,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-710
-575
-895
-631
+725
+640
+910
+696
 Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
 11
 0.0
@@ -2010,7 +2010,7 @@ distribution-method
 SWITCH
 300
 700
-480
+525
 733
 hearer-learns-from-failure?
 hearer-learns-from-failure?
@@ -2049,20 +2049,10 @@ if-overall-failure
 0
 
 TEXTBOX
-480
-635
-670
-675
-If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
-11
-0.0
-1
-
-TEXTBOX
-95
-710
-270
-735
+140
+715
+315
+740
 If on: colonists are always speakers in colonist-slave interactions
 11
 0.0
