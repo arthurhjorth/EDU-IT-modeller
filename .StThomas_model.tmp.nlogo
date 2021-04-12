@@ -98,7 +98,7 @@ to setup
   populate ;;create starting population
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
-  ask people [ alocate-to-plantation ] ;
+  ask people [ allocate-to-plantation ] ;
   update-feature-plot
   update-convergence-plot
 end
@@ -131,10 +131,11 @@ end
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
+  show lang-list
+  show "here"
   ;;@OBS: check/fix/change these language mappings!:
-  set col-lang-list sublist lang-list 141 149 ;;@check if right! the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"]
-  let slave-lang-list1 sublist lang-list 0 141 ;;@all the other languages
-  set slave-lang-list remove-item 12 slave-lang-list1 ;;not including Dutch creole (cVIDd)
+  set col-lang-list sublist lang-list 24 32 ;;the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"] ;["LnldGER" "LengGER" "LfraROM" "sweGER" "LdeuGER" "LporROM" "LspaROM" "danGER"]
+  set slave-lang-list sublist lang-list 0 24 ;now the full slave-lang-list
 
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
@@ -210,7 +211,7 @@ to go
   tick
 end
 
-to alocate-to-plantation
+to allocate-to-plantation
   move-to one-of plantations
   ask plantations [set members turtles-here] ;@@@how can i use people-here? do i have to make it a breed? (the reason is that i read that it now also sees itself as a member of itself
   ;- it seems to possibly be problematic
@@ -547,7 +548,7 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if this-month = birth-month [if random-float 1 < risk-premature-death-per-year [die]]
+  if this-month = birth-month [if random-float 1 < risk-premature-death-yearly [die]]
 
   ;@LEVEALDER SLIDER
   ;;; new, simple dying age for :
@@ -1120,7 +1121,7 @@ end
 
 to import-img
   ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [
-  fetch:url-async "https://i.imgur.com/Vh9k5AI.png" [ ;;works! (but NL web? hmmm)
+  fetch:url-async "http://86.52.121.12/stthomas.png" [ ;;works! (but NL web? hmmm)
 
     p ->
     import-a:pcolors p
@@ -1136,7 +1137,7 @@ end
 ;;new downloadable link: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv
 
 to import-csv
-  fetch:url-async "https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv" [
+  fetch:url-async "" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
     ;;now to convert it:
@@ -1995,12 +1996,12 @@ If on: colonists are always speakers in colonist-slave interactions
 1
 
 SLIDER
-720
-655
-967
-688
-risk-premature-death-per-year
-risk-premature-death-per-year
+10
+280
+220
+313
+risk-premature-death-yearly
+risk-premature-death-yearly
 0
 1
 0.01
