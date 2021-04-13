@@ -160,8 +160,8 @@ to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
   ;;@OBS: check/fix/change these language mappings!:
-  set col-lang-list sublist lang-list 24 32 ;;the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"] ;["LnldGER" "LengGER" "LfraROM" "sweGER" "LdeuGER" "LporROM" "LspaROM" "danGER"]
-  set slave-lang-list sublist lang-list 0 24 ;now the full slave-lang-list
+  set col-lang-list sublist lang-list 27 35 ;;the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"] ;["LnldGER" "LengGER" "LfraROM" "sweGER" "LdeuGER" "LporROM" "LspaROM" "danGER"]
+  set slave-lang-list sublist lang-list 0 27 ;now the full slave-lang-list
 
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
@@ -236,12 +236,96 @@ to go
   tick
 end
 
-to allocate-to-plantation ;agent procedure, run in make-person (so in populate in setup and in go when new ships arrive!)
-  set my-plantation one-of plantations ;@random
+to allocate-to-plantation ;agent procedure, run in make-person (so in populate in setup and in go when new ships arrive!) (NOT run for newborns)
+  let plants-with-space plantations with [member-pop-proportion < max-members] ;plantations with space. first is a reporter, second is a plantations-own variable
+
+  ifelse ticks = 0 or breed = colonists [
+    ;initial distribution in setup not affected by these distribution methods
+    ;colonists also not affected, instead just:
+    set my-plantation one-of plants-with-space
+  ]
+  [ ;if it's a slave newcomer from a ship:
+    if distribution-method = "random plantation" [
+      set my-plantation one-of plants-with-space
+    ]
+
+    ;@THIS ONLY LOOKS AT WALS-FEATURES RIGHT NOW (NOT WORDS!):
+
+    if distribution-method = "plantation with least similar speakers" [
+      ;based on average probability?
+      ;or counting the top choice that most people have?:
+      ;table:counts [most-likely-value plot-feature] of people
+      ;(the difference can be seen in feature plot, the two different options)
+
+      let my-top-choices map most-likely-value feature-list ;the slave's top choice
+      let least-nr-matches 100 ;random high nr to initialize
+      let outcome-list 0
+      let nr-matches "NA"
+      let final-choice "NA"
+
+      ask plants-with-space [
+        let plant-top-choices []
+        foreach feature-list [
+          the-feature ->
+          let counts-table table:counts [most-likely-value the-feature] of members ;looking only at the members of the plantation
+          let index position (max table:values counts-table) table:values counts-table ;position of the top choice (looking at the highest counts nr
+          let top-choice item index table:keys counts-table ;the feature value (which is the key in counts-table)
+          set plant-top-choices lput top-choice plant-top-choices
+        ]
+        ;compare similarity:
+        set outcome-list (map = plant-top-choices my-top-choices) ;;this returns a list of booleans, showing if each top choice is a match
+        set nr-matches length filter [i -> i = true] outcome-list ;;nr of trues in the list, i.e. nr of matches
+
+        if nr-matches < least-nr-matches [set least-nr-matches nr-matches set final-choice self] ;@(if it's the same, the last random one to run this block is chosen)
+
+        ;print (word "Allocation! plant-top-choices for " self ": " plant-top-choices " and top choices for " myself ": " my-top-choices)
+        ;print (word "nr of matches: " nr-matches)
+        ;print (word "best so far: " final-choice)
+
+      ] ;end of ask plants-with-space
+      ;print (word "final choice with LEAST matches: " final-choice)
+      set my-plantation final-choice
+    ]
+
+
+    if distribution-method = "plantation with most similar speakers" [
+
+      let my-top-choices map most-likely-value feature-list
+      let most-nr-matches 0 ;random low nr to initialize
+      let final-choice "NA"
+
+      ask plants-with-space [
+        let plant-top-choices []
+        foreach feature-list [
+          the-feature ->
+          let counts-table table:counts [most-likely-value the-feature] of members
+          let index position (max table:values counts-table) table:values counts-table ;position of the top choice (looking at the highest counts nr
+          let top-choice item index table:keys counts-table ;the feature value (which is the key in counts-table)
+          set plant-top-choices lput top-choice plant-top-choices
+        ]
+        ;compare similarity:
+        let outcome-list (map = plant-top-choices my-top-choices) ;;this returns a list of booleans, showing if each top choice is a match
+        let nr-matches length filter [i -> i = true] outcome-list ;;nr of trues in the list, i.e. nr of matches
+
+        if nr-matches > most-nr-matches [set most-nr-matches nr-matches set final-choice self] ;@(if it's the same, the last random one to run this block is chosen)
+
+        ;print (word "Allocation! plant-top-choices for " self ": " plant-top-choices " and top choices for " myself ": " my-top-choices)
+        ;print (word "nr of matches: " nr-matches)
+
+      ] ;end of ask plants-with-space
+      ;print (word "final choice with MOST matches: " final-choice)
+      set my-plantation final-choice
+    ]
+
+  ]
+
   move-to my-plantation
   ask my-plantation [add-myself-to-members]
 end
 
+to-report member-pop-proportion ;plantation procedure, used in allocate-to-plantation
+  report count members / current-population ;percentage of the population living on this plantation
+end
 
 to populate ;;run in setup. Create starting population
   ;;@random starting language right now! (from these two lists)
@@ -345,7 +429,7 @@ end
 
 
 
-to ship-arrival ;run in go (very first thing every tick) @@@IN THE MAKING - @IDA
+to ship-arrival ;run in go (very first thing every tick)
   let time-now (word year this-month) ;e.g. "1674Jan"
   if table:has-key? ship-table time-now [ ;checks if a ship should arrive at this time (if the key + entry exists)
 
@@ -362,11 +446,12 @@ to ship-arrival ;run in go (very first thing every tick) @@@IN THE MAKING - @IDA
 
 
       ;add colonists:
-      let c-nr-arrived 0
-      repeat (s-nr-arrived / 10) [ make-person "colonist" one-of col-lang-list ]
+      let c-nr-arrived round (s-nr-arrived / 10)
+      if c-nr-arrived < 1 [set c-nr-arrived 1] ;always at least one colonist
+      repeat c-nr-arrived [ make-person "colonist" one-of col-lang-list ] ;@just random european language now
 
 
-      print (word year " " this-month ". A ship just arrived with " s-nr-arrived " slaves speaking " s-ship-lang " and " c-nr-arrived "colonists!") ;just testing
+      print (word year " " this-month ". A ship just arrived with " s-nr-arrived " slaves speaking " s-ship-lang " and " c-nr-arrived " colonists!") ;just testing
 
 
       ;@can add little animation if time:
@@ -631,7 +716,7 @@ to-report this-month ;reporting month-names
 end
 
 to-report current-population
-  report count slaves + count colonists
+  report count people
 end
 
 
@@ -1184,6 +1269,8 @@ end
 ;;@NEW SHEETS where ?-values have been replaced with 0's!: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/edit#gid=1492588531
 ;;new downloadable link: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv
 
+
+
 to import-csv
   fetch:url-async "https://docs.google.com/spreadsheets/d/1RA6wBtIiiOQG242R0iB0qV60n_xPCMBQQ_EmBhqr-tw/gviz/tq?tqx=out:csv" [
     text ->
@@ -1427,7 +1514,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-0
+1
 
 TEXTBOX
 1215
@@ -1491,7 +1578,7 @@ CHOOSER
 color-feature
 color-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-10
+11
 
 TEXTBOX
 860
@@ -1525,9 +1612,9 @@ Partner-Selection
 
 TEXTBOX
 390
-485
+480
 525
-516
+511
 Learning update
 14
 0.0
@@ -1728,7 +1815,7 @@ SWITCH
 243
 deaths?
 deaths?
-1
+0
 1
 -1000
 
@@ -1750,7 +1837,7 @@ SWITCH
 278
 newcomers?
 newcomers?
-1
+0
 1
 -1000
 
@@ -1957,7 +2044,7 @@ CHOOSER
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
-0
+2
 
 SWITCH
 480
@@ -2001,10 +2088,10 @@ if-overall-failure
 0
 
 TEXTBOX
-480
-635
-670
-675
+665
+695
+855
+735
 If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
 11
 0.0
@@ -2080,7 +2167,7 @@ max-population
 max-population
 200
 10000
-10000.0
+8200.0
 200
 1
 NIL
@@ -2101,6 +2188,16 @@ NIL
 NIL
 NIL
 NIL
+1
+
+TEXTBOX
+135
+450
+285
+491
+only affects new slaves coming in with ships
+11
+0.0
 1
 
 @#$#@#$#@
