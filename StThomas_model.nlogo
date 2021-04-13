@@ -1534,7 +1534,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-30
+37
 
 CHOOSER
 1050
@@ -1544,15 +1544,15 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-1
+2
 
 BUTTON
 955
 300
-1065
-335
-NIL
-update-feature-plot
+1097
+331
+Update Visualization
+update-feature-plot\ncolor-by-lang
 NIL
 1
 T
@@ -1564,97 +1564,40 @@ NIL
 1
 
 TEXTBOX
-1790
-540
-2090
-570
-Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature eller plot-this, mens modellen ikke kører.
-11
-0.0
-1
-
-BUTTON
-1065
-300
-1175
-335
-NIL
-color-by-lang
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-CHOOSER
-1605
-415
-1700
-460
-color-feature
-color-feature
-"X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-11
-
-TEXTBOX
-1710
-416
-1830
-481
-@coloring by most likely value for that feature now (colors match the ones in feature plot)
-11
-0.0
-1
-
-TEXTBOX
-95
-665
-190
-696
+235
+435
+320
+453
 Conversation
 14
 0.0
 1
 
 TEXTBOX
-10
-520
-135
-538
+235
+355
+360
+373
 Partner-Selection
 14
 0.0
 1
 
 TEXTBOX
-630
-370
-765
-401
+525
+355
+660
+386
 Learning update
 14
 0.0
 1
 
-TEXTBOX
-1630
-390
-1745
-421
-Visualisation
-14
-0.0
-1
-
 SLIDER
-15
-685
-160
-718
+225
+455
+370
+488
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1698,10 +1641,10 @@ start-odds
 Number
 
 SLIDER
-540
-445
-695
-478
+525
+430
+680
+463
 odds-increase-successful
 odds-increase-successful
 0
@@ -1713,10 +1656,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-540
-545
-695
-578
+860
+430
+1015
+463
 odds-decrease
 odds-decrease
 -3
@@ -1737,26 +1680,6 @@ nr-colonists
 1
 0
 Number
-
-TEXTBOX
-1870
-620
-2275
-665
-Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
-11
-0.0
-1
-
-TEXTBOX
-2130
-365
-2425
-410
-Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
-11
-0.0
-1
 
 INPUTBOX
 5
@@ -1785,38 +1708,6 @@ true
 false
 "" ""
 PENS
-
-TEXTBOX
-1660
-220
-1885
-280
-convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
-11
-0.0
-1
-
-MONITOR
-1425
-45
-1495
-90
-Successes
-success-count
-17
-1
-11
-
-MONITOR
-1425
-90
-1495
-135
-Failures
-fail-count
-17
-1
-11
 
 TEXTBOX
 90
@@ -1862,10 +1753,10 @@ newcomers?
 -1000
 
 INPUTBOX
-5
-605
-75
-665
+225
+375
+295
+435
 random-one
 0.0
 1
@@ -1873,10 +1764,10 @@ random-one
 Number
 
 INPUTBOX
-190
-605
-285
-665
+410
+375
+505
+435
 on-my-plantation
 5.0
 1
@@ -1884,10 +1775,10 @@ on-my-plantation
 Number
 
 INPUTBOX
-75
-605
-190
-665
+295
+375
+410
+435
 neighbour-plantation
 0.0
 1
@@ -1895,10 +1786,10 @@ neighbour-plantation
 Number
 
 INPUTBOX
-5
-545
-95
-605
+225
+525
+315
+585
 convs-per-month
 3.0
 1
@@ -1906,10 +1797,10 @@ convs-per-month
 Number
 
 SWITCH
-160
-685
-295
-718
+370
+455
+505
+488
 include-status?
 include-status?
 1
@@ -1917,10 +1808,10 @@ include-status?
 -1000
 
 SLIDER
-695
-445
-850
-478
+680
+430
+835
+463
 kids-odds-inc-success
 kids-odds-inc-success
 0
@@ -1932,10 +1823,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-695
-545
-850
-578
+1015
+430
+1170
+463
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1947,10 +1838,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-5
-765
-235
-798
+225
+490
+505
+523
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1961,21 +1852,11 @@ SLIDER
 %
 HORIZONTAL
 
-TEXTBOX
-75
-745
-185
-776
-Understanding
-14
-0.0
-1
-
 SLIDER
-540
-640
-720
-673
+860
+465
+1040
+498
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -1987,10 +1868,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-720
-640
-900
-673
+1040
+465
+1180
+498
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -2000,16 +1881,6 @@ kids-odds-inc-unsuccess
 1
 NIL
 HORIZONTAL
-
-TEXTBOX
-265
-715
-505
-771
-Hvor mange % af de udvekslede features og ord hearer skal forstå for at interaktionen er overall successful (forståelse = eksakt match)
-11
-0.0
-1
 
 SLIDER
 5
@@ -2037,10 +1908,10 @@ distribution-method
 0
 
 SWITCH
-745
-585
-997
-618
+860
+500
+1180
+533
 hearer-decreases-from-failure?
 hearer-decreases-from-failure?
 1
@@ -2048,54 +1919,34 @@ hearer-decreases-from-failure?
 -1000
 
 TEXTBOX
-540
-385
-640
-403
+525
+370
+625
+388
 If overall success:
 12
 0.0
 1
 
 TEXTBOX
-540
-485
-690
-503
+860
+370
+1010
+388
 If overall failure:
 12
 0.0
 1
 
 CHOOSER
-540
-500
-867
-545
+860
+385
+1180
+430
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
 0
-
-TEXTBOX
-550
-580
-740
-635
-If on, hearer follows 'if-overall-failure'. If off, hearer instead increases ALL speaker's values:
-11
-0.0
-1
-
-TEXTBOX
-110
-720
-285
-745
-If on: colonists are always speakers in colonist-slave interactions
-11
-0.0
-1
 
 SLIDER
 5
@@ -2170,21 +2021,11 @@ NIL
 NIL
 1
 
-TEXTBOX
-225
-430
-375
-471
-only affects new slaves coming in with ships
-11
-0.0
-1
-
 CHOOSER
-540
-400
-862
-445
+525
+385
+847
+430
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
