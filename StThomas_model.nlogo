@@ -190,6 +190,7 @@ to initialize-agent-variables ;;agent procedure, run in setup
 end
 
 to go
+  ship-arrival ;procedure that adds new people based on incoming slave ship info
   set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
 
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
@@ -305,15 +306,12 @@ to ship-arrival ;@@@IN THE MAKING - @IDA
   if table:has-key? ship-table time-now [ ;checks if a ship should arrive at this time (if the key + entry exists)
     ;OBS: ship-table not right format yet
 
+    let info table:get ship-table time-now ;gives entry like: ["nkoKWA" 0 284 367] . Meaning: "Language", "N-slaves", "N-slaves-estimate", "N-slaves-estimate-simple-mean"]
+    let nr-arrived item 3 info ;which of the two estimates do we wanna use, @Lisa?
+    let ship-lang item 0 info ;the language code
 
-    let nr-arrived 0
-    let ship-lang 0
-
-    ;print (word "A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!")
+    print (word year " " this-month ". A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!") ;just testing
   ]
-
-
-
 end
 
 
@@ -518,14 +516,6 @@ end
 
 
 to-report weighted-partner-choice
-  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
-  ;let partner-choice-odds [["random" 1] ["my plantation" 2] ["neighbour plant" 3] ]
-
-  ;weighted-one-of nested-list [[random 1] [closest-one 2] ...]
-  ;weighted-one-of partner-choice-odds
-  ;if random
-  ;if my plantation
-  ;if neighbour plant
 
 
 
@@ -1209,7 +1199,7 @@ to import-ship-csv
     ;convert it:
     set ship-list []
     set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    set ship-header-list item 0 ship-list ;["Language" "Year-arrived" "Month-fake" "Slaves-arrived" "Estimated-slave-influx-with-sd" "Estimated-slave-influx-simple-mean"] ;matching ship-list!
+    set ship-header-list item 0 ship-list ;["Language" "Year" "Month" "N-slaves" "N-slaves-estimate" "N-slaves-estimate-simple-mean"] ;matching ship-list!
     set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 "Jan" 103 103 103] ["wolNA" 1674 "Jan" 103 103 103] ... ]
     let year-list map [i -> item 1 i] ship-list ;list with all the years
     ;177 skibe i alt!
@@ -1833,7 +1823,7 @@ SWITCH
 608
 include-status?
 include-status?
-1
+0
 1
 -1000
 
