@@ -133,7 +133,7 @@ to setup-as-parkvall
   set kids-odds-inc-success 2
   set odds-decrease 1 ;@@
   set if-overall-failure "nothing decreases"
-  set hearer-learns-from-failure? true
+  set hearer-decreases-from-failure? true ;@@@@gus
   set odds-increase-unsuccessful 1 ;@
   set kids-odds-inc-unsuccess 1
 
@@ -631,20 +631,21 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
     if not success? [
       ;check if the switch is on:
       let people-affected "NA"
-      ifelse hearer-learns-from-failure? [
+      ifelse hearer-decreases-from-failure? [ ;if hearer and speaker both follow if-overall-failure:
+        set people-affected partners ;speaker AND hearer
+      ]
+
+        [
         ;if hearer instead learns from failure:
         set people-affected speaker
         ;if switch on, hearer instead increases ALL speaker's values:
         ask hearer [ increase-odds-unsuccess the-topic s-choice ] ;only hearer increases odds (by unsuccessful rate) for every item (if not known, they LEARN it!)
       ]
-      [ ;if hearer and speaker both follow if-overall-failure:
-        set people-affected partners ;speaker AND hearer
-      ]
 
-      if if-overall-failure = "Both decrease all speaker's values (if known)" [
+      if if-overall-failure = "Decrease all speaker's values (if known)" [
         ask people-affected [ decrease-odds the-topic s-choice ] ;both (or just speaker, depending on switch) decrease odds for every item (that they know)
       ]
-      if if-overall-failure = "Both decrease unsuccessful values only (if known)" [
+      if if-overall-failure = "Decrease unsuccessful values only (if known)" [
         if not local-success? [
           ask people-affected [ decrease-odds the-topic s-choice ] ;both (or just speaker, depending on switch) decrease odds for every non-matching item (that they know)
         ]
@@ -1996,13 +1997,13 @@ CHOOSER
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-0
+3
 
 SLIDER
 300
-740
+750
 480
-773
+783
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -2015,9 +2016,9 @@ HORIZONTAL
 
 SLIDER
 480
-740
+750
 660
-773
+783
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -2076,10 +2077,10 @@ distribution-method
 SWITCH
 480
 700
-660
+732
 733
-hearer-learns-from-failure?
-hearer-learns-from-failure?
+hearer-decreases-from-failure?
+hearer-decreases-from-failure?
 0
 1
 -1000
@@ -2107,19 +2108,19 @@ If overall failure:
 CHOOSER
 300
 610
-610
+627
 655
 if-overall-failure
 if-overall-failure
-"Nothing decreases" "Both decrease all speaker's values (if known)" "Both decrease unsuccessful values only (if known)"
+"Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
 0
 
 TEXTBOX
-665
-695
-855
-735
-If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
+310
+690
+500
+745
+If on, hearer follows 'if-overall-failure'. If off, hearer instead increases ALL speaker's values:
 11
 0.0
 1
@@ -2163,16 +2164,6 @@ nr-children-per-woman
 1
 NIL
 HORIZONTAL
-
-TEXTBOX
-305
-705
-455
-731
-How much hearer increases on unsuccesful communication:
-11
-0.0
-1
 
 MONITOR
 625

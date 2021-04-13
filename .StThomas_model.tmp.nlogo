@@ -9,7 +9,6 @@ globals [
   affiliation-list
   feature-list
   wals-table
-  partner-choice-list
 
   word-list ;;[word0 word1 word2 ... ]
 
@@ -34,14 +33,13 @@ globals [
   fails-this-tick
   successes-this-tick
 
-  people ;;turtle-set so slaves and colonists can be adressed with one word
-
   testing
 ]
 
 breed [plantations plantation]
 breed [colonists colonist]
 breed [slaves slave]
+breed [ships ship] ;purely for visualisation/animation purposes
 
 slaves-own [
   start-lang ;;starting language (ID code)
@@ -73,6 +71,7 @@ plantations-own [
   name
   members
   neighbour
+  max-members
 ]
 
 to profile
@@ -87,7 +86,6 @@ end
 to setup
   clear-all
   reset-ticks
-
   ;;create the map:
   ;;import-pcolors "stthomas.png"
 
@@ -101,14 +99,53 @@ to setup
   import-ship-csv
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
-  make-plantations
-  populate ;;create starting population
-  set people (turtle-set slaves colonists)
-  ask people [ initialize-agent-variables ]
-  ask people [ allocate-to-plantation ]
-  ask people [ forward random ]
+  make-plantations ;also sets up links
+  populate ;;create starting population (allocate-to-plantation included in make-person)
+  ask people [ initialize-agent-variables ] ;@not needed?
+  ask people [ forward random 7]
   update-feature-plot
   update-convergence-plot
+end
+
+
+to setup-as-parkvall
+  ;specify all parameters:
+  set include-words? true
+  set start-odds 20 ;@@@
+  set nr-slaves 100
+  set nr-colonists 100
+  set deaths? false
+  set children? false ;double check that it works properly
+  set newcomers? true ;in his model people left and arrived according to historic data
+  set distribution-method "random plantation"
+  set convs-per-month 30
+  set random-one 1 ;@@
+  set on-my-plantation 1 ;@
+  set neighbour-plantation 1 ;@
+  set nr-features-exchanged 1
+  set include-status? false
+
+  ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
+  ;vores model kan altså ikke 1-1 gengive dette.
+  set %-understood-for-overall-success 100
+  set if-overall-success "Hearer increases all speaker's values"
+  set odds-increase-successful 2 ;@
+  set kids-odds-inc-success 2
+  set odds-decrease 1 ;@@
+  set if-overall-failure "nothing decreases"
+  set hearer-decreases-from-failure? true ;@@@@gus
+  set odds-increase-unsuccessful 1 ;@
+  set kids-odds-inc-unsuccess 1
+
+
+
+  set if-overall-success "Both increase all speaker's values"
+
+
+
+
+
+  setup
 end
 
 to make-plantations
@@ -116,49 +153,45 @@ to make-plantations
   ;;data from Hall (1992: 5) (modified to the csv 'percent of total enslaved')
   ;;here generalised to the whole time period...
 
-  let plant-names ["koonings" "west eijnd" "krum" "erasmus baij" "windt" "noort" "friedrichs" "orcaen" "fransmans" "dorp" "qvarteer" "oost"]
+  let plant-names ["erasmus baij" "windt" "friedrichs" "orcaen" "qvarteer" "oost"] ;only keeping 6 plantations
+
+  ;max cap on % members:
+  let max-members-list [0.064 0.078 0.153 0.153 0.217 0.335] ;maps/matching plant-names list. % of population on this plantation (we decide to keep it constant)
+  ;(data from ?) generalised to the whole period... doesn't affect new births (?!) - only distribution of newly arrived slaves
 
   ;;positions:
-  let plant-patches (patch-set patch -86 0 patch -63 3 patch -30 1 patch -21 17 patch -5 -16 patch -2 8 patch 26 -2 patch 53 -7 patch 54 -32 patch 80 -6 patch 83 -33 patch 110 -22) ;;12 different positions
+  let plant-patches (patch-set patch -63 3 patch -30 10 patch 19 3 patch 44 8 patch 54 -32 patch 83 -33) ;;12 different positions
   set plant-patches sort-on [pxcor] plant-patches ;(from left to right based on pxcor)
 
-  create-plantations 12 [
+  create-plantations 6 [
     set color white set shape "house" set size 7
     set name first plant-names
     set plant-names but-first plant-names ;removes the first item from the name list (since it's now taken) (this code block is run by one plantation at a time)
-
+    set members (turtle-set) ;initialize empty agentset
+    set max-members first max-members-list ;max % of population of that plantation
+    set max-members-list but-first max-members-list ;removed the item that's now taken
     ;;move to spot:
     move-to first plant-patches
     set plant-patches but-first plant-patches
   ]
 
-
-
+  ;set up the links (random... but THE SAME IN EVERY RUN):
+  ask plantations [
+    create-link-with min-one-of other plantations [distance myself ] [ hide-link ]
+  ]
+  ;@NOW: neighbours in pairs two-and-two (but location is random...) quite important, but a random choice - but consistent between runs
+  ;@OBS: before the links weren't two-way, i.e. plant 0 may be closest to plant 1, but plant 1 may be even closer to plant 2 (important in closest-plant weighted-partner-choice)
 end
 
 to initialize-variables ;;run in setup
   set month-names ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] ;either start in dec or jan. If starting jan we have tick 1 = feb. Does it matter though?
   set lang-list table:keys wals-table ;;list of all the language IDs
   ;;@OBS: check/fix/change these language mappings!:
-  set col-lang-list sublist lang-list 24 32 ;;the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"] ;["LnldGER" "LengGER" "LfraROM" "sweGER" "LdeuGER" "LporROM" "LspaROM" "danGER"]
-  set slave-lang-list sublist lang-list 0 24 ;now the full slave-lang-list
+  set col-lang-list sublist lang-list 27 35 ;;the list (from affiliation-list): ["Dutch" "English" "French" "Swedish" "German" "Portu." "Spanish" "Danish"] ;["LnldGER" "LengGER" "LfraROM" "sweGER" "LdeuGER" "LporROM" "LspaROM" "danGER"]
+  set slave-lang-list sublist lang-list 0 27 ;now the full slave-lang-list
 
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
-
-  ;@@@@@@ HEEEELP :( i dont understand why the first line below doesn't work
-  ;set partner-choice-list (map list ["random" "my plantation" "neighbour plant"] [random-one on-my-plantation neighbour-plantation] );nested list of odds for the different partner choice options ie: random-one, on-my-plantation and neighbour-plantation
-  ;observer> show ( map list ["a" "b" "c" "d"] [1 2 3 4] )
-;observer: [["a" 1] ["b" 2] ["c" 3] ["d" 4]]
-  ;let a random-one
- ; let b on-my-plantation
-  ;let c neighbour-plantation
-  ;let partner-choice-odds (map list ["random" "my plantation" "neighbour plant"] [a b c] )
-  ;set mylist [[2 4] [3 5]]
-
-  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
-  ;@@@set partner-choice-list [["random" 2] ["my plantation" 2] ["neighbour plant" 3] ]
-  ;@@@@@@@
 
   set word-list []
   ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
@@ -206,7 +239,8 @@ to initialize-agent-variables ;;agent procedure, run in setup
 end
 
 to go
-  set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
+  if newcomers? [ ship-arrival ] ;procedure that adds new people based on incoming slave ship info
+  if not any? people [stop]
 
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
 
@@ -219,56 +253,108 @@ to go
   update-feature-plot
   update-convergence-plot
 
-  if deaths? [
-    ask people [
-      get-older ;;agents get older and maybe die
-    ]
+  ask people [
+    get-older ;;agents get older and maybe die ;and have children
   ]
+
   set time ticks mod 12 ;;update time
   if year = 1940 [stop]
 
   tick
 end
 
-to allocate-to-plantation ;agent procedure, run in setup (and in go when new ships arrive!)
-  move-to one-of plantations
-  set my-plantation plantations-here
+to allocate-to-plantation ;agent procedure, run in make-person (so in populate in setup and in go when new ships arrive!) (NOT run for newborns)
+  let plants-with-space plantations with [member-pop-proportion < max-members] ;plantations with space. first is a reporter, second is a plantations-own variable
 
-  ask plantation 0 [ ;@@@ preferably the closest plantations that are neighbours for illustrative purposes - otherwise it doesn't matter
-  create-link-to plantation 1
+  ifelse ticks = 0 or breed = colonists [
+    ;initial distribution in setup not affected by these distribution methods
+    ;colonists also not affected, instead just:
+    set my-plantation one-of plants-with-space
   ]
-  ask plantation 2 [
-  create-link-to plantation 3
-  ]
-  ask plantation 4 [
-  create-link-to plantation 5
-  ]
-  ask plantation 6 [
-  create-link-to plantation 7
-  ]
-  ask plantation 8 [
-  create-link-to plantation 9
-  ]
-  ask plantation 10 [
-  create-link-to plantation 11
-  ]
+  [ ;if it's a slave newcomer from a ship:
+    if distribution-method = "random plantation" [
+      set my-plantation one-of plants-with-space
+    ]
+
+    ;@THIS ONLY LOOKS AT WALS-FEATURES RIGHT NOW (NOT WORDS!):
+
+    if distribution-method = "plantation with least similar speakers" [
+      ;based on average probability?
+      ;or counting the top choice that most people have?:
+      ;table:counts [most-likely-value plot-feature] of people
+      ;(the difference can be seen in feature plot, the two different options)
+
+      let my-top-choices map most-likely-value feature-list ;the slave's top choice
+      let least-nr-matches 100 ;random high nr to initialize
+      let outcome-list 0
+      let nr-matches "NA"
+      let final-choice "NA"
+
+      ask plants-with-space [
+        let plant-top-choices []
+        foreach feature-list [
+          the-feature ->
+          let counts-table table:counts [most-likely-value the-feature] of members ;looking only at the members of the plantation
+          let index position (max table:values counts-table) table:values counts-table ;position of the top choice (looking at the highest counts nr
+          let top-choice item index table:keys counts-table ;the feature value (which is the key in counts-table)
+          set plant-top-choices lput top-choice plant-top-choices
+        ]
+        ;compare similarity:
+        set outcome-list (map = plant-top-choices my-top-choices) ;;this returns a list of booleans, showing if each top choice is a match
+        set nr-matches length filter [i -> i = true] outcome-list ;;nr of trues in the list, i.e. nr of matches
+
+        if nr-matches < least-nr-matches [set least-nr-matches nr-matches set final-choice self] ;@(if it's the same, the last random one to run this block is chosen)
+
+        ;print (word "Allocation! plant-top-choices for " self ": " plant-top-choices " and top choices for " myself ": " my-top-choices)
+        ;print (word "nr of matches: " nr-matches)
+        ;print (word "best so far: " final-choice)
+
+      ] ;end of ask plants-with-space
+      ;print (word "final choice with LEAST matches: " final-choice)
+      set my-plantation final-choice
+    ]
 
 
-  ask plantations [
-    ask my-links [ hide-link ]
+    if distribution-method = "plantation with most similar speakers" [
 
-    update-my-members
+      let my-top-choices map most-likely-value feature-list
+      let most-nr-matches 0 ;random low nr to initialize
+      let final-choice "NA"
+
+      ask plants-with-space [
+        let plant-top-choices []
+        foreach feature-list [
+          the-feature ->
+          let counts-table table:counts [most-likely-value the-feature] of members
+          let index position (max table:values counts-table) table:values counts-table ;position of the top choice (looking at the highest counts nr
+          let top-choice item index table:keys counts-table ;the feature value (which is the key in counts-table)
+          set plant-top-choices lput top-choice plant-top-choices
+        ]
+        ;compare similarity:
+        let outcome-list (map = plant-top-choices my-top-choices) ;;this returns a list of booleans, showing if each top choice is a match
+        let nr-matches length filter [i -> i = true] outcome-list ;;nr of trues in the list, i.e. nr of matches
+
+        if nr-matches > most-nr-matches [set most-nr-matches nr-matches set final-choice self] ;@(if it's the same, the last random one to run this block is chosen)
+
+        ;print (word "Allocation! plant-top-choices for " self ": " plant-top-choices " and top choices for " myself ": " my-top-choices)
+        ;print (word "nr of matches: " nr-matches)
+
+      ] ;end of ask plants-with-space
+      ;print (word "final choice with MOST matches: " final-choice)
+      set my-plantation final-choice
+    ]
+
   ]
+
+  move-to my-plantation
+  ask my-plantation [add-myself-to-members]
 end
 
-to update-my-members ;plantation procedure, run in allocate-to-plantation (so it updates after each new arrival)
-    set members (turtle-set colonists-here slaves-here) ;all people on the plantation
-  ask members [forward random 10]
+to-report member-pop-proportion ;plantation procedure, used in allocate-to-plantation
+  report count members / current-population ;percentage of the population living on this plantation
 end
-
 
 to populate ;;run in setup. Create starting population
-
   ;;@random starting language right now! (from these two lists)
   repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
   repeat nr-colonists [ make-person "colonist" (one-of col-lang-list) ]
@@ -276,90 +362,132 @@ end
 
 
 to make-person [kind language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
+  ;also runs when ships arrive
+
+  ;ONLY RUNS IF MAX POPULATION HASN'T BEEN REACHED!
+  if current-population <= max-population [
+
+    if kind = "slave" [
+      create-slaves 1 [
+        ;;@can change starting age!:
+        while [age <= 0] [ set age random 70 ] ;;mean of 25, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
+                                                              ;@FIX how we set age?! (also e.g. with ships, 17% should be kids?)
 
 
-  if kind = "slave" [
-    create-slaves 1 [
-      ;;@can change starting age!:
-      while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
+        set birth-month one-of month-names
 
+        set shape "person" set size 6 set color black
+        set start-lang language
+        set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
-      set birth-month one-of month-names
+        initialize-my-tables ;;creates their language table
 
-      set shape "person" set size 6 set color black
-      set start-lang language
-      set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+        ;;@just random position right now:
+        ;move-to one-of land-patches with [not any? slaves-here]
 
-      initialize-my-tables ;;creates their language table
+        allocate-to-plantation
 
-      ;;@just random position right now:
-      move-to one-of land-patches with [not any? slaves-here]
+      ]
+    ]
 
+    if kind = "colonist" [
+      create-colonists 1 [
+        ;;@can change starting age!:
+        while [age <= 0] [ set age random 70 ] ;;everyone is at least 1 year old (normal distribution can give negative values)
+
+        set birth-month one-of month-names
+
+        set shape "person-inspecting" set size 6 set color black ;idea: white instead - color differentiation between slaves and slave-owners: yay or nay?
+        set start-lang language
+        set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+        initialize-my-tables ;;creates their language table
+
+        ;;@just random position right now:
+        ;move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
+
+        allocate-to-plantation
+      ]
     ]
   ]
+end
 
-  if kind = "colonist" [
-    create-colonists 1 [
-      ;;@can change starting age!:
-      while [age <= 0] [ set age round random-normal 30 5 ] ;;everyone is at least 1 year old (normal distribution can give negative values)
+to add-myself-to-members ;plantation procedure, asked by the new member
+  set members (turtle-set members myself) ;myself is the new member
+end
 
-      set birth-month one-of month-names
 
-      set shape "person-inspecting" set size 6 set color black
-      set start-lang language
-      set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+to have-children ;agent reporter, run in get-older (which is run in go) ;right now run every month! (@Lisa, maybe stats need updating?)
+  ;; not sure if better to combine this function with make-person
+  ;; since I'm setting the language differently, I'm making a separate version here.
+
+  ;25 = number of birth years (only running this function once a year)
+
+
+
+if ( breed = colonists and random-float 1 < ( ( nr-children-per-woman * 0.5 ) / 25 ) )  ; half the population are female in whites
+
+  or
+
+ ( breed = slaves and random-float 1 < ( ( nr-children-per-woman * 0.2 ) / 25 ) ) [ ;20% women in slaves
+
+
+
+    hatch 1 [
+      set age 0 ;newborn
+
+      set birth-month this-month
+
+      ;barnet får forælders liste:
+      let child-features [map [i -> most-likely-value i] feature-list] of myself
+      set start-lang-vec child-features
+
 
       initialize-my-tables ;;creates their language table
 
-      ;;@just random position right now:
-        move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
+      rt random 360
+      fd 0.001
+
+      ask my-plantation [ add-myself-to-members ]
     ]
   ]
 end
 
 
-to have-children
-  ;ifelse colonist [
-
-;  if random-float 1 < n-children-per-woman/25*0.5 [ ;25 = number of birth years (only running this function once a year); half the population are female (or???)
-;    make-person [slave language] ;set language to popular mom's vector
-;
-;
-;  ifelse kind = "slave" [
-;  make-person [slave]
-;      ]
-;    [
-;        make-person [colonist]
-;      ]
-
-    ;most-likely-value loop for all languages
 
 
-
-;; assumption: 50/50 men and women in whites
-  ;            only 12.5% women in slave-ships
-  ; people-own gender
-  ; highest WALS-values
-
-end
-
-
-
-
-to ship-arrival ;@@@IN THE MAKING - @IDA
+to ship-arrival ;run in go (very first thing every tick)
   let time-now (word year this-month) ;e.g. "1674Jan"
   if table:has-key? ship-table time-now [ ;checks if a ship should arrive at this time (if the key + entry exists)
-    ;OBS: ship-table not right format yet
+
+    ifelse current-population <= max-population [
+
+      let info table:get ship-table time-now ;gives entry like: ["nkoKWA" 0 284 367] . Meaning: "Language", "N-slaves", "N-slaves-estimate", "N-slaves-estimate-simple-mean"]
+      let s-nr-arrived item 2 info ;which of the two estimates do we wanna use, @Lisa? ;vi bruger N-slaves-estimate
+      let s-ship-lang item 0 info ;the language code
+
+      repeat s-nr-arrived [ make-person "slave" s-ship-lang ] ;plantation allocation also included in make-person
+                                                          ;@OBS:
+                                                          ;hvor mange colonists var med? (tilføjer kun slaver lige nu!
+                                                          ;tilføj evt. , at 17% var børn - hvordan? (alder sættes i make-person, tilfældigt normaltfordelt nu)
 
 
-    let nr-arrived 0
-    let ship-lang 0
-
-    ;print (word "A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!")
-  ]
-
+      ;add colonists:
+      let c-nr-arrived round (s-nr-arrived / 10)
+      if c-nr-arrived < 1 [set c-nr-arrived 1] ;always at least one colonist
+      repeat c-nr-arrived [ make-person "colonist" one-of col-lang-list ] ;@just random european language now
 
 
+      print (word year " " this-month ". A ship just arrived with " s-nr-arrived " slaves speaking " s-ship-lang " and " c-nr-arrived " colonists!") ;just testing
+
+
+      ;@can add little animation if time:
+      ;create-ships 1 [setxy -80 52 set color white set size 5]
+    ]
+    [ ;if max pop has been reached:
+      print "THE MAX POPULATION HAS BEEN REACHED! (SO NO SHIP ARRIVED)"
+    ]
+  ] ;end of if table has key
 end
 
 
@@ -370,15 +498,16 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
     ;;all of this is repeated 'convs-per-month' nr of times each tick (interface input) - see go
 
   ;;0. Find a talking buddy
-  let partner my-partner-choice ;;using the agent reporter to select a partner
+  let partner weighted-partner-choice ;;using the agent reporter to select a partner
                                     ;;@tilføj evt: gem historie over hvem der har talt sammen?
-  let partners (turtle-set self partner) ;a way to address both speaker and hearer at the same time
+  if partner != nobody [
 
+  let partners (turtle-set self partner) ;a way to address both speaker and hearer at the same time
   ;;1. Set speaker and hearer
   let speaker "NA" let hearer "NA"
   ifelse include-status? [
     ;if status included, slaves never speak to europeans:
-    let same? reduce = [breed] of partners ;boolean, reports true if the two are of same breed, false if they're of different breeds
+    let same? breed = [breed] of partner ;boolean, reports true if the two are of same breed, false if they're of different breeds
     ifelse same? [
       ;if they're the same, it's randomly set anyway:
       ifelse random 2 = 1 [set speaker self set hearer partner] [set hearer self set speaker partner]
@@ -502,26 +631,27 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
     if not success? [
       ;check if the switch is on:
       let people-affected "NA"
-      ifelse hearer-learns-from-failure? [
+      ifelse hearer-decreases-from-failure? [ ;if hearer and speaker both follow if-overall-failure:
+        set people-affected partners ;speaker AND hearer
+      ]
+
+        [
         ;if hearer instead learns from failure:
         set people-affected speaker
         ;if switch on, hearer instead increases ALL speaker's values:
         ask hearer [ increase-odds-unsuccess the-topic s-choice ] ;only hearer increases odds (by unsuccessful rate) for every item (if not known, they LEARN it!)
       ]
-      [ ;if hearer and speaker both follow if-overall-failure:
-        set people-affected partners ;speaker AND hearer
-      ]
 
-      if if-overall-failure = "Both decrease all speaker's values (if known)" [
+      if if-overall-failure = "Decrease all speaker's values (if known)" [
         ask people-affected [ decrease-odds the-topic s-choice ] ;both (or just speaker, depending on switch) decrease odds for every item (that they know)
       ]
-      if if-overall-failure = "Both decrease unsuccessful values only (if known)" [
+      if if-overall-failure = "Decrease unsuccessful values only (if known)" [
         if not local-success? [
           ask people-affected [ decrease-odds the-topic s-choice ] ;both (or just speaker, depending on switch) decrease odds for every non-matching item (that they know)
         ]
       ]
 
-      ;don't need to include code for: if if-overall-failure = "Nothing happens" - since... nothing happens ;-)
+      ;don't need to include code for: if if-overall-failure = "Nothing decreases" - since... nothing decreases ;-)
 
     ] ;end of if overall failure
    ] ;;end of looping through chosen-topics
@@ -560,104 +690,52 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
 ;  print (word "Speaker said: " speaker-choices ", hearer said: " hearer-choices)
 ;  print (word "Percent understood: " percent-understood)
 ;  print (word "Overall succes?: " success?)
+
+  ] ;end of if partner != nobody
 end
 
 
 to-report weighted-partner-choice
- ; let the-value weighted-one-of partner-choice-list ;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
+  let partner-choice-list (list (list "random" random-one) (list "my plantation" on-my-plantation) (list "neighbour plant" neighbour-plantation))
+  let the-value weighted-one-of partner-choice-list ;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
 
-  ;if the-value = "random" [
-   ; report one-of other people
- ; ]
+ if the-value = "random" [
+    report one-of other people
 
-  ;if the-value = "my plantation" [
-   ; report one-of other people here
-  ;]
+ ]
 
-    ;if the-value = "neighbour plant" [
-   ; let neighbour-link ask my-plantation [ ask my-links [ show other-end ] ]
-   ; report one-of other people at neighbour-link
-  ;]
+  if the-value = "my plantation" [
+    report [one-of members] of my-plantation
+
+  ]
+
+  if the-value = "neighbour plant" [
+    let neighbour-plant [one-of link-neighbors] of my-plantation
+    report [one-of members] of neighbour-plant
+  ]
 end
 
-to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
-  ;;@check how papers did it
-  ;;@right now only slaves. can change it to people and add:
-  ;;let people (turtle-set colonists slaves)
-
-  if partner-choice = "random" [
-    report one-of other people ;;completely random partner
-  ]
-
-  if partner-choice = "closest-one" [
-    report closest-agent ;;the closest agent
-  ]
-
-  if partner-choice = "nearby" [
-    ;;nearby is an agentset of all agents within radius 10 (set in initialize-agent-variables)
-    ifelse any? nearby-agents [
-        report one-of nearby-agents ;;choose someone who's nearby
-    ]
-    [ ;;if nobody is nearby, simply random:
-      report one-of other people
-    ]
-  ]
-
-  if partner-choice = "nearby-or-random" [
-    ;;e.g. 50% chance of someone nearby, 50% chance of someone random
-    ifelse any? nearby-agents [
-      let chance random-float 1
-      ifelse chance < 0.50 [ ;;@can change this probability
-        report one-of nearby-agents ;;50% chance of choosing someone nearby
-      ]
-      [
-        report one-of other people ;;and 50% chance of choosing a rando
-      ]
-    ]
-    [ ;;if nobody is nearby, simply random:
-      report one-of other people
-    ]
-  ]
-
-  if partner-choice = "weighted-proximity" [
-    ;;my-weighted-prox-list is created in initialize-agent-variables
-    report weighted-one-of my-weighted-prox-list ;;feed this list to the function to choose a turtle randomly, weighted by proximity (the closer, the higher odds)
-  ]
-
-  ;;@maybe ADD: based on other people's language/status/age/family ties?
-end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if age > 15 [have-children]
-  if this-month = birth-month [if random-float 100 < risk-premature-death-yearly  [die]]
+  if this-month = birth-month and children? and age > 15 and age < 42 and current-population <= max-population [have-children] ;only have kids if max pop hasn't been reached
 
-  ;@LEVEALDER SLIDER
-  ;;; new, simple dying age for :
-if age = dying-age [die]
 
-; ;;maybe die (@change age of death?!):
-; ifelse [breed = colonists] of self [
-;    ;;colonist dying age:
-;
-;    if age > 45 and random 4 = 0 [die] ;;if they're 45 or older, 25% risk of dying every month
-;  ]
-;  [ ;;slave dying age:
-;    if age = dying-age [die]
-;
-;
-;  ]
+  if deaths? [
+  if this-month = birth-month [if random-float 100 < risk-premature-death-yearly [die]]
+  ]
 
+  if deaths? [
+    ask people [
+  if age >= dying-age [die]
+    ]
+  ]
 end
-
-
-
-
 
 ;;---REPORTERS FOR INTERFACE:
 
 to-report year
-  report floor (ticks / 12) + 1640
+  report floor (ticks / 12) + 1670
 end
 
 to-report this-month ;reporting month-names
@@ -665,9 +743,12 @@ to-report this-month ;reporting month-names
   report item month month-names ;;reports the current month name from the 'month-names' list
 end
 
+to-report current-population
+  report count people
+end
+
 
 to color-by-lang
-  set people (turtle-set slaves colonists)
   ask people [
     let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
     set color item my-choice agent-color-list ;;using the value as indexing for what color to choose from the global agent-color-list
@@ -1173,6 +1254,10 @@ to-report avg-value-prob [feature value] ;;reports the average probability acros
   report mean prob-list ;;the average probability of choosing this value for this feature, across agents
 end
 
+to-report people
+  report (turtle-set colonists slaves)
+end
+
 
 ;;---BASIC USEFUL REPORTERS:
 
@@ -1211,6 +1296,8 @@ end
 
 ;;@NEW SHEETS where ?-values have been replaced with 0's!: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/edit#gid=1492588531
 ;;new downloadable link: https://docs.google.com/spreadsheets/d/1znq4HicKo-HyFHaqe_ykKX5iduJ1Ky1xXuPdxafLs0E/gviz/tq?tqx=out:csv
+
+
 
 to import-csv
   fetch:url-async "https://docs.google.com/spreadsheets/d/1RA6wBtIiiOQG242R0iB0qV60n_xPCMBQQ_EmBhqr-tw/gviz/tq?tqx=out:csv" [
@@ -1259,7 +1346,7 @@ to import-ship-csv
     ;convert it:
     set ship-list []
     set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    set ship-header-list item 0 ship-list ;["Language" "Year-arrived" "Month-fake" "Slaves-arrived" "Estimated-slave-influx-with-sd" "Estimated-slave-influx-simple-mean"] ;matching ship-list!
+    set ship-header-list item 0 ship-list ;["Language" "Year" "Month" "N-slaves" "N-slaves-estimate" "N-slaves-estimate-simple-mean"] ;matching ship-list!
     set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 "Jan" 103 103 103] ["wolNA" 1674 "Jan" 103 103 103] ... ]
     let year-list map [i -> item 1 i] ship-list ;list with all the years
     ;177 skibe i alt!
@@ -1409,23 +1496,13 @@ PENS
 "Successes" 1.0 0 -14439633 true "" "plot successes-this-tick"
 "Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
 
-CHOOSER
-110
-470
-220
-515
-partner-choice
-partner-choice
-"random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
-0
-
 INPUTBOX
 20
 145
 100
 205
 nr-slaves
-50.0
+100.0
 1
 0
 Number
@@ -1465,7 +1542,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-0
+1
 
 TEXTBOX
 1215
@@ -1529,7 +1606,7 @@ CHOOSER
 color-feature
 color-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-0
+11
 
 TEXTBOX
 860
@@ -1563,9 +1640,9 @@ Partner-Selection
 
 TEXTBOX
 390
-485
+480
 525
-516
+511
 Learning update
 14
 0.0
@@ -1590,7 +1667,7 @@ nr-features-exchanged
 nr-features-exchanged
 1
 10
-3.0
+1.0
 1
 1
 NIL
@@ -1603,7 +1680,7 @@ SWITCH
 63
 include-words?
 include-words?
-0
+1
 1
 -1000
 
@@ -1623,7 +1700,7 @@ INPUTBOX
 220
 125
 start-odds
-40.0
+20.0
 1
 0
 Number
@@ -1637,7 +1714,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-3.0
+2.0
 1
 1
 NIL
@@ -1652,7 +1729,7 @@ odds-decrease
 odds-decrease
 -3
 0
-0.0
+1.0
 1
 1
 NIL
@@ -1664,7 +1741,7 @@ INPUTBOX
 205
 205
 nr-colonists
-50.0
+100.0
 1
 0
 Number
@@ -1770,16 +1847,6 @@ deaths?
 1
 -1000
 
-TEXTBOX
-1410
-295
-1640
-520
-@not coded yet:\n- include-kids?\n- newcomers? and distribution-method\n- odds i partner-selektion\n- learning-update\n- global-chooser\n@also add: 1) 17 plantation districts + tilknyttelse, 2) starttilstand ift. sluttilstand (tilføj på convergence plot), 3) over-chooser som pre-setter parametre\n\nPLOT FOR ORD (fx 10 mest brugte ord)
-13
-12.0
-1
-
 SWITCH
 100
 210
@@ -1787,7 +1854,7 @@ SWITCH
 243
 children?
 children?
-0
+1
 1
 -1000
 
@@ -1818,26 +1885,26 @@ INPUTBOX
 80
 610
 random-one
-2.0
+1.0
 1
 0
 Number
 
 INPUTBOX
-80
+200
 550
-145
+295
 610
 on-my-plantation
-3.0
+1.0
 1
 0
 Number
 
 INPUTBOX
-145
+85
 550
-210
+200
 610
 neighbour-plantation
 1.0
@@ -1851,20 +1918,10 @@ INPUTBOX
 100
 520
 convs-per-month
-2.0
+5.0
 1
 0
 Number
-
-TEXTBOX
-150
-525
-300
-551
-(@slet partner-choice når odds-tilgangen er kodet)
-11
-0.0
-1
 
 SWITCH
 145
@@ -1873,7 +1930,7 @@ SWITCH
 708
 include-status?
 include-status?
-0
+1
 1
 -1000
 
@@ -1916,7 +1973,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-50.0
+100.0
 5
 1
 %
@@ -1940,23 +1997,13 @@ CHOOSER
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-0
-
-CHOOSER
-715
-480
-860
-525
-choose-preset
-choose-preset
-"As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
-0
+3
 
 SLIDER
 300
-740
+750
 480
-773
+783
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -1969,9 +2016,9 @@ HORIZONTAL
 
 SLIDER
 480
-740
+750
 660
-773
+783
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -2025,15 +2072,15 @@ CHOOSER
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
-0
+2
 
 SWITCH
 480
 700
-660
+732
 733
-hearer-learns-from-failure?
-hearer-learns-from-failure?
+hearer-decreases-from-failure?
+hearer-decreases-from-failure?
 0
 1
 -1000
@@ -2061,19 +2108,19 @@ If overall failure:
 CHOOSER
 300
 610
-610
+627
 655
 if-overall-failure
 if-overall-failure
-"Nothing happens" "Both decrease all speaker's values (if known)" "Both decrease unsuccessful values only (if known)"
+"Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
 0
 
 TEXTBOX
-480
-635
-670
-675
-If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
+310
+690
+500
+745
+If on, hearer follows 'if-overall-failure'. If off, hearer instead increases ALL speaker's values:
 11
 0.0
 1
@@ -2097,7 +2144,7 @@ risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-1.0
+3.2
 0.1
 1
 %
@@ -2112,18 +2159,61 @@ nr-children-per-woman
 nr-children-per-woman
 0
 10
-2.0
+10.0
 0.5
 1
 NIL
 HORIZONTAL
 
+MONITOR
+625
+360
+725
+405
+NIL
+current-population
+17
+1
+11
+
+SLIDER
+610
+405
+740
+438
+max-population
+max-population
+200
+10000
+8200.0
+200
+1
+NIL
+HORIZONTAL
+
+BUTTON
+740
+495
+840
+528
+NIL
+setup-as-parkvall
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 TEXTBOX
-305
-705
-455
-731
-How much hearer increases on unsuccesful communication:
+135
+450
+285
+491
+only affects new slaves coming in with ships
 11
 0.0
 1
@@ -2179,6 +2269,15 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+boat
+false
+0
+Polygon -1 true false 63 162 90 207 223 207 290 162
+Rectangle -6459832 true false 150 32 157 162
+Polygon -13345367 true false 150 34 131 49 145 47 147 48 149 49
+Polygon -7500403 true true 158 33 230 157 182 150 169 151 157 156
+Polygon -7500403 true true 149 55 88 143 103 139 111 136 117 139 126 145 130 147 139 147 146 146 149 55
 
 box
 false
