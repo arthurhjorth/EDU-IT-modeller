@@ -76,8 +76,19 @@ plantations-own [
 
 
 to setup
+;  show all? patches [pcolor != black]
+;  if count patches with [pcolor = black] > 400 [
+;    user-message "Import the background image first, please"
+;    stop
+;  ]
+;  let patch-colors [(list self pcolor)] of patches
+
   clear-all
   reset-ticks
+;  foreach patch-colors [ t ->
+;    ask item 0 t [set pcolor item 1 t]
+;  ]
+
   ;;create the map:
   ;;import-pcolors "stthomas.png"
 
@@ -88,7 +99,9 @@ to setup
 
   ;;get the data files and initialize variables:
   import-csv ;;gets WALS data from url, makes it into a table
+;  show "done csv"
   import-ship-csv
+;  show "done ship"
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
   make-plantations ;also sets up links
@@ -136,12 +149,42 @@ to setup-as-parkvall
 
   set if-overall-success "Both increase all speaker's values"
 
-
-
-
-
-  setup
 end
+
+to reset-settings
+  ;specify all parameters:
+;  set include-words? true
+  set start-odds 3 ;@
+  set nr-slaves 100
+  set nr-colonists 25
+  set deaths? false
+  set children? false ;double check that it works properly
+  set newcomers? false ;in his model people left and arrived according to historic data
+  set distribution-method "random plantation"
+  set convs-per-month 3
+  set random-one 0 ; randomly chosen for parkvall
+  set on-my-plantation 1 ;
+  set neighbour-plantation 0 ;
+  set nr-features-exchanged 1
+  set include-status? false
+  set max-population 10000
+
+  ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
+  ;vores model kan altså ikke 1-1 gengive dette.
+  set %-understood-for-overall-success 100
+  set if-overall-success "Both increase successful/matching values only"
+
+  set odds-increase-successful 1 ;@
+  set kids-odds-inc-success 1
+  set odds-decrease 0
+  set kids-odds-dec 0
+  set if-overall-failure "Decrease unsuccessful values only (if known)"
+  set hearer-decreases-from-failure? false
+  set odds-increase-unsuccessful 1 ;@
+  set kids-odds-inc-unsuccess 1
+end
+
+
 
 to make-plantations
   ;;layout the world
@@ -576,11 +619,12 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
   ;;(understood in this context means that the hearer and speaker both drew/chose the exact same value/word, nothing else matters)
   let nr-understood length filter [i -> i = true] outcome-list ;;nr of trues in the list
   let percent-understood nr-understood / length outcome-list ;;the percentage understood of the exchanged items
-  show (list speaker-choices hearer-choices  )
-    show percent-understood
+;  show (list speaker-choices hearer-choices  )
+;    show percent-understood
   let percent-needed (%-understood-for-overall-success / 100) ;;threshold from interface
   ;;check if understanding is above the threshold:
   let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
+;    show (list percent-understood percent-needed)
   ifelse percent-understood >= percent-needed [ ;;if percent successes (for all the features and words exchanged in this interaction) is above the threshold, OVERALL SUCCESS!
     set success? true ;;measures overall success
     set success-count success-count + 1 ;;total cumulative
@@ -1280,11 +1324,9 @@ end
 
 to import-img
   ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [ ;from drive
-  fetch:url-async "http://86.52.121.12/stthomas.png" [
-    ;^^from Arthur's server ;works! BUT NL web...!!!
-
-    p ->
+  fetch:url-async  "http://86.52.121.12/stthomas.png" [    p ->
     import-a:pcolors p
+    initialize-map
   ]
 end
 
@@ -1302,27 +1344,28 @@ to import-csv
   fetch:url-async "https://docs.google.com/spreadsheets/d/1RA6wBtIiiOQG242R0iB0qV60n_xPCMBQQ_EmBhqr-tw/gviz/tq?tqx=out:csv" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
-    ;;now to convert it:
+                                        ;;now to convert it:
     set wals-list []
     set wals-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
-    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+                                                                       ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
+                                                                       ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+
+    set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
+    set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
+    set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
+
+    ;;now to make the table:
+    set wals-table table:make ;;initialize the empty table
+
+    ;;loop to create the wals table based on the list:
+    foreach wals-list [ ;;wals-list is a list of lists
+      x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
+      let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
+      let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
+      table:put wals-table key value ;;table:put adds this key-value combination to the table
+    ]
   ]
 
-  set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
-  set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
-  set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
-
-  ;;now to make the table:
-  set wals-table table:make ;;initialize the empty table
-
-  ;;loop to create the wals table based on the list:
-  foreach wals-list [ ;;wals-list is a list of lists
-    x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
-    let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
-    let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
-    table:put wals-table key value ;;table:put adds this key-value combination to the table
-  ]
 end
 
 ;;@Ida's notes about how to handle the data:
@@ -1341,10 +1384,12 @@ to import-ship-csv
   ;downloadable link: https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/gviz/tq?tqx=out:csv
   fetch:url-async "https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/gviz/tq?tqx=out:csv" [
     text ->
+;    show text
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
     ;convert it:
     set ship-list []
     set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
+;    show ship-list
     set ship-header-list item 0 ship-list ;["Language" "Year" "Month" "N-slaves" "N-slaves-estimate" "N-slaves-estimate-simple-mean"] ;matching ship-list!
     set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 "Jan" 103 103 103] ["wolNA" 1674 "Jan" 103 103 103] ... ]
     let year-list map [i -> item 1 i] ship-list ;list with all the years
@@ -1424,9 +1469,9 @@ ticks
 
 BUTTON
 5
-160
-105
-193
+180
+220
+213
 NIL
 setup
 NIL
@@ -1441,9 +1486,9 @@ NIL
 
 BUTTON
 5
-195
-220
-228
+215
+105
+248
 NIL
 go
 T
@@ -1533,7 +1578,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-42
+5
 
 CHOOSER
 1050
@@ -1543,7 +1588,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-2
+0
 
 BUTTON
 955
@@ -1563,10 +1608,10 @@ NIL
 1
 
 TEXTBOX
-235
-435
-320
-453
+520
+370
+605
+388
 Conversation
 14
 0.0
@@ -1574,29 +1619,29 @@ Conversation
 
 TEXTBOX
 235
-355
+370
 360
-373
+388
 Partner-Selection
 14
 0.0
 1
 
 TEXTBOX
-525
-355
-660
-386
+840
+360
+975
+391
 Learning update
 14
 0.0
 1
 
 SLIDER
-225
-455
-370
-488
+510
+390
+655
+423
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1609,30 +1654,30 @@ HORIZONTAL
 
 TEXTBOX
 5
-235
+250
 140
-266
+281
 Demography
 14
 0.0
 1
 
 INPUTBOX
-115
-95
+5
+85
 220
-155
+145
 start-odds
-3.0
+10.0
 1
 0
 Number
 
 SLIDER
-525
-430
-680
-463
+840
+435
+995
+468
 odds-increase-successful
 odds-increase-successful
 0
@@ -1644,10 +1689,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-860
-430
-1015
-463
+1155
+415
+1310
+448
 odds-decrease
 odds-decrease
 -3
@@ -1687,9 +1732,9 @@ false
 PENS
 
 TEXTBOX
-90
+10
 70
-165
+85
 88
 Language
 14
@@ -1698,9 +1743,9 @@ Language
 
 SWITCH
 5
-255
+270
 95
-288
+303
 deaths?
 deaths?
 1
@@ -1709,9 +1754,9 @@ deaths?
 
 SWITCH
 95
-255
+270
 220
-288
+303
 children?
 children?
 1
@@ -1720,42 +1765,42 @@ children?
 
 SWITCH
 100
-290
+305
 220
-323
+338
 newcomers?
 newcomers?
-1
+0
 1
 -1000
 
 INPUTBOX
 225
-375
+390
 295
-435
+450
 random-one
+1.0
+1
+0
+Number
+
+INPUTBOX
+410
+390
+505
+450
+on-my-plantation
 0.0
 1
 0
 Number
 
 INPUTBOX
-410
-375
-505
-435
-on-my-plantation
-5.0
-1
-0
-Number
-
-INPUTBOX
 295
-375
+390
 410
-435
+450
 neighbour-plantation
 0.0
 1
@@ -1763,21 +1808,21 @@ neighbour-plantation
 Number
 
 INPUTBOX
-225
-525
-315
-585
+510
+460
+600
+520
 convs-per-month
-3.0
+30.0
 1
 0
 Number
 
 SWITCH
-370
-455
-505
-488
+655
+390
+790
+423
 include-status?
 include-status?
 1
@@ -1785,10 +1830,10 @@ include-status?
 -1000
 
 SLIDER
-680
-430
-835
-463
+995
+435
+1150
+468
 kids-odds-inc-success
 kids-odds-inc-success
 0
@@ -1800,10 +1845,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1015
-430
-1170
-463
+1310
+415
+1465
+448
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1815,25 +1860,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-225
-490
-505
-523
+510
+425
+790
+458
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
 100
-55.0
+100.0
 5
 1
 %
 HORIZONTAL
 
 SLIDER
-860
-465
-1040
-498
+1155
+450
+1335
+483
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -1845,10 +1890,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1040
-465
-1180
-498
+1335
+450
+1475
+483
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -1861,14 +1906,14 @@ HORIZONTAL
 
 SLIDER
 5
-290
+305
 97
-323
+338
 dying-age
 dying-age
 0
 100
-50.0
+38.0
 1
 1
 NIL
@@ -1876,19 +1921,19 @@ HORIZONTAL
 
 CHOOSER
 5
-395
+410
 220
-440
+455
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
 0
 
 SWITCH
-860
-500
-1180
-533
+1155
+485
+1475
+518
 hearer-decreases-from-failure?
 hearer-decreases-from-failure?
 1
@@ -1896,30 +1941,30 @@ hearer-decreases-from-failure?
 -1000
 
 TEXTBOX
-525
-370
-625
-388
+840
+375
+940
+393
 If overall success:
 12
 0.0
 1
 
 TEXTBOX
-860
-370
-1010
-388
+1155
+355
+1305
+373
 If overall failure:
 12
 0.0
 1
 
 CHOOSER
-860
-385
-1180
-430
+1155
+370
+1475
+415
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
@@ -1927,14 +1972,14 @@ if-overall-failure
 
 SLIDER
 5
-325
+340
 220
-358
+373
 risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-3.2
+0.0
 0.1
 1
 %
@@ -1942,14 +1987,14 @@ HORIZONTAL
 
 SLIDER
 5
-360
+375
 220
-393
+408
 nr-children-per-woman
 nr-children-per-woman
 0
-10
-10.0
+15
+4.0
 0.5
 1
 NIL
@@ -1968,9 +2013,9 @@ current-population
 
 SLIDER
 5
-440
+455
 220
-473
+488
 max-population
 max-population
 200
@@ -1982,11 +2027,11 @@ NIL
 HORIZONTAL
 
 BUTTON
-120
-160
+105
+145
 220
-193
-NIL
+178
+Parkvall sett.
 setup-as-parkvall
 NIL
 1
@@ -1999,14 +2044,48 @@ NIL
 1
 
 CHOOSER
-525
-385
-847
-430
+840
+390
+1150
+435
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
 0
+
+BUTTON
+115
+215
+220
+248
+100 years
+repeat 1200 [go]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+5
+145
+105
+178
+Original Sett
+reset-settings
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
