@@ -752,7 +752,7 @@ end
 
 to color-by-lang
   ask people [
-    let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
+    let my-choice most-likely-value plot-feature ;;their most likely value for this feature (highest odds)
     set color item my-choice base-colors ;;using the value as indexing for what color to choose from the global base-colors
   ]
 end
@@ -1534,7 +1534,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-31
+30
 
 CHOOSER
 1050
