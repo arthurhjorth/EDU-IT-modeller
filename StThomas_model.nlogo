@@ -655,7 +655,7 @@ end
 ;;---REPORTERS FOR INTERFACE:
 
 to-report year
-  report floor (ticks / 12) + 1600
+  report floor (ticks / 12) + 1640
 end
 
 to-report this-month ;reporting month-names
@@ -2026,9 +2026,9 @@ distribution-method
 0
 
 SWITCH
-300
-700
 480
+700
+660
 733
 hearer-learns-from-failure?
 hearer-learns-from-failure?
@@ -2116,16 +2116,15 @@ nr-children-per-woman
 NIL
 HORIZONTAL
 
-INPUTBOX
-10
-490
-80
-550
-random-one
-10.0
+TEXTBOX
+305
+705
+455
+731
+How much hearer increases on unsuccesful communication:
+11
+0.0
 1
-0
-Number
 
 @#$#@#$#@
 ## WHAT IS IT?
