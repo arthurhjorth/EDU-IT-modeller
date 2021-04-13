@@ -607,7 +607,7 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if this-month = birth-month and children? and age > 15 and current-population <= max-population [have-children] ;only have kids if max pop hasn't been reached
+  if this-month = birth-month and children? and age > 15 and age < 42 and current-population <= max-population [have-children] ;only have kids if max pop hasn't been reached
 
 
   if deaths? [
