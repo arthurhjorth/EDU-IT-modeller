@@ -323,11 +323,11 @@ to have-children ;agent reporter, run in get-older (which is run in go) ;right n
   ;; since I'm setting the language differently, I'm making a separate version here.
 
  if breed = colonists [
- if random-float 1 < ( nr-children-per-woman / 25 * 0.5 ) [ ;25 = number of birth years (only running this function once a year); half the population are female (at least in the white population)
+ if random-float 1 < ( nr-children-per-woman * 0.5 / ( 25 * 12 ) ) [ ;0.5 because only half the population are female (at least in the white population); 25 years * 12 months of fertility
   hatch-slaves 1 [
       set age 0 ] ;newborn
 
-      set birth-month one-of month-names ;error: cannot use observer context
+      set birth-month this-month ;error: cannot use observer context
 
       set shape "person" set size 3 set color black ;children are smaller
 
@@ -346,12 +346,12 @@ to have-children ;agent reporter, run in get-older (which is run in go) ;right n
 
 
    if breed = slaves [
-  if random-float 1 < ( nr-children-per-woman / 25 * 0.2 ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
+  if random-float 1 < ( nr-children-per-woman * 0.2 / ( 25 * 12 ) ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
 
     hatch-slaves 1 [
       set age 0 ] ;newborn
 
-      set birth-month one-of month-names ;error: cannot use observer context
+      set birth-month this-month ;error: cannot use observer context
 
       set shape "person" set size 3 set color black ;children are smaller
 
