@@ -111,7 +111,7 @@ end
 to setup-as-parkvall
   ;specify all parameters:
   set include-words? true
-  set start-odds 20 ;@@@
+  set start-odds 10 ;@
   set nr-slaves 100
   set nr-colonists 100
   set deaths? false
@@ -119,21 +119,23 @@ to setup-as-parkvall
   set newcomers? true ;in his model people left and arrived according to historic data
   set distribution-method "random plantation"
   set convs-per-month 30
-  set random-one 1 ;@@
-  set on-my-plantation 1 ;@
-  set neighbour-plantation 1 ;@
+  set random-one 1 ; randomly chosen for parkvall
+  set on-my-plantation 0 ;
+  set neighbour-plantation 0 ;
   set nr-features-exchanged 1
   set include-status? false
+  set max-population 10000
 
   ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
   ;vores model kan altså ikke 1-1 gengive dette.
   set %-understood-for-overall-success 100
-  set if-overall-success "Hearer increases all speaker's values"
+  set if-overall-success "Hearer increases successful/matching values only"
   set odds-increase-successful 2 ;@
   set kids-odds-inc-success 2
-  set odds-decrease 1 ;@@
-  set if-overall-failure "nothing decreases"
-  set hearer-decreases-from-failure? true ;@@@@gus
+  set odds-decrease 0
+  set kids-odds-dec 0
+  set if-overall-failure "Nothing decreases"
+  set hearer-decreases-from-failure? false
   set odds-increase-unsuccessful 1 ;@
   set kids-odds-inc-unsuccess 1
 
@@ -1680,7 +1682,7 @@ SWITCH
 63
 include-words?
 include-words?
-1
+0
 1
 -1000
 
@@ -1700,7 +1702,7 @@ INPUTBOX
 220
 125
 start-odds
-20.0
+10.0
 1
 0
 Number
@@ -1729,7 +1731,7 @@ odds-decrease
 odds-decrease
 -3
 0
-1.0
+0.0
 1
 1
 NIL
@@ -1772,7 +1774,7 @@ INPUTBOX
 95
 125
 nr-words
-10.0
+8.0
 1
 0
 Number
@@ -1843,7 +1845,7 @@ SWITCH
 243
 deaths?
 deaths?
-0
+1
 1
 -1000
 
@@ -1896,7 +1898,7 @@ INPUTBOX
 295
 610
 on-my-plantation
-1.0
+0.0
 1
 0
 Number
@@ -1907,7 +1909,7 @@ INPUTBOX
 200
 610
 neighbour-plantation
-1.0
+0.0
 1
 0
 Number
@@ -1918,7 +1920,7 @@ INPUTBOX
 100
 520
 convs-per-month
-5.0
+30.0
 1
 0
 Number
@@ -1943,7 +1945,7 @@ kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-5.0
+2.0
 1
 1
 NIL
@@ -2023,7 +2025,7 @@ kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
 5
-5.0
+1.0
 1
 1
 NIL
@@ -2072,7 +2074,7 @@ CHOOSER
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
-2
+0
 
 SWITCH
 480
@@ -2081,7 +2083,7 @@ SWITCH
 733
 hearer-decreases-from-failure?
 hearer-decreases-from-failure?
-0
+1
 1
 -1000
 
@@ -2185,7 +2187,7 @@ max-population
 max-population
 200
 10000
-8200.0
+10000.0
 200
 1
 NIL
