@@ -229,11 +229,10 @@ to go
   update-feature-plot
   update-convergence-plot
 
-  if deaths? [
-    ask people [
-      get-older ;;agents get older and maybe die ;and have children
-    ]
+  ask people [
+    get-older ;;agents get older and maybe die ;and have children
   ]
+
   set time ticks mod 12 ;;update time
   if year = 1940 [stop]
 
@@ -313,7 +312,17 @@ to have-children ;agent reporter, run in get-older (which is run in go) ;right n
   ;; not sure if better to combine this function with make-person
   ;; since I'm setting the language differently, I'm making a separate version here.
 
- if random-float 1 < ( nr-children-per-woman / 25 * 0.5 ) [ ;25 = number of birth years (only running this function once a year); half the population are female (at least in the white population)
+  ;25 = number of birth years (only running this function once a year)
+
+
+
+if ( breed = colonists and random-float 1 < ( ( nr-children-per-woman * 0.5 ) / 25 ) )  ; half the population are female in whites
+
+  or
+
+ ( breed = slaves and random-float 1 < ( ( nr-children-per-woman * 0.2 ) / 25 ) ) [ ;20% women in slaves
+
+
 
     hatch 1 [
       set age 0 ;newborn
@@ -598,10 +607,18 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if children? and age > 15 and current-population <= max-population [have-children] ;only have kids if max pop hasn't been reached
-  if this-month = birth-month [if random-float 100 < risk-premature-death-yearly  [die]]
+  if this-month = birth-month and children? and age > 15 and current-population <= max-population [have-children] ;only have kids if max pop hasn't been reached
 
+
+  if deaths? [
+  if this-month = birth-month [if random-float 100 < risk-premature-death-yearly [die]]
+  ]
+
+  if deaths? [
+    ask people [
   if age >= dying-age [die]
+    ]
+  ]
 end
 
 ;;---REPORTERS FOR INTERFACE:
@@ -1372,7 +1389,7 @@ INPUTBOX
 100
 205
 nr-slaves
-50.0
+40.0
 1
 0
 Number
@@ -1476,7 +1493,7 @@ CHOOSER
 color-feature
 color-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-0
+10
 
 TEXTBOX
 860
@@ -1611,7 +1628,7 @@ INPUTBOX
 205
 205
 nr-colonists
-50.0
+40.0
 1
 0
 Number
@@ -1724,7 +1741,7 @@ SWITCH
 243
 children?
 children?
-1
+0
 1
 -1000
 
@@ -2019,7 +2036,7 @@ nr-children-per-woman
 nr-children-per-woman
 0
 10
-2.0
+3.0
 0.5
 1
 NIL
