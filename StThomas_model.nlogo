@@ -17,8 +17,7 @@ globals [
   ship-table ;the one we use!
   year-month-list
 
-  color-list ;;for plotting
-  agent-color-list ;;for visualizing
+
 
   sea-patches
   land-patches
@@ -210,9 +209,6 @@ to initialize-variables ;;run in setup
     table:put chosen-table key value ;;table:put adds this key-value combination to the agent's table
   ]
 
-
-  set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexing that the same value is always the same color)
-  set agent-color-list [white 14 104 45 53] ;;@ can add more
 end
 
 to initialize-agent-variables ;;agent procedure, run in setup
@@ -754,7 +750,7 @@ end
 to color-by-lang
   ask people [
     let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
-    set color item my-choice agent-color-list ;;using the value as indexing for what color to choose from the global agent-color-list
+    set color item my-choice base-colors ;;using the value as indexing for what color to choose from the global base-colors
   ]
 end
 
@@ -866,7 +862,7 @@ to update-feature-plot ;;run in go (and setup)
 
 
 
-        let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+        let c item s base-colors ;  ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
         create-temporary-plot-pen (word s) ;;the instance/value name made into a string
         set-plot-pen-mode 1 ;;bar mode
         set-plot-pen-color c
@@ -897,7 +893,7 @@ to update-feature-plot ;;run in go (and setup)
         ;;let y table:get counts s ;;@CHANGE THIS TO THE AVERAGE PROBABILITY FOR THIS VALUE
         let y avg-value-prob plot-feature s ;;uses the reporter 'avg-value-prob' with the current feature and instance/value as input - so y is the average probability across agents
 
-        let c item s color-list
+        let c item s base-colors
         create-temporary-plot-pen (word s)
         set-plot-pen-mode 1
         set-plot-pen-color c
@@ -927,7 +923,7 @@ to update-feature-plot ;;run in go (and setup)
       (foreach instances range n [
         [s i] ->
         let y item s counts-list ;;the nr of times this value has been chosen (using indexing because that's the structure of chosen-table and counts-list)
-        let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+        let c item s base-colors ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
         create-temporary-plot-pen (word s) ;;the instance/value name made into a string
         set-plot-pen-mode 1 ;;bar mode
         set-plot-pen-color c
@@ -1398,10 +1394,10 @@ to color-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-230
-10
-960
-357
+435
+325
+1165
+672
 -1
 -1
 2.0
@@ -1425,10 +1421,10 @@ ticks
 30.0
 
 BUTTON
-725
-530
-788
-563
+5
+190
+105
+223
 NIL
 setup
 NIL
@@ -1442,10 +1438,10 @@ NIL
 1
 
 BUTTON
-790
-530
-853
-563
+5
+225
+220
+258
 NIL
 go
 T
@@ -1459,10 +1455,10 @@ NIL
 1
 
 MONITOR
-235
-305
-292
-350
+440
+620
+497
+665
 Month
 this-month
 17
@@ -1470,10 +1466,10 @@ this-month
 11
 
 MONITOR
-290
-305
-347
-350
+495
+620
+552
+665
 Year
 year
 17
@@ -1481,10 +1477,10 @@ year
 11
 
 PLOT
-965
-10
-1285
-185
+1175
+15
+1495
+190
 Communication outcomes (per tick)
 Time
 Count
@@ -1500,10 +1496,10 @@ PENS
 "Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
 
 INPUTBOX
-20
-145
-100
-205
+10
+10
+90
+70
 nr-slaves
 100.0
 1
@@ -1511,10 +1507,10 @@ nr-slaves
 Number
 
 PLOT
-985
-240
-1205
-480
+1165
+375
+1385
+615
 Feature plot
 Values
 NIL
@@ -1528,40 +1524,40 @@ true
 PENS
 
 CHOOSER
-985
-190
-1077
-235
+1165
+325
+1257
+370
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
 0
 
 CHOOSER
-1080
-190
-1205
-235
+1260
+325
+1385
+370
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
 1
 
 TEXTBOX
-1215
-255
-1395
-476
+2065
+280
+2245
+501
 - max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
 12
 0.0
 1
 
 BUTTON
-1035
-480
-1155
-513
+1165
+615
+1275
+648
 NIL
 update-feature-plot
 NIL
@@ -1575,20 +1571,20 @@ NIL
 1
 
 TEXTBOX
-940
-515
-1240
-545
+1790
+540
+2090
+570
 Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature eller plot-this, mens modellen ikke kører.
 11
 0.0
 1
 
 BUTTON
-755
-435
-850
-468
+1275
+615
+1385
+648
 NIL
 color-by-lang
 T
@@ -1602,70 +1598,70 @@ NIL
 1
 
 CHOOSER
-755
-390
-850
-435
+1605
+415
+1700
+460
 color-feature
 color-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
 11
 
 TEXTBOX
-860
-391
-980
-456
+1710
+416
+1830
+481
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
 1
 
 TEXTBOX
-80
-655
-175
-686
+95
+665
+190
+696
 Conversation
 14
 0.0
 1
 
 TEXTBOX
-55
-385
-180
-403
+10
+520
+135
+538
 Partner-Selection
 14
 0.0
 1
 
 TEXTBOX
-390
-480
 525
-511
+15
+660
+46
 Learning update
 14
 0.0
 1
 
 TEXTBOX
-780
-365
-895
-396
+1630
+390
+1745
+421
 Visualisation
 14
 0.0
 1
 
 SLIDER
-0
-675
-145
-708
+15
+685
+160
+718
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1677,10 +1673,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-10
-30
-220
-63
+5
+90
+215
+123
 include-words?
 include-words?
 0
@@ -1688,20 +1684,20 @@ include-words?
 -1000
 
 TEXTBOX
-75
-125
-210
-156
+5
+265
+140
+296
 Demography
 14
 0.0
 1
 
 INPUTBOX
-120
-65
-220
+115
 125
+215
+185
 start-odds
 10.0
 1
@@ -1709,10 +1705,10 @@ start-odds
 Number
 
 SLIDER
-300
-555
-455
-588
+435
+90
+590
+123
 odds-increase-successful
 odds-increase-successful
 0
@@ -1724,10 +1720,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-300
-655
-455
-688
+435
+190
+590
+223
 odds-decrease
 odds-decrease
 -3
@@ -1739,10 +1735,10 @@ NIL
 HORIZONTAL
 
 INPUTBOX
-125
-145
-205
-205
+115
+10
+195
+70
 nr-colonists
 100.0
 1
@@ -1750,30 +1746,30 @@ nr-colonists
 Number
 
 TEXTBOX
-1020
-595
-1425
-640
+1870
+620
+2275
+665
 Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
 11
 0.0
 1
 
 TEXTBOX
-1200
-550
-1495
-595
+2050
+575
+2345
+620
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
 11
 0.0
 1
 
 INPUTBOX
-10
-65
-95
+5
 125
+90
+185
 nr-words
 8.0
 1
@@ -1781,10 +1777,10 @@ nr-words
 Number
 
 PLOT
-1290
-10
-1525
-185
+2140
+35
+2375
+210
 Convergence plot
 NIL
 NIL
@@ -1798,20 +1794,20 @@ false
 PENS
 
 TEXTBOX
-1295
-185
-1520
-245
+2145
+210
+2370
+270
 convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
 11
 0.0
 1
 
 MONITOR
-1215
-65
-1285
-110
+1425
+70
+1495
+115
 Successes
 success-count
 17
@@ -1819,10 +1815,10 @@ success-count
 11
 
 MONITOR
-1215
-110
-1285
-155
+1425
+115
+1495
+160
 Failures
 fail-count
 17
@@ -1830,20 +1826,20 @@ fail-count
 11
 
 TEXTBOX
-95
-10
-170
-28
+90
+70
+165
+88
 Language
 14
 0.0
 1
 
 SWITCH
-10
-210
-100
-243
+5
+285
+95
+318
 deaths?
 deaths?
 1
@@ -1851,10 +1847,10 @@ deaths?
 -1000
 
 SWITCH
-100
-210
-215
-243
+95
+285
+220
+318
 children?
 children?
 1
@@ -1862,31 +1858,21 @@ children?
 -1000
 
 SWITCH
-105
-245
-225
-278
+100
+320
+220
+353
 newcomers?
 newcomers?
 0
 1
 -1000
 
-TEXTBOX
-40
-535
-190
-553
-Tilføj odds for hver mulighed:
-11
-0.0
-1
-
 INPUTBOX
-10
-550
-80
-610
+5
+605
+75
+665
 random-one
 1.0
 1
@@ -1894,10 +1880,10 @@ random-one
 Number
 
 INPUTBOX
-200
-550
-295
-610
+190
+605
+285
+665
 on-my-plantation
 0.0
 1
@@ -1905,10 +1891,10 @@ on-my-plantation
 Number
 
 INPUTBOX
-85
-550
-200
-610
+75
+605
+190
+665
 neighbour-plantation
 0.0
 1
@@ -1916,10 +1902,10 @@ neighbour-plantation
 Number
 
 INPUTBOX
-10
-460
-100
-520
+5
+545
+95
+605
 convs-per-month
 30.0
 1
@@ -1927,10 +1913,10 @@ convs-per-month
 Number
 
 SWITCH
-145
-675
-280
-708
+160
+685
+295
+718
 include-status?
 include-status?
 1
@@ -1938,10 +1924,10 @@ include-status?
 -1000
 
 SLIDER
-455
-555
-610
-588
+590
+90
+745
+123
 kids-odds-inc-success
 kids-odds-inc-success
 0
@@ -1953,10 +1939,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-455
-655
-610
-688
+590
+190
+745
+223
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1968,10 +1954,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-325
-380
-555
-413
+5
+765
+235
+798
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1983,20 +1969,20 @@ SLIDER
 HORIZONTAL
 
 TEXTBOX
-395
-360
-505
-391
+75
+745
+185
+776
 Understanding
 14
 0.0
 1
 
 SLIDER
-300
-750
-480
-783
+435
+285
+615
+318
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -2008,10 +1994,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-480
-750
-660
-783
+615
+285
+795
+318
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -2023,20 +2009,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-330
-415
-570
-471
+265
+715
+505
+771
 Hvor mange % af de udvekslede features og ord hearer skal forstå for at interaktionen er overall successful (forståelse = eksakt match)
 11
 0.0
 1
 
 SLIDER
-10
-245
-102
-278
+5
+320
+97
+353
 dying-age
 dying-age
 0
@@ -2048,30 +2034,30 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-710
-575
-895
-631
+230
+325
+415
+381
 Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
 11
 0.0
 1
 
 CHOOSER
-10
-405
-215
-450
+5
+425
+220
+470
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
 0
 
 SWITCH
-480
-700
-732
-733
+615
+235
+867
+268
 hearer-decreases-from-failure?
 hearer-decreases-from-failure?
 1
@@ -2079,60 +2065,60 @@ hearer-decreases-from-failure?
 -1000
 
 TEXTBOX
-300
-495
-400
-513
+435
+30
+535
+48
 If overall success:
 12
 0.0
 1
 
 TEXTBOX
-300
-595
-450
-613
+435
+130
+585
+148
 If overall failure:
 12
 0.0
 1
 
 CHOOSER
-300
-610
-627
-655
+435
+145
+762
+190
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
 0
 
 TEXTBOX
-310
-690
-500
-745
+445
+225
+635
+280
 If on, hearer follows 'if-overall-failure'. If off, hearer instead increases ALL speaker's values:
 11
 0.0
 1
 
 TEXTBOX
-95
-710
-270
-735
+110
+720
+285
+745
 If on: colonists are always speakers in colonist-slave interactions
 11
 0.0
 1
 
 SLIDER
-10
-280
-225
-313
+5
+355
+220
+388
 risk-premature-death-yearly
 risk-premature-death-yearly
 0
@@ -2144,10 +2130,10 @@ risk-premature-death-yearly
 HORIZONTAL
 
 SLIDER
-10
-315
-225
-348
+5
+390
+220
+423
 nr-children-per-woman
 nr-children-per-woman
 0
@@ -2159,10 +2145,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-625
-360
-725
-405
+550
+620
+650
+665
 NIL
 current-population
 17
@@ -2170,10 +2156,10 @@ current-population
 11
 
 SLIDER
-610
-405
-740
-438
+5
+470
+220
+503
 max-population
 max-population
 200
@@ -2185,10 +2171,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-740
-495
-840
-528
+120
+190
+220
+223
 NIL
 setup-as-parkvall
 NIL
@@ -2202,20 +2188,20 @@ NIL
 1
 
 TEXTBOX
-135
-450
-285
-491
+225
+430
+375
+471
 only affects new slaves coming in with ships
 11
 0.0
 1
 
 CHOOSER
-305
-510
-627
-555
+440
+45
+762
+90
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
