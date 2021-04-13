@@ -249,8 +249,11 @@ to go
 
   ;ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
+
+  if ticks mod 6 = 0 [
   update-feature-plot
   update-convergence-plot
+  ]
 
   ask people [
     get-older ;;agents get older and maybe die ;and have children
@@ -825,7 +828,7 @@ end
 
 ;;--- PLOTS
 to update-feature-plot ;;run in go (and setup)
-  if ticks mod 6 = 0 [ ;only updates every 6 months
+
     set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
     clear-plot
     ;;interface chooser decides what feature we focus on ('plot-feature')
@@ -934,12 +937,12 @@ to update-feature-plot ;;run in go (and setup)
         set-plot-pen-color c ;;to get the right color in the legend
       ])
     ]
-  ] ;end of ticks mod 6
+
 
 end
 
 to update-convergence-plot ;;run in go (and setup). Visualizes convergence for the island as a whole
-  if ticks mod 6 = 0 [ ;only updates every 6 months
+
     let proportion-list []
     foreach feature-list [
       the-feature ->
@@ -983,7 +986,7 @@ to update-convergence-plot ;;run in go (and setup). Visualizes convergence for t
       plotxy i y
       ;;set-plot-pen-color c ; to get the right color in the legend
     ])
-  ]
+
 
 
 end
@@ -1394,10 +1397,10 @@ to color-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-435
-325
-1165
-672
+225
+10
+955
+357
 -1
 -1
 2.0
@@ -1455,10 +1458,10 @@ NIL
 1
 
 MONITOR
-440
-620
-497
-665
+230
+305
+287
+350
 Month
 this-month
 17
@@ -1466,10 +1469,10 @@ this-month
 11
 
 MONITOR
-495
-620
-552
-665
+285
+305
+342
+350
 Year
 year
 17
@@ -1478,9 +1481,9 @@ year
 
 PLOT
 1175
-15
+10
 1495
-190
+160
 Communication outcomes (per tick)
 Time
 Count
@@ -1507,10 +1510,10 @@ nr-slaves
 Number
 
 PLOT
-1165
-375
-1385
-615
+955
+60
+1175
+300
 Feature plot
 Values
 NIL
@@ -1524,40 +1527,30 @@ true
 PENS
 
 CHOOSER
-1165
-325
-1257
-370
+955
+10
+1047
+55
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-0
+31
 
 CHOOSER
-1260
-325
-1385
-370
+1050
+10
+1175
+55
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
 1
 
-TEXTBOX
-2065
-280
-2245
-501
-- max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
-12
-0.0
-1
-
 BUTTON
-1165
-615
-1275
-648
+955
+300
+1065
+335
 NIL
 update-feature-plot
 NIL
@@ -1581,10 +1574,10 @@ Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature elle
 1
 
 BUTTON
-1275
-615
-1385
-648
+1065
+300
+1175
+335
 NIL
 color-by-lang
 T
@@ -1638,10 +1631,10 @@ Partner-Selection
 1
 
 TEXTBOX
-525
-15
-660
-46
+630
+370
+765
+401
 Learning update
 14
 0.0
@@ -1675,7 +1668,7 @@ HORIZONTAL
 SWITCH
 5
 90
-215
+220
 123
 include-words?
 include-words?
@@ -1696,19 +1689,19 @@ Demography
 INPUTBOX
 115
 125
-215
+220
 185
 start-odds
-10.0
+3.0
 1
 0
 Number
 
 SLIDER
-435
-90
-590
-123
+540
+445
+695
+478
 odds-increase-successful
 odds-increase-successful
 0
@@ -1720,10 +1713,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-435
-190
-590
-223
+540
+545
+695
+578
 odds-decrease
 odds-decrease
 -3
@@ -1756,10 +1749,10 @@ Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på indivi
 1
 
 TEXTBOX
-2050
-575
-2345
-620
+2130
+365
+2425
+410
 Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
 11
 0.0
@@ -1768,7 +1761,7 @@ Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features o
 INPUTBOX
 5
 125
-90
+105
 185
 nr-words
 8.0
@@ -1777,10 +1770,10 @@ nr-words
 Number
 
 PLOT
-2140
-35
-2375
-210
+1175
+160
+1495
+335
 Convergence plot
 NIL
 NIL
@@ -1794,10 +1787,10 @@ false
 PENS
 
 TEXTBOX
-2145
-210
-2370
-270
+1660
+220
+1885
+280
 convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
 11
 0.0
@@ -1805,9 +1798,9 @@ convergence plot:\nfor each WALS feature, shows the proportion of agents that ha
 
 MONITOR
 1425
-70
+45
 1495
-115
+90
 Successes
 success-count
 17
@@ -1816,9 +1809,9 @@ success-count
 
 MONITOR
 1425
-115
+90
 1495
-160
+135
 Failures
 fail-count
 17
@@ -1864,7 +1857,7 @@ SWITCH
 353
 newcomers?
 newcomers?
-0
+1
 1
 -1000
 
@@ -1874,7 +1867,7 @@ INPUTBOX
 75
 665
 random-one
-1.0
+0.0
 1
 0
 Number
@@ -1885,7 +1878,7 @@ INPUTBOX
 285
 665
 on-my-plantation
-0.0
+5.0
 1
 0
 Number
@@ -1907,7 +1900,7 @@ INPUTBOX
 95
 605
 convs-per-month
-30.0
+3.0
 1
 0
 Number
@@ -1924,10 +1917,10 @@ include-status?
 -1000
 
 SLIDER
-590
-90
-745
-123
+695
+445
+850
+478
 kids-odds-inc-success
 kids-odds-inc-success
 0
@@ -1939,10 +1932,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-590
-190
-745
-223
+695
+545
+850
+578
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1962,7 +1955,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-100.0
+20.0
 5
 1
 %
@@ -1979,10 +1972,10 @@ Understanding
 1
 
 SLIDER
-435
-285
-615
-318
+540
+640
+720
+673
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -1994,10 +1987,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-615
-285
-795
-318
+720
+640
+900
+673
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
@@ -2033,16 +2026,6 @@ dying-age
 NIL
 HORIZONTAL
 
-TEXTBOX
-230
-325
-415
-381
-Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
-11
-0.0
-1
-
 CHOOSER
 5
 425
@@ -2054,10 +2037,10 @@ distribution-method
 0
 
 SWITCH
-615
-235
-867
-268
+745
+585
+997
+618
 hearer-decreases-from-failure?
 hearer-decreases-from-failure?
 1
@@ -2065,40 +2048,40 @@ hearer-decreases-from-failure?
 -1000
 
 TEXTBOX
-435
-30
-535
-48
+540
+385
+640
+403
 If overall success:
 12
 0.0
 1
 
 TEXTBOX
-435
-130
-585
-148
+540
+485
+690
+503
 If overall failure:
 12
 0.0
 1
 
 CHOOSER
-435
-145
-762
-190
+540
+500
+867
+545
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
 0
 
 TEXTBOX
-445
-225
+550
+580
+740
 635
-280
 If on, hearer follows 'if-overall-failure'. If off, hearer instead increases ALL speaker's values:
 11
 0.0
@@ -2145,10 +2128,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-550
-620
-650
-665
+340
+305
+440
+350
 NIL
 current-population
 17
@@ -2198,10 +2181,10 @@ only affects new slaves coming in with ships
 1
 
 CHOOSER
-440
-45
-762
-90
+540
+400
+862
+445
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
