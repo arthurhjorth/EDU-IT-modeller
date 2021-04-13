@@ -304,7 +304,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
 
       set birth-month one-of month-names
 
-      set shape "person-inspecting" set size 6 set color black
+      set shape "person-inspecting" set size 6 set color black ;idea: white instead - color differentiation between slaves and slave-owners: yay or nay?
       set start-lang language
       set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
@@ -318,27 +318,53 @@ end
 
 
 to have-children
-  ;ifelse colonist [
+  ;; not sure if better to combine this function with make-person
+  ;; since I'm setting the language differently, I'm making a separate version here.
 
-;  if random-float 1 < n-children-per-woman/25*0.5 [ ;25 = number of birth years (only running this function once a year); half the population are female (or???)
-;    make-person [slave language] ;set language to popular mom's vector
-;
-;
-;  ifelse kind = "slave" [
-;  make-person [slave]
-;      ]
-;    [
-;        make-person [colonist]
-;      ]
+  if "person" = "colonist" [
+ if random-float 1 < ( nr-children-per-woman / 25 * 0.5 ) [ ;25 = number of birth years (only running this function once a year); half the population are female (at least in the white population)
+  create-slaves 1 [
+      set age 0 ] ;newborn
 
-    ;most-likely-value loop for all languages
+      set birth-month one-of month-names ;error: cannot use observer context
 
+      set shape "person" set size 3 set color black ;children are smaller
+
+    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
+    set start-lang-vec start-lang
 
 
-;; assumption: 50/50 men and women in whites
-  ;            only 12.5% women in slave-ships
-  ; people-own gender
-  ; highest WALS-values
+      initialize-my-tables ;;creates their language table
+
+      ;;@just random position right now:
+      move-to one-of land-patches with [not any? colonists-here]
+
+    ]
+  ]
+
+
+
+   if "person" = "slave" [
+  if random-float 1 < ( nr-children-per-woman / 25 * 0.2 ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
+
+    create-slaves 1 [
+      set age 0 ] ;newborn
+
+      set birth-month one-of month-names ;error: cannot use observer context
+
+      set shape "person" set size 3 set color black ;children are smaller
+
+    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
+    set start-lang-vec start-lang
+
+
+      initialize-my-tables ;;creates their language table
+
+      ;;@just random position right now:
+      move-to one-of land-patches with [not any? slaves-here]
+
+    ]
+  ]
 
 end
 
