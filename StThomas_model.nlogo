@@ -318,56 +318,56 @@ to make-person [kind language] ;;function that creates a person and takes their 
 end
 
 
-to have-children ;agent reporter, run in get-older (which is run in go) ;right now run every month! (@Lisa, maybe stats need updating?)
-  ;; not sure if better to combine this function with make-person
-  ;; since I'm setting the language differently, I'm making a separate version here.
-
- if breed = colonists [
- if random-float 1 < ( nr-children-per-woman * 0.5 / ( 25 * 12 ) ) [ ;0.5 because only half the population are female (at least in the white population); 25 years * 12 months of fertility
-  hatch-slaves 1 [
-      set age 0 ] ;newborn
-
-      set birth-month this-month ;error: cannot use observer context
-
-      set shape "person" set size 3 set color black ;children are smaller
-
-    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
-    set start-lang-vec start-lang
-
-
-      initialize-my-tables ;;creates their language table
-
-      ;;@just random position right now:
-      move-to one-of land-patches with [not any? colonists-here]
-
-    ]
-  ]
-
-
-
-   if breed = slaves [
-  if random-float 1 < ( nr-children-per-woman * 0.2 / ( 25 * 12 ) ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
-
-    hatch-slaves 1 [
-      set age 0 ] ;newborn
-
-      set birth-month this-month ;error: cannot use observer context
-
-      set shape "person" set size 3 set color black ;children are smaller
-
-    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
-    set start-lang-vec start-lang
-
-
-      initialize-my-tables ;;creates their language table
-
-      ;;@just random position right now:
-      move-to one-of land-patches with [not any? slaves-here]
-
-    ]
-  ]
-
-end
+;to have-children ;agent reporter, run in get-older (which is run in go) ;right now run every month! (@Lisa, maybe stats need updating?)
+;  ;; not sure if better to combine this function with make-person
+;  ;; since I'm setting the language differently, I'm making a separate version here.
+;
+; if breed = colonists [
+; if random-float 1 < ( nr-children-per-woman * 0.5 / 25 ) [ ;0.5 because only half the population are female (at least in the white population); 25 years of fertility
+;  hatch-slaves 1 [
+;      set age 0 ] ;newborn
+;
+;      set birth-month this-month ;error: cannot use observer context
+;
+;      set shape "person" set size 3 set color black ;children are smaller
+;
+;    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
+;    set start-lang-vec start-lang
+;
+;
+;      initialize-my-tables ;;creates their language table
+;
+;      ;;@just random position right now:
+;      move-to one-of land-patches with [not any? colonists-here]
+;
+;    ]
+;  ]
+;
+;
+;
+;   if breed = slaves [
+;  if random-float 1 < ( nr-children-per-woman * 0.2 / 25 ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
+;
+;    hatch-slaves 1 [
+;      set age 0 ] ;newborn
+;
+;      set birth-month this-month ;error: cannot use observer context
+;
+;      set shape "person" set size 3 set color black ;children are smaller
+;
+;    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
+;    set start-lang-vec start-lang
+;
+;
+;      initialize-my-tables ;;creates their language table
+;
+;      ;;@just random position right now:
+;      move-to one-of land-patches with [not any? slaves-here]
+;
+;    ]
+;  ]
+;
+;end
 
 
 
@@ -652,7 +652,9 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if age > 15 [have-children]
+;  if this-month = birth-month [
+;    if age > 15 [have-children]
+;  ]
   if this-month = birth-month [if random-float 100 < risk-premature-death-yearly  [die]]
 
   ;@LEVEALDER SLIDER
