@@ -106,6 +106,7 @@ to setup
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
   ask people [ allocate-to-plantation ]
+  ask people [ forward random 7]
   update-feature-plot
   update-convergence-plot
 end
@@ -262,7 +263,7 @@ end
 
 to update-my-members ;plantation procedure, run in allocate-to-plantation (so it updates after each new arrival)
     set members (turtle-set colonists-here slaves-here) ;all people on the plantation
-end
+  end
 
 
 to populate ;;run in setup. Create starting population

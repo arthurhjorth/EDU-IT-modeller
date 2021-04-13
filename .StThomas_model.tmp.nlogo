@@ -9,6 +9,7 @@ globals [
   affiliation-list
   feature-list
   wals-table
+  partner-choice-list
 
   word-list ;;[word0 word1 word2 ... ]
 
@@ -105,6 +106,7 @@ to setup
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
   ask people [ allocate-to-plantation ]
+  ask people [ forward random ]
   update-feature-plot
   update-convergence-plot
 end
@@ -143,6 +145,20 @@ to initialize-variables ;;run in setup
 
   set affiliation-list map first wals-list ;;list of all the language affiliations ('i.e. "Atlantic creoles"), matching the indexes in lang-list
   set agreement [] ;;global list, gonna be a nested list storing counts of successes and fails in communication
+
+  ;@@@@@@ HEEEELP :( i dont understand why the first line below doesn't work
+  ;set partner-choice-list (map list ["random" "my plantation" "neighbour plant"] [random-one on-my-plantation neighbour-plantation] );nested list of odds for the different partner choice options ie: random-one, on-my-plantation and neighbour-plantation
+  ;observer> show ( map list ["a" "b" "c" "d"] [1 2 3 4] )
+;observer: [["a" 1] ["b" 2] ["c" 3] ["d" 4]]
+  ;let a random-one
+ ; let b on-my-plantation
+  ;let c neighbour-plantation
+  ;let partner-choice-odds (map list ["random" "my plantation" "neighbour plant"] [a b c] )
+  ;set mylist [[2 4] [3 5]]
+
+  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
+  ;@@@set partner-choice-list [["random" 2] ["my plantation" 2] ["neighbour plant" 3] ]
+  ;@@@@@@@
 
   set word-list []
   ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
@@ -247,6 +263,7 @@ end
 
 to update-my-members ;plantation procedure, run in allocate-to-plantation (so it updates after each new arrival)
     set members (turtle-set colonists-here slaves-here) ;all people on the plantation
+  ask members [forward random 10]
 end
 
 
@@ -547,17 +564,20 @@ end
 
 
 to-report weighted-partner-choice
-  ;let partner-choice-odds [["random" random-one] ["my plantation" on-my-plantation] ["neighbour plant" neighbour-plantation] ] ;@ figure out how to have random-one be exchanged with the variable from interface
-  ;let partner-choice-odds [["random" 1] ["my plantation" 2] ["neighbour plant" 3] ]
+ ; let the-value weighted-one-of partner-choice-list ;weighted-one-of takes a nested pair list  ([[item odds] [item odds]]) and randomly picks an item based on their odds
 
-  ;weighted-one-of nested-list [[random 1] [closest-one 2] ...]
-  ;weighted-one-of partner-choice-odds
-  ;if random
-  ;if my plantation
-  ;if neighbour plant
+  ;if the-value = "random" [
+   ; report one-of other people
+ ; ]
 
+  ;if the-value = "my plantation" [
+   ; report one-of other people here
+  ;]
 
-
+    ;if the-value = "neighbour plant" [
+   ; let neighbour-link ask my-plantation [ ask my-links [ show other-end ] ]
+   ; report one-of other people at neighbour-link
+  ;]
 end
 
 to-report my-partner-choice ;;agent reporter, run in communicate. 'partner-choice' chooser in interface determines how this reporter runs
@@ -637,7 +657,7 @@ end
 ;;---REPORTERS FOR INTERFACE:
 
 to-report year
-  report floor (ticks / 12) + 1600
+  report floor (ticks / 12) + 1640
 end
 
 to-report this-month ;reporting month-names
@@ -1315,10 +1335,10 @@ ticks
 30.0
 
 BUTTON
-740
-595
-803
-628
+725
+530
+788
+563
 NIL
 setup
 NIL
@@ -1332,10 +1352,10 @@ NIL
 1
 
 BUTTON
-805
-595
-868
-628
+790
+530
+853
+563
 NIL
 go
 T
@@ -1397,7 +1417,7 @@ CHOOSER
 partner-choice
 partner-choice
 "random" "closest-one" "nearby" "nearby-or-random" "weighted-proximity" "(fra min plantage)" "(fra tilfældig anden plantage)" "(fra naboplantage)"
-1
+0
 
 INPUTBOX
 20
@@ -1435,7 +1455,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-5
+0
 
 CHOOSER
 1080
@@ -1445,7 +1465,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-1
+0
 
 TEXTBOX
 1215
@@ -1485,10 +1505,10 @@ Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature elle
 1
 
 BUTTON
+755
+435
 850
-460
-945
-493
+468
 NIL
 color-by-lang
 T
@@ -1502,20 +1522,20 @@ NIL
 1
 
 CHOOSER
+755
+390
 850
-415
-945
-460
+435
 color-feature
 color-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
 0
 
 TEXTBOX
-740
-420
 860
-485
+391
+980
+456
 @coloring by most likely value for that feature now (colors match the ones in feature plot)
 11
 0.0
@@ -1552,10 +1572,10 @@ Learning update
 1
 
 TEXTBOX
-740
-375
-855
-406
+780
+365
+895
+396
 Visualisation
 14
 0.0
@@ -1564,7 +1584,7 @@ Visualisation
 SLIDER
 0
 675
-170
+145
 708
 nr-features-exchanged
 nr-features-exchanged
@@ -1609,9 +1629,9 @@ start-odds
 Number
 
 SLIDER
-285
+300
 555
-465
+455
 588
 odds-increase-successful
 odds-increase-successful
@@ -1847,10 +1867,10 @@ TEXTBOX
 1
 
 SWITCH
-0
-710
-135
-743
+145
+675
+280
+708
 include-status?
 include-status?
 0
@@ -1858,9 +1878,9 @@ include-status?
 -1000
 
 SLIDER
-465
+455
 555
-625
+610
 588
 kids-odds-inc-success
 kids-odds-inc-success
@@ -1888,15 +1908,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-315
+325
 380
-565
+555
 413
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
 100
-100.0
+50.0
 5
 1
 %
@@ -1923,17 +1943,17 @@ if-overall-success
 0
 
 CHOOSER
-730
-545
-932
-590
+715
+480
+860
+525
 choose-preset
 choose-preset
-"As Jansson Parkvall 2013" "As Satterfield 2008" "No Preset"
+"As Parkvall 2013" "As Satterfield 2008" "try this 1" "try this 2" "No Preset"
 0
 
 SLIDER
-290
+300
 740
 480
 773
@@ -1988,10 +2008,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-725
-640
-910
-696
+710
+575
+895
+631
 Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
 11
 0.0
@@ -2008,9 +2028,9 @@ distribution-method
 0
 
 SWITCH
-300
+480
 700
-525
+660
 733
 hearer-learns-from-failure?
 hearer-learns-from-failure?
@@ -2049,10 +2069,20 @@ if-overall-failure
 0
 
 TEXTBOX
-140
-715
-315
-740
+480
+635
+670
+675
+If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
+11
+0.0
+1
+
+TEXTBOX
+95
+710
+270
+735
 If on: colonists are always speakers in colonist-slave interactions
 11
 0.0
@@ -2087,6 +2117,16 @@ nr-children-per-woman
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+305
+705
+455
+731
+How much hearer increases on unsuccesful communication:
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
