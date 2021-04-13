@@ -129,7 +129,8 @@ to setup-as-parkvall
   ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
   ;vores model kan altså ikke 1-1 gengive dette.
   set %-understood-for-overall-success 100
-  set if-overall-success "Hearer increases successful/matching values only"
+  set if-overall-success "Hearer increases all speaker's values"
+
   set odds-increase-successful 2 ;@
   set kids-odds-inc-success 2
   set odds-decrease 0
@@ -1991,16 +1992,6 @@ Understanding
 0.0
 1
 
-CHOOSER
-300
-510
-610
-555
-if-overall-success
-if-overall-success
-"Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-3
-
 SLIDER
 300
 750
@@ -2219,6 +2210,16 @@ only affects new slaves coming in with ships
 11
 0.0
 1
+
+CHOOSER
+305
+510
+627
+555
+if-overall-success
+if-overall-success
+"Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
