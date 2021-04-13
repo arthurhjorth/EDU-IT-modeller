@@ -110,8 +110,35 @@ end
 
 to setup-as-parkvall
   ;specify all parameters:
+  set include-words? true
+  set start-odds 20 ;@@@
+  set nr-slaves 100
+  set nr-colonists 100
   set deaths? false
-  set dying-age 30
+  set children? false ;double check that it works properly
+  set newcomers? true ;in his model people left and arrived according to historic data
+  set distribution-method "random plantation"
+  set convs-per-month 30
+  set random-one 1 ;@@
+  set on-my-plantation 1 ;@
+  set neighbour-plantation 1 ;@
+  set nr-features-exchanged 1
+  set include-status? false
+
+  ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
+  ;vores model kan altså ikke 1-1 gengive dette.
+  set %-understood-for-overall-success 100
+  set if-overall-success "Hearer increases all speaker's values"
+  set odds-increase-successful 2 ;@
+  set kids-odds-inc-success 2
+  set odds-decrease 1 ;@@
+  set if-overall-failure "nothing decreases"
+  set hearer-learns-from-failure? true
+  set odds-increase-unsuccessful 1 ;@
+  set kids-odds-inc-unsuccess 1
+
+
+
   set if-overall-success "Both increase all speaker's values"
 
 
@@ -538,7 +565,7 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
         ]
       ]
 
-      ;don't need to include code for: if if-overall-failure = "Nothing happens" - since... nothing happens ;-)
+      ;don't need to include code for: if if-overall-failure = "Nothing decreases" - since... nothing decreases ;-)
 
     ] ;end of if overall failure
    ] ;;end of looping through chosen-topics
@@ -1387,7 +1414,7 @@ INPUTBOX
 100
 205
 nr-slaves
-40.0
+100.0
 1
 0
 Number
@@ -1552,7 +1579,7 @@ nr-features-exchanged
 nr-features-exchanged
 1
 10
-3.0
+1.0
 1
 1
 NIL
@@ -1565,7 +1592,7 @@ SWITCH
 63
 include-words?
 include-words?
-0
+1
 1
 -1000
 
@@ -1585,7 +1612,7 @@ INPUTBOX
 220
 125
 start-odds
-40.0
+20.0
 1
 0
 Number
@@ -1599,7 +1626,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-3.0
+2.0
 1
 1
 NIL
@@ -1614,7 +1641,7 @@ odds-decrease
 odds-decrease
 -3
 0
-0.0
+1.0
 1
 1
 NIL
@@ -1626,7 +1653,7 @@ INPUTBOX
 205
 205
 nr-colonists
-40.0
+100.0
 1
 0
 Number
@@ -1739,7 +1766,7 @@ SWITCH
 243
 children?
 children?
-0
+1
 1
 -1000
 
@@ -1770,7 +1797,7 @@ INPUTBOX
 80
 610
 random-one
-2.0
+1.0
 1
 0
 Number
@@ -1781,7 +1808,7 @@ INPUTBOX
 295
 610
 on-my-plantation
-3.0
+1.0
 1
 0
 Number
@@ -1803,7 +1830,7 @@ INPUTBOX
 100
 520
 convs-per-month
-2.0
+5.0
 1
 0
 Number
@@ -1815,7 +1842,7 @@ SWITCH
 708
 include-status?
 include-status?
-0
+1
 1
 -1000
 
@@ -1858,7 +1885,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-50.0
+100.0
 5
 1
 %
@@ -1997,14 +2024,14 @@ CHOOSER
 655
 if-overall-failure
 if-overall-failure
-"Nothing happens" "Both decrease all speaker's values (if known)" "Both decrease unsuccessful values only (if known)"
+"Nothing decreases" "Both decrease all speaker's values (if known)" "Both decrease unsuccessful values only (if known)"
 0
 
 TEXTBOX
-480
-635
-670
-675
+610
+660
+800
+700
 If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
 11
 0.0
@@ -2044,7 +2071,7 @@ nr-children-per-woman
 nr-children-per-woman
 0
 10
-3.0
+10.0
 0.5
 1
 NIL
