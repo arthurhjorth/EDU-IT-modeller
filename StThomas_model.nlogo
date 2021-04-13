@@ -42,6 +42,7 @@ globals [
 breed [plantations plantation]
 breed [colonists colonist]
 breed [slaves slave]
+breed [ships ship] ;purely for visualisation/animation purposes
 
 slaves-own [
   start-lang ;;starting language (ID code)
@@ -101,11 +102,10 @@ to setup
   import-ship-csv
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
-  make-plantations
-  populate ;;create starting population
+  make-plantations ;also sets up links
+  populate ;;create starting population (allocate-to-plantation included in make-person)
   set people (turtle-set slaves colonists)
-  ask people [ initialize-agent-variables ]
-  ask people [ allocate-to-plantation ]
+  ask people [ initialize-agent-variables ] ;@not needed?
   ask people [ forward random 7]
   update-feature-plot
   update-convergence-plot
@@ -132,6 +132,29 @@ to make-plantations
     set plant-patches but-first plant-patches
   ]
 
+  ;set up the links:
+  ask plantation 0 [ ;@@@ preferably the closest plantations that are neighbours for illustrative purposes - otherwise it doesn't matter
+  create-link-to plantation 1
+  ]
+  ask plantation 2 [
+  create-link-to plantation 3
+  ]
+  ask plantation 4 [
+  create-link-to plantation 5
+  ]
+  ask plantation 6 [
+  create-link-to plantation 7
+  ]
+  ask plantation 8 [
+  create-link-to plantation 9
+  ]
+  ask plantation 10 [
+  create-link-to plantation 11
+  ]
+
+  ask plantations [
+    ask my-links [ hide-link ]
+  ]
 
 
 end
@@ -206,7 +229,7 @@ to initialize-agent-variables ;;agent procedure, run in setup
 end
 
 to go
-  ship-arrival ;procedure that adds new people based on incoming slave ship info
+  if newcomers? [ ship-arrival ] ;procedure that adds new people based on incoming slave ship info
   set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
 
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
@@ -231,33 +254,10 @@ to go
   tick
 end
 
-to allocate-to-plantation ;agent procedure, run in setup (and in go when new ships arrive!)
+to allocate-to-plantation ;agent procedure, run in make-person (so in populate in setup and in go when new ships arrive!)
   move-to one-of plantations
   set my-plantation plantations-here
-
-  ask plantation 0 [ ;@@@ preferably the closest plantations that are neighbours for illustrative purposes - otherwise it doesn't matter
-  create-link-to plantation 1
-  ]
-  ask plantation 2 [
-  create-link-to plantation 3
-  ]
-  ask plantation 4 [
-  create-link-to plantation 5
-  ]
-  ask plantation 6 [
-  create-link-to plantation 7
-  ]
-  ask plantation 8 [
-  create-link-to plantation 9
-  ]
-  ask plantation 10 [
-  create-link-to plantation 11
-  ]
-
-
   ask plantations [
-    ask my-links [ hide-link ]
-
     update-my-members
   ]
 end
@@ -268,7 +268,6 @@ to update-my-members ;plantation procedure, run in allocate-to-plantation (so it
 
 
 to populate ;;run in setup. Create starting population
-
   ;;@random starting language right now! (from these two lists)
   repeat nr-slaves [ make-person "slave" (one-of slave-lang-list) ]
   repeat nr-colonists [ make-person "colonist" (one-of col-lang-list) ]
@@ -277,43 +276,54 @@ end
 
 to make-person [kind language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
 
+  ;ONLY RUNS IF MAX POPULATION HASN'T BEEN REACHED!
+  ifelse current-population <= max-population [
 
-  if kind = "slave" [
-    create-slaves 1 [
-      ;;@can change starting age!:
-      while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 30, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
+    if kind = "slave" [
+      create-slaves 1 [
+        ;;@can change starting age!:
+        while [age <= 0] [ set age round random-normal 25 5 ] ;;mean of 25, sd of 10. everyone is at least 1 year old (normal distribution can give negative values)
+                                                              ;@FIX how we set age?! (also e.g. with ships, 17% should be kids?)
 
 
-      set birth-month one-of month-names
+        set birth-month one-of month-names
 
-      set shape "person" set size 6 set color black
-      set start-lang language
-      set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+        set shape "person" set size 6 set color black
+        set start-lang language
+        set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
-      initialize-my-tables ;;creates their language table
+        initialize-my-tables ;;creates their language table
 
-      ;;@just random position right now:
-      move-to one-of land-patches with [not any? slaves-here]
+        ;;@just random position right now:
+        ;move-to one-of land-patches with [not any? slaves-here]
 
+        allocate-to-plantation
+
+      ]
+    ]
+
+    if kind = "colonist" [
+      create-colonists 1 [
+        ;;@can change starting age!:
+        while [age <= 0] [ set age round random-normal 30 5 ] ;;everyone is at least 1 year old (normal distribution can give negative values)
+
+        set birth-month one-of month-names
+
+        set shape "person-inspecting" set size 6 set color black ;idea: white instead - color differentiation between slaves and slave-owners: yay or nay?
+        set start-lang language
+        set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
+
+        initialize-my-tables ;;creates their language table
+
+        ;;@just random position right now:
+        ;move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
+
+        allocate-to-plantation
+      ]
     ]
   ]
-
-  if kind = "colonist" [
-    create-colonists 1 [
-      ;;@can change starting age!:
-      while [age <= 0] [ set age round random-normal 30 5 ] ;;everyone is at least 1 year old (normal distribution can give negative values)
-
-      set birth-month one-of month-names
-
-      set shape "person-inspecting" set size 6 set color black ;idea: white instead - color differentiation between slaves and slave-owners: yay or nay?
-      set start-lang language
-      set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
-
-      initialize-my-tables ;;creates their language table
-
-      ;;@just random position right now:
-        move-to one-of land-patches with [not any? slaves-here and not any? colonists-here]
-    ]
+  [ ;if max population has been reached:
+    print "THE MAX POPULATION HAS BEEN REACHED!"
   ]
 end
 
@@ -372,17 +382,31 @@ end
 
 
 
-to ship-arrival ;@@@IN THE MAKING - @IDA
+to ship-arrival ;run in go (very first thing every tick) @@@IN THE MAKING - @IDA
   let time-now (word year this-month) ;e.g. "1674Jan"
   if table:has-key? ship-table time-now [ ;checks if a ship should arrive at this time (if the key + entry exists)
-    ;OBS: ship-table not right format yet
 
-    let info table:get ship-table time-now ;gives entry like: ["nkoKWA" 0 284 367] . Meaning: "Language", "N-slaves", "N-slaves-estimate", "N-slaves-estimate-simple-mean"]
-    let nr-arrived item 3 info ;which of the two estimates do we wanna use, @Lisa?
-    let ship-lang item 0 info ;the language code
+    ifelse current-population <= max-population [
 
-    print (word year " " this-month ". A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!") ;just testing
-  ]
+      let info table:get ship-table time-now ;gives entry like: ["nkoKWA" 0 284 367] . Meaning: "Language", "N-slaves", "N-slaves-estimate", "N-slaves-estimate-simple-mean"]
+      let nr-arrived item 3 info ;which of the two estimates do we wanna use, @Lisa?
+      let ship-lang item 0 info ;the language code
+
+      repeat nr-arrived [ make-person "slave" ship-lang ] ;plantation allocation also included in make-person
+                                                          ;@OBS:
+                                                          ;hvor mange colonists var med? (tilføjer kun slaver lige nu!
+                                                          ;tilføj evt. , at 17% var børn - hvordan? (alder sættes i make-person, tilfældigt normaltfordelt nu)
+
+      print (word year " " this-month ". A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!") ;just testing
+
+
+      ;@can add little animation if time:
+      ;create-ships 1 [setxy -80 52 set color white set size 5]
+    ]
+    [ ;if max pop has been reached:
+      print "THE MAX POPULATION HAS BEEN REACHED! (SO NO SHIP ARRIVED)"
+    ]
+  ] ;end of if table has key
 end
 
 
@@ -652,7 +676,7 @@ end
 
 to get-older ;;agent reporter, run in go
   if this-month = birth-month [set age age + 1] ;;get older
-  if age > 15 [have-children]
+  if age > 15 and current-population <= max-population [have-children] ;only have kids if max pop hasn't been reached
   if this-month = birth-month [if random-float 100 < risk-premature-death-yearly  [die]]
 
   ;@LEVEALDER SLIDER
@@ -680,12 +704,16 @@ end
 ;;---REPORTERS FOR INTERFACE:
 
 to-report year
-  report floor (ticks / 12) + 1640
+  report floor (ticks / 12) + 1670
 end
 
 to-report this-month ;reporting month-names
   let month ticks mod 12 ;;sets this-month from 0 to 11
   report item month month-names ;;reports the current month name from the 'month-names' list
+end
+
+to-report current-population
+  report count slaves + count colonists
 end
 
 
@@ -1789,7 +1817,7 @@ SWITCH
 243
 deaths?
 deaths?
-0
+1
 1
 -1000
 
@@ -1821,7 +1849,7 @@ SWITCH
 278
 newcomers?
 newcomers?
-0
+1
 1
 -1000
 
@@ -2151,6 +2179,32 @@ How much hearer increases on unsuccesful communication:
 0.0
 1
 
+MONITOR
+625
+360
+725
+405
+NIL
+current-population
+17
+1
+11
+
+SLIDER
+610
+405
+740
+438
+max-population
+max-population
+200
+10000
+3000.0
+200
+1
+NIL
+HORIZONTAL
+
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -2202,6 +2256,15 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+boat
+false
+0
+Polygon -1 true false 63 162 90 207 223 207 290 162
+Rectangle -6459832 true false 150 32 157 162
+Polygon -13345367 true false 150 34 131 49 145 47 147 48 149 49
+Polygon -7500403 true true 158 33 230 157 182 150 169 151 157 156
+Polygon -7500403 true true 149 55 88 143 103 139 111 136 117 139 126 145 130 147 139 147 146 146 149 55
 
 box
 false
