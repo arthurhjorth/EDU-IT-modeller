@@ -255,6 +255,15 @@ to go
 end
 
 to allocate-to-plantation ;agent procedure, run in make-person (so in populate in setup and in go when new ships arrive!)
+
+;  let probability random-float 1
+;    if probability < 0.021                         [move-to plantation with name ="koonings"]
+;    if probability >= 0.39 and probability < 0.72 [set placeholder 2]
+;    if probability >= 0.72 and probability < 0.84 [set placeholder 3]
+;    if probability >= 0.84 and probability < 0.95 [set placeholder 4]
+;    if probability >= 0.95 and probability < 0.99 [set placeholder 5]
+;    if probability >= 0.99                        [set placeholder 6]
+;
   move-to one-of plantations
   set my-plantation plantations-here
   ask plantations [
@@ -2120,16 +2129,6 @@ if-overall-failure
 if-overall-failure
 "Nothing happens" "Both decrease all speaker's values (if known)" "Both decrease unsuccessful values only (if known)"
 0
-
-TEXTBOX
-480
-635
-670
-675
-If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
-11
-0.0
-1
 
 TEXTBOX
 95
