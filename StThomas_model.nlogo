@@ -190,7 +190,8 @@ to initialize-variables ;;run in setup
 
   set word-list []
   ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
-    foreach range nr-words [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
+
+  foreach range 0 [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
       n ->
       set word-list lput (word "word" n) word-list
     ]
@@ -547,7 +548,7 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
   let chosen-topics chosen-features
   if include-words? [
     ;;A. Choose which word meaning to utter:
-    set chosen-word one-of word-list ;;e.g. 'word3'
+;    set chosen-word one-of word-list ;;e.g. 'word3'
     set chosen-topics lput chosen-word chosen-features ;;better name, store it ;;so the list is of ALL topics in this interaction, features and words, e.g. ["X9A" "X29A" "word3"]
 
 
@@ -1664,17 +1665,6 @@ INPUTBOX
 70
 nr-colonists
 100.0
-1
-0
-Number
-
-INPUTBOX
-5
-95
-105
-155
-nr-words
-8.0
 1
 0
 Number
