@@ -1986,16 +1986,6 @@ if-overall-failure
 0
 
 TEXTBOX
-480
-635
-670
-675
-If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
-11
-0.0
-1
-
-TEXTBOX
 95
 710
 270
