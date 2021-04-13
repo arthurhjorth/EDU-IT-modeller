@@ -318,13 +318,13 @@ to make-person [kind language] ;;function that creates a person and takes their 
 end
 
 
-to have-children
+to have-children ;agent reporter, run in get-older (which is run in go) ;right now run every month! (@Lisa, maybe stats need updating?)
   ;; not sure if better to combine this function with make-person
   ;; since I'm setting the language differently, I'm making a separate version here.
 
-  if "person" = "colonist" [
+ if breed = colonists [
  if random-float 1 < ( nr-children-per-woman / 25 * 0.5 ) [ ;25 = number of birth years (only running this function once a year); half the population are female (at least in the white population)
-  create-slaves 1 [
+  hatch-slaves 1 [
       set age 0 ] ;newborn
 
       set birth-month one-of month-names ;error: cannot use observer context
@@ -345,10 +345,10 @@ to have-children
 
 
 
-   if "person" = "slave" [
+   if breed = slaves [
   if random-float 1 < ( nr-children-per-woman / 25 * 0.2 ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
 
-    create-slaves 1 [
+    hatch-slaves 1 [
       set age 0 ] ;newborn
 
       set birth-month one-of month-names ;error: cannot use observer context
