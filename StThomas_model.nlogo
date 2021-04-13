@@ -1,4 +1,4 @@
-extensions [fetch import-a csv table profiler]
+extensions [fetch import-a csv table ]
 
 globals [
   wals-list
@@ -73,13 +73,6 @@ plantations-own [
   max-members
 ]
 
-to profile
-  profiler:reset
-  setup
-  profiler:start
-  repeat 50 [go]
-  print profiler:report
-end
 
 
 to setup
@@ -253,6 +246,7 @@ to go
   if ticks mod 6 = 0 [
   update-feature-plot
   update-convergence-plot
+    color-by-lang
   ]
 
   ask people [
@@ -581,6 +575,8 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
   ;;(understood in this context means that the hearer and speaker both drew/chose the exact same value/word, nothing else matters)
   let nr-understood length filter [i -> i = true] outcome-list ;;nr of trues in the list
   let percent-understood nr-understood / length outcome-list ;;the percentage understood of the exchanged items
+  show (list speaker-choices hearer-choices  )
+    show percent-understood
   let percent-needed (%-understood-for-overall-success / 100) ;;threshold from interface
   ;;check if understanding is above the threshold:
   let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
@@ -1483,20 +1479,20 @@ PLOT
 1175
 10
 1495
-160
-Communication outcomes (per tick)
+170
+Communication outcomes
 Time
 Count
 0.0
 10.0
 0.0
-10.0
+1.0
 true
 true
 "" ""
 PENS
-"Successes" 1.0 0 -14439633 true "" "plot successes-this-tick"
-"Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
+"Successes" 1.0 0 -14439633 true "" "if ticks > 0 [ plot successes-this-tick / (successes-this-tick + fails-this-tick)]"
+"Failures" 1.0 0 -5298144 true "" "if ticks > 0 [ plot fails-this-tick / (successes-this-tick + fails-this-tick)]"
 
 INPUTBOX
 10
@@ -1511,9 +1507,9 @@ Number
 
 PLOT
 955
-60
+85
 1175
-300
+355
 Feature plot
 Values
 NIL
@@ -1534,7 +1530,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-37
+42
 
 CHOOSER
 1050
@@ -1548,9 +1544,9 @@ plot-this
 
 BUTTON
 955
-300
-1097
-331
+55
+1175
+88
 Update Visualization
 update-feature-plot\ncolor-by-lang
 NIL
@@ -1607,17 +1603,6 @@ nr-features-exchanged
 1
 NIL
 HORIZONTAL
-
-SWITCH
-5
-90
-220
-123
-include-words?
-include-words?
-0
-1
--1000
 
 TEXTBOX
 5
@@ -1694,9 +1679,9 @@ Number
 
 PLOT
 1175
-160
+170
 1495
-335
+355
 Convergence plot
 NIL
 NIL
@@ -1846,7 +1831,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-20.0
+55.0
 5
 1
 %
@@ -2030,6 +2015,17 @@ if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
 0
+
+SWITCH
+5
+90
+220
+123
+include-words?
+include-words?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
