@@ -71,6 +71,7 @@ plantations-own [
   name
   members
   neighbour
+  max-members
 ]
 
 to profile
@@ -108,8 +109,16 @@ end
 
 
 to setup-as-parkvall
-  ;@@@!!!
+  ;specify all parameters:
+  set deaths? false
+  set dying-age 30
+  set if-overall-success "Both increase all speaker's values"
 
+
+
+
+
+  setup
 end
 
 to make-plantations
@@ -117,46 +126,34 @@ to make-plantations
   ;;data from Hall (1992: 5) (modified to the csv 'percent of total enslaved')
   ;;here generalised to the whole time period...
 
-  let plant-names ["koonings" "west eijnd" "krum" "erasmus baij" "windt" "noort" "friedrichs" "orcaen" "fransmans" "dorp" "qvarteer" "oost"]
+  let plant-names ["erasmus baij" "windt" "friedrichs" "orcaen" "qvarteer" "oost"] ;only keeping 6 plantations
 
+  ;max cap on % members:
+  let max-members-list [0.064 0.078 0.153 0.153 0.217 0.335] ;maps/matching plant-names list. % of population on this plantation (we decide to keep it constant)
+  ;(data from ?) generalised to the whole period... doesn't affect new births (?!) - only distribution of newly arrived slaves
 
   ;;positions:
-  let plant-patches (patch-set patch -86 0 patch -63 3 patch -30 1 patch -21 17 patch -5 -16 patch -2 8 patch 26 -2 patch 53 -7 patch 54 -32 patch 80 -6 patch 83 -33 patch 110 -22) ;;12 different positions
+  let plant-patches (patch-set patch -63 3 patch -30 10 patch 19 3 patch 44 8 patch 54 -32 patch 83 -33) ;;12 different positions
   set plant-patches sort-on [pxcor] plant-patches ;(from left to right based on pxcor)
 
-  create-plantations 12 [
+  create-plantations 6 [
     set color white set shape "house" set size 7
     set name first plant-names
     set plant-names but-first plant-names ;removes the first item from the name list (since it's now taken) (this code block is run by one plantation at a time)
     set members (turtle-set) ;initialize empty agentset
+    set max-members first max-members-list ;max % of population of that plantation
+    set max-members-list but-first max-members-list ;removed the item that's now taken
     ;;move to spot:
     move-to first plant-patches
     set plant-patches but-first plant-patches
   ]
 
-  ;set up the links:
-  ask plantation 0 [ ;@@@ preferably the closest plantations that are neighbours for illustrative purposes - otherwise it doesn't matter
-  create-link-to plantation 1
-  ]
-  ask plantation 2 [
-  create-link-to plantation 3
-  ]
-  ask plantation 4 [
-  create-link-to plantation 5
-  ]
-  ask plantation 6 [
-  create-link-to plantation 7
-  ]
-  ask plantation 8 [
-  create-link-to plantation 9
-  ]
-  ask plantation 10 [
-  create-link-to plantation 11
-  ]
-
+  ;set up the links (random... but THE SAME IN EVERY RUN):
   ask plantations [
-    ask my-links [ hide-link ]
+    create-link-with min-one-of other plantations [distance myself ] [ hide-link ]
   ]
+  ;@NOW: neighbours in pairs two-and-two (but location is random...) quite important, but a random choice - but consistent between runs
+  ;@OBS: before the links weren't two-way, i.e. plant 0 may be closest to plant 1, but plant 1 may be even closer to plant 2 (important in closest-plant weighted-partner-choice)
 end
 
 to initialize-variables ;;run in setup
@@ -255,6 +252,7 @@ end
 
 
 to make-person [kind language] ;;function that creates a person and takes their starting language ID as input to give them their language feature vector
+  ;also runs when ships arrive
 
   ;ONLY RUNS IF MAX POPULATION HASN'T BEEN REACHED!
   if current-population <= max-population [
@@ -1713,7 +1711,7 @@ SWITCH
 243
 deaths?
 deaths?
-0
+1
 1
 -1000
 
@@ -1986,6 +1984,16 @@ if-overall-failure
 0
 
 TEXTBOX
+480
+635
+670
+675
+If off, hearer follows 'if-overall-failure'. If on, hearer instead increases ALL speaker's values:
+11
+0.0
+1
+
+TEXTBOX
 95
 710
 270
@@ -2004,7 +2012,7 @@ risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-1.0
+3.2
 0.1
 1
 %
