@@ -106,7 +106,7 @@ to setup
   set people (turtle-set slaves colonists)
   ask people [ initialize-agent-variables ]
   ask people [ allocate-to-plantation ]
-  ask people [ forward random 7]
+  ask people [ forward random ]
   update-feature-plot
   update-convergence-plot
 end
@@ -206,7 +206,6 @@ to initialize-agent-variables ;;agent procedure, run in setup
 end
 
 to go
-  ship-arrival ;procedure that adds new people based on incoming slave ship info
   set people (turtle-set slaves colonists) ;;including it every tick so it updates when we add new agents to the population at some point (otherwise they wouldn't be included)
 
   ask people [ if closest-agent = nobody [ initialize-agent-variables ] ] ;;if their closest agent have died, update all distance-based people relations
@@ -264,7 +263,8 @@ end
 
 to update-my-members ;plantation procedure, run in allocate-to-plantation (so it updates after each new arrival)
     set members (turtle-set colonists-here slaves-here) ;all people on the plantation
-  end
+  ask members [forward random 10]
+end
 
 
 to populate ;;run in setup. Create starting population
@@ -305,7 +305,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
 
       set birth-month one-of month-names
 
-      set shape "person-inspecting" set size 6 set color black ;idea: white instead - color differentiation between slaves and slave-owners: yay or nay?
+      set shape "person-inspecting" set size 6 set color black
       set start-lang language
       set start-lang-vec table:get wals-table language ;;looks up their language in the wals-table and gives them the corresponding feature list
 
@@ -319,53 +319,27 @@ end
 
 
 to have-children
-  ;; not sure if better to combine this function with make-person
-  ;; since I'm setting the language differently, I'm making a separate version here.
+  ;ifelse colonist [
 
-  if "person" = "colonist" [
- if random-float 1 < ( nr-children-per-woman / 25 * 0.5 ) [ ;25 = number of birth years (only running this function once a year); half the population are female (at least in the white population)
-  create-slaves 1 [
-      set age 0 ] ;newborn
+;  if random-float 1 < n-children-per-woman/25*0.5 [ ;25 = number of birth years (only running this function once a year); half the population are female (or???)
+;    make-person [slave language] ;set language to popular mom's vector
+;
+;
+;  ifelse kind = "slave" [
+;  make-person [slave]
+;      ]
+;    [
+;        make-person [colonist]
+;      ]
 
-      set birth-month one-of month-names ;error: cannot use observer context
-
-      set shape "person" set size 3 set color black ;children are smaller
-
-    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
-    set start-lang-vec start-lang
-
-
-      initialize-my-tables ;;creates their language table
-
-      ;;@just random position right now:
-      move-to one-of land-patches with [not any? colonists-here]
-
-    ]
-  ]
+    ;most-likely-value loop for all languages
 
 
 
-   if "person" = "slave" [
-  if random-float 1 < ( nr-children-per-woman / 25 * 0.2 ) [ ;assuming that 20% of the slave population are women. Better solution for gender, as we expect low amount of women on slave ships, but 50/50 in reproduction
-
-    create-slaves 1 [
-      set age 0 ] ;newborn
-
-      set birth-month one-of month-names ;error: cannot use observer context
-
-      set shape "person" set size 3 set color black ;children are smaller
-
-    set start-lang [most-likely-value plot-feature] of myself ;is this the right reference?
-    set start-lang-vec start-lang
-
-
-      initialize-my-tables ;;creates their language table
-
-      ;;@just random position right now:
-      move-to one-of land-patches with [not any? slaves-here]
-
-    ]
-  ]
+;; assumption: 50/50 men and women in whites
+  ;            only 12.5% women in slave-ships
+  ; people-own gender
+  ; highest WALS-values
 
 end
 
@@ -377,12 +351,15 @@ to ship-arrival ;@@@IN THE MAKING - @IDA
   if table:has-key? ship-table time-now [ ;checks if a ship should arrive at this time (if the key + entry exists)
     ;OBS: ship-table not right format yet
 
-    let info table:get ship-table time-now ;gives entry like: ["nkoKWA" 0 284 367] . Meaning: "Language", "N-slaves", "N-slaves-estimate", "N-slaves-estimate-simple-mean"]
-    let nr-arrived item 3 info ;which of the two estimates do we wanna use, @Lisa?
-    let ship-lang item 0 info ;the language code
 
-    print (word year " " this-month ". A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!") ;just testing
+    let nr-arrived 0
+    let ship-lang 0
+
+    ;print (word "A ship just arrived with " nr-arrived " slaves speaking " ship-lang "!")
   ]
+
+
+
 end
 
 
@@ -1282,7 +1259,7 @@ to import-ship-csv
     ;convert it:
     set ship-list []
     set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    set ship-header-list item 0 ship-list ;["Language" "Year" "Month" "N-slaves" "N-slaves-estimate" "N-slaves-estimate-simple-mean"] ;matching ship-list!
+    set ship-header-list item 0 ship-list ;["Language" "Year-arrived" "Month-fake" "Slaves-arrived" "Estimated-slave-influx-with-sd" "Estimated-slave-influx-simple-mean"] ;matching ship-list!
     set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 "Jan" 103 103 103] ["wolNA" 1674 "Jan" 103 103 103] ... ]
     let year-list map [i -> item 1 i] ship-list ;list with all the years
     ;177 skibe i alt!
