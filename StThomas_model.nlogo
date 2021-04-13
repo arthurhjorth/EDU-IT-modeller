@@ -102,7 +102,7 @@ end
 
 to setup-as-parkvall
   ;specify all parameters:
-  set include-words? true
+;  set include-words? true
   set start-odds 10 ;@
   set nr-slaves 100
   set nr-colonists 100
@@ -1364,7 +1364,9 @@ to import-ship-csv
   ]
 end
 
-
+to-report include-words?
+  report false
+end
 
 ;;---GRAPHICS:
 
@@ -1421,9 +1423,9 @@ ticks
 
 BUTTON
 5
-190
+160
 105
-223
+193
 NIL
 setup
 NIL
@@ -1438,9 +1440,9 @@ NIL
 
 BUTTON
 5
-225
+195
 220
-258
+228
 NIL
 go
 T
@@ -1606,9 +1608,9 @@ HORIZONTAL
 
 TEXTBOX
 5
-265
+235
 140
-296
+266
 Demography
 14
 0.0
@@ -1616,9 +1618,9 @@ Demography
 
 INPUTBOX
 115
-125
+95
 220
-185
+155
 start-odds
 3.0
 1
@@ -1668,9 +1670,9 @@ Number
 
 INPUTBOX
 5
-125
+95
 105
-185
+155
 nr-words
 8.0
 1
@@ -1706,9 +1708,9 @@ Language
 
 SWITCH
 5
-285
+255
 95
-318
+288
 deaths?
 deaths?
 1
@@ -1717,9 +1719,9 @@ deaths?
 
 SWITCH
 95
-285
+255
 220
-318
+288
 children?
 children?
 1
@@ -1728,9 +1730,9 @@ children?
 
 SWITCH
 100
-320
+290
 220
-353
+323
 newcomers?
 newcomers?
 1
@@ -1869,9 +1871,9 @@ HORIZONTAL
 
 SLIDER
 5
-320
+290
 97
-353
+323
 dying-age
 dying-age
 0
@@ -1884,9 +1886,9 @@ HORIZONTAL
 
 CHOOSER
 5
-425
+395
 220
-470
+440
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
@@ -1935,9 +1937,9 @@ if-overall-failure
 
 SLIDER
 5
-355
+325
 220
-388
+358
 risk-premature-death-yearly
 risk-premature-death-yearly
 0
@@ -1950,9 +1952,9 @@ HORIZONTAL
 
 SLIDER
 5
-390
+360
 220
-423
+393
 nr-children-per-woman
 nr-children-per-woman
 0
@@ -1976,9 +1978,9 @@ current-population
 
 SLIDER
 5
-470
+440
 220
-503
+473
 max-population
 max-population
 200
@@ -1991,9 +1993,9 @@ HORIZONTAL
 
 BUTTON
 120
-190
+160
 220
-223
+193
 NIL
 setup-as-parkvall
 NIL
@@ -2015,17 +2017,6 @@ if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
 0
-
-SWITCH
-5
-90
-220
-123
-include-words?
-include-words?
-1
-1
--1000
 
 @#$#@#$#@
 ## WHAT IS IT?
