@@ -168,11 +168,12 @@ to reset-settings
   set nr-features-exchanged 1
   set include-status? false
   set max-population 10000
+  set dying-age 70
 
   ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
   ;vores model kan altså ikke 1-1 gengive dette.
   set %-understood-for-overall-success 100
-  set if-overall-success "Both increase successful/matching values only"
+  set if-overall-success "Hearer increases successful/matching values only"
 
   set odds-increase-successful 1 ;@
   set kids-odds-inc-success 1
@@ -1578,7 +1579,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-5
+3
 
 CHOOSER
 1050
@@ -1668,7 +1669,7 @@ INPUTBOX
 220
 145
 start-odds
-10.0
+3.0
 1
 0
 Number
@@ -1682,7 +1683,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-2.0
+1.0
 1
 1
 NIL
@@ -1709,7 +1710,7 @@ INPUTBOX
 195
 70
 nr-colonists
-100.0
+25.0
 1
 0
 Number
@@ -1770,7 +1771,7 @@ SWITCH
 338
 newcomers?
 newcomers?
-0
+1
 1
 -1000
 
@@ -1780,7 +1781,7 @@ INPUTBOX
 295
 450
 random-one
-1.0
+0.0
 1
 0
 Number
@@ -1791,7 +1792,7 @@ INPUTBOX
 505
 450
 on-my-plantation
-0.0
+1.0
 1
 0
 Number
@@ -1813,7 +1814,7 @@ INPUTBOX
 600
 520
 convs-per-month
-30.0
+3.0
 1
 0
 Number
@@ -1838,7 +1839,7 @@ kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-2.0
+1.0
 1
 1
 NIL
@@ -1913,7 +1914,7 @@ dying-age
 dying-age
 0
 100
-38.0
+70.0
 1
 1
 NIL
@@ -1968,7 +1969,7 @@ CHOOSER
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
-0
+2
 
 SLIDER
 5
@@ -1994,7 +1995,7 @@ nr-children-per-woman
 nr-children-per-woman
 0
 15
-4.0
+10.5
 0.5
 1
 NIL
@@ -2051,7 +2052,7 @@ CHOOSER
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-0
+3
 
 BUTTON
 115
