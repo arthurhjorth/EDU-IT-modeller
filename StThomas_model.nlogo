@@ -114,41 +114,35 @@ end
 
 
 to setup-as-parkvall
-  ;specify all parameters:
-;  set include-words? true
-  set start-odds 10 ;@
+  set start-odds 10
   set nr-slaves 100
   set nr-colonists 100
   set deaths? false
-  set children? false ;double check that it works properly
-  set newcomers? true ;in his model people left and arrived according to historic data
+  set children? false
+  set newcomers? true
   set distribution-method "random plantation"
   set convs-per-month 30
-  set random-one 1 ; randomly chosen for parkvall
+  set random-one 1
   set on-my-plantation 0 ;
   set neighbour-plantation 0 ;
   set nr-features-exchanged 1
   set include-status? false
   set max-population 10000
-
-  ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
-  ;vores model kan altså ikke 1-1 gengive dette.
   set %-understood-for-overall-success 100
   set if-overall-success "Hearer increases all speaker's values"
-
-  set odds-increase-successful 2 ;@
+  set odds-increase-successful 2
   set kids-odds-inc-success 2
   set odds-decrease 0
   set kids-odds-dec 0
   set if-overall-failure "Nothing decreases"
   set hearer-decreases-from-failure? false
-  set odds-increase-unsuccessful 1 ;@
+  set odds-increase-unsuccessful 1
   set kids-odds-inc-unsuccess 1
-
-
-
   set if-overall-success "Both increase all speaker's values"
 
+
+  ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
+  ;vores model kan altså ikke 1-1 gengive dette.
 end
 
 to reset-settings
@@ -173,7 +167,7 @@ to reset-settings
   ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
   ;vores model kan altså ikke 1-1 gengive dette.
   set %-understood-for-overall-success 100
-  set if-overall-success "Hearer increases successful/matching values only"
+  set if-overall-success "Both increase successful/matching values only"
 
   set odds-increase-successful 1 ;@
   set kids-odds-inc-success 1
@@ -1579,7 +1573,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-3
+7
 
 CHOOSER
 1050
@@ -2052,7 +2046,7 @@ CHOOSER
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-3
+1
 
 BUTTON
 115
