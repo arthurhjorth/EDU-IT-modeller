@@ -1605,7 +1605,7 @@ NIL
 TEXTBOX
 520
 370
-605
+665
 388
 Conversation
 14
@@ -1938,7 +1938,7 @@ hearer-decreases-from-failure?
 TEXTBOX
 840
 375
-940
+1050
 393
 If overall success:
 12
@@ -2046,7 +2046,7 @@ CHOOSER
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-1
+0
 
 BUTTON
 115
