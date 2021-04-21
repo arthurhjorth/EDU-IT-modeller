@@ -122,7 +122,7 @@ to setup
       set social-needs social-needs-distribution
       set infected-at -1000
 
-      set will-show-symptoms? "NA" set will-isolate? "NA" ;just to initiate these
+      set will-show-symptoms? false set will-isolate? false ;just to initiate these
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -142,8 +142,8 @@ to setup
       ]
     ]
 
-  set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
-  set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
+  ;set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
+  ;set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
   ;initial infections:
   ask n-of  (initial-infection-rate / 100 * count people) people [
@@ -347,7 +347,7 @@ end
 
 to-report working-at-home? ;;person reporter
   ;;IBH: if schools close, all adults in a household with kids also work from home, even if their workplace is open
-  ifelse work-time? and age-group = "adult" and (close-workplaces? or is-homeschooling?)
+  ifelse work-time? and age-group = "adult" and (close-workplaces? or is-homeschooling? or isolating?)
     [report true]
     [report false]
 end
@@ -523,7 +523,8 @@ end
 
 ;;should I go out?
 to-report isolating? ;;people reporter
-  ifelse will-isolate? or ( any? [members with [will-isolate?]] of my-household ) ;so assumption: if a household member is isolating, you also isolate yourself...
+  ifelse (will-isolate? and currently-symptomous?) or ( any? [members with [will-isolate? and currently-symptomous?]] of my-household )
+  ;assumption: if a household member is isolating, you also isolate yourself...
   ;@changed. Now: will-isolate? only true if they show symptoms AND will isolate
   ;so two probabilities set at time of infection: will-show-symptoms?, and if that is true, will-isolate? is set
     [report true]
@@ -695,7 +696,7 @@ NIL
 1
 
 SLIDER
-15
+5
 15
 230
 48
@@ -739,7 +740,7 @@ PLOT
 1145
 400
 1505
-580
+585
 Productivity (average per person and baseline = 1)
 days since start
 NIL
@@ -833,8 +834,8 @@ SLIDER
 probability-of-infection
 probability-of-infection
 0
-100
-0.49
+50
+0.24
 0.01
 1
 % / hour
@@ -859,7 +860,7 @@ incubation-time
 incubation-time
 0
 240
-110.0
+48.0
 1
 1
 hours
@@ -874,7 +875,7 @@ average-infection-duration
 average-infection-duration
 0
 240
-120.0
+72.0
 1
 1
 hours
@@ -999,7 +1000,7 @@ has-symptoms
 has-symptoms
 0
 100
-73.0
+70.0
 1
 1
 %
@@ -1045,7 +1046,7 @@ self-isolating
 self-isolating
 0
 100
-80.0
+85.0
 1
 1
 %
@@ -1076,7 +1077,7 @@ PLOT
 775
 400
 1145
-580
+585
 How many people did one individual infect?
 Nr of people I infected
 Count
