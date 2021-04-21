@@ -22,7 +22,8 @@ people-own [ ;; human attributes
   my-workplace
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
-  will-show-symptoms? ;not rdy yet
+  will-show-symptoms?
+  will-isolate?
   my-friends ;;agentset
 
   my-relatives ;;2-4 extra connections outside the agent's age group
@@ -121,7 +122,7 @@ to setup
       set social-needs social-needs-distribution
       set infected-at -1000
 
-      set will-show-symptoms? false
+      set will-show-symptoms? "NA" set will-isolate? "NA" ;just to initiate these
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -144,7 +145,20 @@ to setup
   set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
   set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
 
-  ask n-of  (initial-infection-rate / 100 * count people) people [set infected-at -1 * random average-infection-duration set place-infected "Initial"] ;
+  ;initial infections:
+  ask n-of  (initial-infection-rate / 100 * count people) people [
+    set infected-at -1 * random average-infection-duration set place-infected "Initial"
+
+    ;for alle inficerede sættes will-show-symptoms? og will-isolate? med det samme:
+    ifelse random-float 1 < (has-symptoms / 100)
+    [
+      set will-show-symptoms? true
+      ;og en vis %-del af alle med symptomer følger isolationen (så de følger den enten i alle eller ingen situationer), det afgøres her:
+      ifelse random-float 1 < (self-isolating / 100) [set will-isolate? true] [set will-isolate? false]
+    ]
+    [set will-show-symptoms? false]
+
+  ] ;end of ask the initally infected
 
 
   ask turtles [recolor]
@@ -235,7 +249,12 @@ if time = 17 [
             set place-infected determine-place-of-infection
             ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
             ifelse random-float 1 < (has-symptoms / 100)
-            [set will-show-symptoms? true]
+            [
+              set will-show-symptoms? true
+              ;og en vis %-del af alle med symptomer følger isolationen (så de følger den enten i alle eller ingen situationer), det afgøres her:
+              ifelse random-float 1 < (self-isolating / 100) [set will-isolate? true] [set will-isolate? false]
+
+            ]
             [set will-show-symptoms? false]
           ]
       ]
@@ -245,7 +264,11 @@ if time = 17 [
           ask myself [set people-i-infected (turtle-set people-i-infected myself)]
           set place-infected determine-place-of-infection
           ifelse random-float 1 < (has-symptoms / 100)
-            [set will-show-symptoms? true]
+            [
+              set will-show-symptoms? true
+              ;og en vis %-del af alle med symptomer følger isolationen (så de følger den enten i alle eller ingen situationer), det afgøres her:
+              ifelse random-float 1 < (self-isolating / 100) [set will-isolate? true] [set will-isolate? false]
+          ]
           [set will-show-symptoms? false]
         ]
      ]
@@ -399,7 +422,7 @@ end
 
 
 to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
-  ;@LSG: Jeg har justeret parametrene til at være mere repræsentable OG mere simple (50/50 chance for hver gruppe - bortset fra unge, som alle er ens)
+  ;LSG: Jeg har justeret parametrene til at være mere repræsentable OG mere simple (50/50 chance for hver gruppe - bortset fra unge, som alle er ens)
   ; @LSG: Evt. læg en smule random-float ind, så ikke alle agenter i samme gruppe er HELT ens
 
   if age-group = "child" [
@@ -421,9 +444,9 @@ to-report social-needs-distribution ;Der er noget galt med denne men kan ikke fi
   ]
 end
 
-to-report my-friend-nr ;;people reporter. nr of friends (size of the agentset 'my-friend-group')
+to-report my-friend-nr ;;people reporter. (HALF THE) nr of friends (size of the agentset 'my-friend-group')
 
-  if age-group = "child" [report 1] ;;@tweak these numbers? (can make it vary within the age-groups with random-float - but maybe not needed?)
+  if age-group = "child" [report 1] ;;tweak these numbers? (can make it vary within the age-groups with random-float - but maybe not needed?)
   if age-group = "young" [report 3]
   if age-group = "adult" [report 2]
   if age-group = "elder" [report 1]
@@ -500,16 +523,17 @@ end
 
 ;;should I go out?
 to-report isolating? ;;people reporter
-  ;;ifelse currently-symptomous? or ( any? [members] of my-household with [currently-symptomous?] )
-  ifelse currently-symptomous? or ( any? [members with [currently-symptomous?]] of my-household )
+  ifelse will-isolate? or ( any? [members with [will-isolate?]] of my-household ) ;so assumption: if a household member is isolating, you also isolate yourself...
+  ;@changed. Now: will-isolate? only true if they show symptoms AND will isolate
+  ;so two probabilities set at time of infection: will-show-symptoms?, and if that is true, will-isolate? is set
     [report true]
     [report false]
 end
 
 
-to-report days-infected
+to-report hours-infected
   ifelse infected?
-    [] ;;@
+    [report (ticks - infected-at)]
     [report 0]
 end
 
@@ -608,7 +632,6 @@ to-report people-at-visit
 end
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 240
@@ -695,7 +718,7 @@ home-productivity
 home-productivity
 0
 200
-83.0
+80.0
 1
 1
 % (of normal)
@@ -716,7 +739,7 @@ PLOT
 1145
 400
 1505
-585
+580
 Productivity (average per person and baseline = 1)
 days since start
 NIL
@@ -811,7 +834,7 @@ probability-of-infection
 probability-of-infection
 0
 100
-0.98
+0.49
 0.01
 1
 % / hour
@@ -924,7 +947,7 @@ count people
 PLOT
 1145
 15
-1507
+1505
 211
 Age distribution over time
 hours since start
@@ -985,7 +1008,7 @@ HORIZONTAL
 PLOT
 1145
 210
-1510
+1505
 400
 Where are people currently?
 hours since start
@@ -1022,10 +1045,10 @@ self-isolating
 self-isolating
 0
 100
-50.0
+80.0
 1
 1
-NIL
+%
 HORIZONTAL
 
 PLOT
@@ -1034,8 +1057,8 @@ PLOT
 1145
 400
 Where were people infected?
-NIL
-NIL
+hours since start
+n people
 0.0
 10.0
 0.0
@@ -1055,8 +1078,8 @@ PLOT
 1145
 580
 How many people did one individual infect?
-NIL
-NIL
+Nr of people I infected
+Count
 0.0
 10.0
 0.0
