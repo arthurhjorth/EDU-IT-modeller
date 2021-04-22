@@ -200,8 +200,6 @@ to go
 
 
 ;;socializing:
-
-
 if time = 17 [
       ;;going to bars/stores:
       ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
@@ -212,13 +210,12 @@ if time = 17 [
           ifelse age-group != "child" and not isolating? ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
-              [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays. @@@ - do we care though
+              [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays
               [set placeholder random-float -1] ;a number between -1 and 0]
             let chance placeholder
-            ifelse chance + social-needs > 0 [ move-to one-of bars] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
+            ifelse chance + social-needs > 0 and any? bars-with-space [ move-to one-of bars-with-space] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
             ;;@kan evt gøre, så de går på bar med folk fra deres vennegruppe (brug my-friends)
-        ] ;^ Med de nuværende social-needs værdier har alle unge 20% chance. 70% af voksne har 14% chance og resten har 20%.
-           ;Overvejer at lave en slider til både social-needs og intervallet ovenfor - for også at lave en "to report" med sandsynlighederne (lidt besværligt men tror jeg kan) -gus
+        ]
             [move-to my-household] ;;if not adult
 
       ]
@@ -294,6 +291,10 @@ if time = 17 [
     if not any? people with [infected?] [stop] ;;model run stops if noone is infected
     tick
   ] ;;end of 'every .01' (the whole go procedure)
+end
+
+to-report bars-with-space
+  report bars with [count people-here < max-people-restriction] ;a turtleset, used in go (when people go out at 17)
 end
 
 to recolor
@@ -523,7 +524,7 @@ end
 
 ;;should I go out?
 to-report isolating? ;;people reporter
-  ifelse (will-isolate? and currently-symptomous?) or ( any? [members with [will-isolate? and currently-symptomous?]] of my-household )
+  ifelse any? [members with [will-isolate? and currently-symptomous?]] of my-household ;inkluderer både dem selv og andre i husstanden
   ;assumption: if a household member is isolating, you also isolate yourself...
   ;@changed. Now: will-isolate? only true if they show symptoms AND will isolate
   ;so two probabilities set at time of infection: will-show-symptoms?, and if that is true, will-isolate? is set
@@ -728,7 +729,7 @@ HORIZONTAL
 MONITOR
 419
 12
-528
+514
 57
 Time of the Day
 str-time
@@ -928,18 +929,18 @@ MONITOR
 12
 728
 57
-NIL
+Total deaths
 total-deaths
 17
 1
 11
 
 MONITOR
-578
+588
 12
 653
 57
-NIL
+Population
 count people
 17
 1
@@ -985,7 +986,7 @@ max-people-restriction
 max-people-restriction
 0
 100
-25.0
+100.0
 1
 1
 NIL
