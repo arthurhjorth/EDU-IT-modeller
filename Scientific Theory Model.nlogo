@@ -11,6 +11,7 @@ globals [ ;; global variables
   total-deaths
   placeholder
   day-names ;;for keeping track of weekdays
+  productivity-by-day
 ]
 
 people-own [ ;; human attributes
@@ -23,13 +24,13 @@ people-own [ ;; human attributes
   infected-at
   time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
   will-show-symptoms?
-  will-isolate?
   my-friends ;;agentset
 
   my-relatives ;;2-4 extra connections outside the agent's age group
 
   people-i-infected
   place-infected
+  isolating-this-turn? ;;AH: adding this so we can make it socially dependent
 ]
 ;; household attributes
 households-own [
@@ -59,6 +60,8 @@ to setup
   reset-ticks ; restart clock
 
   set day-names ["Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday"]
+
+  set  productivity-by-day (list)
 
   create-schools  5 [
     set color gray
@@ -122,7 +125,7 @@ to setup
       set social-needs social-needs-distribution
       set infected-at -1000
 
-      set will-show-symptoms? false set will-isolate? false ;just to initiate these
+      set will-show-symptoms? false ;just to initiate
       set my-household myself
       ask my-household [set members (turtle-set members myself)]
       if age < 20 [
@@ -138,26 +141,23 @@ to setup
         ]
 
       set people-i-infected (turtle-set)
+      set isolating-this-turn? false
 
       ]
     ]
 
-  ;set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
+  set-friend-group ;;denne funktion sætter en vennegruppe (agentset) for hver agent baseret på deres age group
   ;set-relatives ;;funktion, der giver alle 2-4 ekstra random connections ('relatives') uden for deres age group (my-relatives)
+  ;OBS: ignoring relatives for now
+
 
   ;initial infections:
   ask n-of  (initial-infection-rate / 100 * count people) people [
     set infected-at -1 * random average-infection-duration set place-infected "Initial"
-
-    ;for alle inficerede sættes will-show-symptoms? og will-isolate? med det samme:
+    ;for alle inficerede sættes will-show-symptoms? med det samme:
     ifelse random-float 1 < (has-symptoms / 100)
-    [
-      set will-show-symptoms? true
-      ;og en vis %-del af alle med symptomer følger isolationen (så de følger den enten i alle eller ingen situationer), det afgøres her:
-      ifelse random-float 1 < (self-isolating / 100) [set will-isolate? true] [set will-isolate? false]
-    ]
-    [set will-show-symptoms? false]
-
+      [ set will-show-symptoms? true ]
+      [ set will-show-symptoms? false ]
   ] ;end of ask the initally infected
 
 
@@ -183,17 +183,20 @@ to go
     set str-time (word time ":00")
     if time < 10 [set str-time (word "0" str-time)]
 
+    ;; update isolation
+    ask people [set isolating-this-turn? isolating?]
+
     ;;; move people to jobs and schools:
     if time = 8 [
       if not weekend? and not close-workplaces? [
         ask workers [
-          if not isolating? [ move-to my-workplace ]
+          if not isolating-this-turn? [ move-to my-workplace ]
         ]
       ]
 
       if not weekend? and not close-schools? [
           ask all-students [
-            if not isolating? [ move-to my-workplace ]
+            if not isolating-this-turn? [ move-to my-workplace ]
           ]
          ]
     ] ;;end of if time = 8
@@ -207,7 +210,7 @@ if time = 17 [
         [ ask people [move-to my-household] ] ;;if closed
         ;;if open:
         [ ask people [
-          ifelse age-group != "child" and not isolating? ;&not at privat socialt arrangement?
+          ifelse age-group != "child" and not isolating-this-turn? ;&not at privat socialt arrangement?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
               [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays
@@ -238,34 +241,25 @@ if time = 17 [
 
     ask people with [infected?] [
 
-      ifelse isolating? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
+      ifelse isolating-this-turn? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
         [ ;;if isolating:
-          ask other people-here with [random-float 1 < (0.2 * probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
+          ask up-to-n-of 5 other people-here with [random-float 1 < (0.2 * probability-of-infection * 0.005 ) and not immune? and not infected?] [ ;;80% lower risk of infection if isolating
             set infected-at ticks
             ask myself [set people-i-infected (turtle-set people-i-infected myself)] ;ask the person who infected me to remember that.
             set place-infected determine-place-of-infection
             ;;hvis de inficeres, sættes will-show-symptoms? med det samme:
             ifelse random-float 1 < (has-symptoms / 100)
-            [
-              set will-show-symptoms? true
-              ;og en vis %-del af alle med symptomer følger isolationen (så de følger den enten i alle eller ingen situationer), det afgøres her:
-              ifelse random-float 1 < (self-isolating / 100) [set will-isolate? true] [set will-isolate? false]
-
-            ]
+            [set will-show-symptoms? true]
             [set will-show-symptoms? false]
           ]
       ]
       [ ;;if not isolating:
-        ask other people-here with [random-float 1 < ( probability-of-infection * 0.01 ) and not immune? and not infected?] [ ;;normal risk of infection if not isolating
+        ask up-to-n-of 5 other people-here with [random-float 1 < ( probability-of-infection * 0.005 ) and not immune? and not infected?] [ ;;normal risk of infection if not isolating
           set infected-at ticks
           ask myself [set people-i-infected (turtle-set people-i-infected myself)]
           set place-infected determine-place-of-infection
           ifelse random-float 1 < (has-symptoms / 100)
-            [
-              set will-show-symptoms? true
-              ;og en vis %-del af alle med symptomer følger isolationen (så de følger den enten i alle eller ingen situationer), det afgøres her:
-              ifelse random-float 1 < (self-isolating / 100) [set will-isolate? true] [set will-isolate? false]
-          ]
+            [set will-show-symptoms? true]
           [set will-show-symptoms? false]
         ]
      ]
@@ -339,16 +333,20 @@ to-report determine-place-of-infection
 end
 
 to-report workers
-  report people with [age >= 20 and age <= 74]
+  report people with [age >= 19 and age <= 74]
 end
 
 to-report all-students
-  report people with [age <= 20]
+  report people with [age <= 18]
+end
+
+to-report elderly
+  report people with [age >= 75]
 end
 
 to-report working-at-home? ;;person reporter
   ;;IBH: if schools close, all adults in a household with kids also work from home, even if their workplace is open
-  ifelse work-time? and age-group = "adult" and (close-workplaces? or is-homeschooling? or isolating?)
+  ifelse work-time? and age-group = "adult" and (close-workplaces? or is-homeschooling?)
     [report true]
     [report false]
 end
@@ -524,16 +522,22 @@ end
 
 ;;should I go out?
 to-report isolating? ;;people reporter
-  ifelse any? [members with [will-isolate? and currently-symptomous?]] of my-household ;inkluderer både dem selv og andre i husstanden
-  ;assumption: if a household member is isolating, you also isolate yourself...
-  ;@changed. Now: will-isolate? only true if they show symptoms AND will isolate
-  ;so two probabilities set at time of infection: will-show-symptoms?, and if that is true, will-isolate? is set
+  ;ifelse any? [members with [will-isolate? and currently-symptomous?]] of my-household ;inkluderer både dem selv og andre i husstanden
+
+  ifelse any? my-friends [
+    ifelse ( any? [members with [currently-symptomous?]] of my-household ) or (isolate-if-friends-isolate? and (count my-friends with [isolating-this-turn?] / count my-friends) * 100 > friends-isolating-%)
     [report true]
     [report false]
+  ]
+  [
+    ifelse currently-symptomous? or ( any? [members with [currently-symptomous?]] of my-household )
+    [report true]
+    [report false]
+  ]
 end
 
 
-to-report hours-infected
+to-report hours-infected ;not in use right now
   ifelse infected?
     [report (ticks - infected-at)]
     [report 0]
@@ -566,12 +570,16 @@ to-report day
 end
 
 to-report weekday ;;now the simulation always starts on a Monday
+  if ticks > 1 [
   let this-weekday day mod 7 ;;sets this-day from 0 to 6 (uses the day-reporter above)
   report item this-weekday day-names   ;;reports the current weekday name from the 'day-names' list
+  ]
+  report "Monday"
 end
 
 to-report productivity ;;people reporter for productivity plot (this reports the productivity of a single agent)
   ifelse age-group = "adult" or age-group = "young" [
+    if infected? [report 0]
 
     ifelse is-homeschooling? [
       report productivity-while-homeschooling / 100 ;;even if working from home AND homeschooling, we only calculate the homeschooling productivity
@@ -586,20 +594,17 @@ to-report productivity ;;people reporter for productivity plot (this reports the
     ]
   ]
   [ ;;if not adult or young:
-    report 0 ;;assumption: nu antages det, at børn og ældre ikke bidrager til produktiviteten...)
+    report 0 ;;assumption: nu antages det, at børn og ældre ikke bidrager til produktiviteten...
   ]
-
-  ;;@include expenses-per-infection somewhere in these calculations? or in another economy plot?
 end
 
 
 to update-productivity-plot ;;run only at 12 every weekday! (see go procedure where this is called)
-  set-current-plot "Productivity (average per person and baseline = 1)"
-  set-current-plot-pen "productivity"
-
   ;; AH: only calculating this for people who work
   let total-productivity sum [productivity] of workers ;;uses the productivity reporter above, sums for all people
-  plot total-productivity / count workers ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
+;  plot total-productivity / count workers ;;so the productivity plot plots the AVERAGE productivity (not affected by deaths...)
+
+  set productivity-by-day lput (total-productivity / count workers) productivity-by-day
 end
 
 
@@ -632,7 +637,6 @@ end
 to-report people-at-visit
   report 0 ;;at a household, but not their own
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -727,10 +731,10 @@ home-productivity
 HORIZONTAL
 
 MONITOR
-419
-12
-514
-57
+365
+10
+460
+55
 Time of the Day
 str-time
 0
@@ -738,9 +742,9 @@ str-time
 11
 
 PLOT
-1145
-400
-1505
+1300
+320
+1755
 585
 Productivity (average per person and baseline = 1)
 days since start
@@ -750,10 +754,12 @@ NIL
 0.0
 2.0
 true
-false
+true
 "" ""
 PENS
-"productivity" 1.0 0 -16777216 true "" ""
+"productivity" 1.0 0 -16777216 true "" "if not weekend? and time = 12 [plot mean [productivity] of workers]"
+"Baseline" 1.0 0 -7500403 true "" "if not weekend? and time = 12 [plot 1]"
+"Avg. Prod" 1.0 0 -2674135 true "" "if not weekend? and time = 12 [plot mean productivity-by-day]"
 
 SWITCH
 5
@@ -786,25 +792,10 @@ productivity-while-homeschooling
 productivity-while-homeschooling
 0
 100
-75.0
+70.0
 1
 1
 %
-HORIZONTAL
-
-SLIDER
-5
-495
-230
-528
-expenses-per-infection
-expenses-per-infection
-0
-100
-64.0
-1
-1
-NIL
 HORIZONTAL
 
 TEXTBOX
@@ -830,13 +821,13 @@ Interventions
 SLIDER
 5
 265
-225
+230
 298
 probability-of-infection
 probability-of-infection
-0
-50
-0.24
+0.01
+5
+0.2
 0.01
 1
 % / hour
@@ -855,13 +846,13 @@ Virological Assumptions
 SLIDER
 5
 300
-225
+230
 333
 incubation-time
 incubation-time
 0
 240
-48.0
+13.0
 1
 1
 hours
@@ -870,13 +861,13 @@ HORIZONTAL
 SLIDER
 5
 335
-229
+230
 368
 average-infection-duration
 average-infection-duration
 0
 240
-72.0
+130.0
 1
 1
 hours
@@ -894,10 +885,10 @@ close-bars-and-stores?
 -1000
 
 MONITOR
-294
-12
-344
-57
+240
+10
+290
+55
 Day
 Day
 17
@@ -905,10 +896,10 @@ Day
 11
 
 PLOT
-775
-15
-1145
-211
+770
+55
+1025
+320
 SIR plot
 hours since start
 n people
@@ -925,10 +916,10 @@ PENS
 "Recovered" 1.0 0 -8630108 true "" "plot count people with [immune?]"
 
 MONITOR
-653
-12
-728
-57
+690
+10
+765
+55
 Total deaths
 total-deaths
 17
@@ -936,41 +927,21 @@ total-deaths
 11
 
 MONITOR
-588
-12
-653
-57
+540
+10
+605
+55
 Population
 count people
 17
 1
 11
 
-PLOT
-1145
-15
-1505
-211
-Age distribution over time
-hours since start
-n people
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"Children" 1.0 0 -14439633 true "" "plot count people with [age-group = \"child\"]"
-"Adults" 1.0 0 -13345367 true "" "plot count people with [age-group = \"adult\"]"
-"Elders" 1.0 0 -2674135 true "" "plot count people with [age-group = \"elder\"]"
-
 MONITOR
-344
-12
-419
-57
+290
+10
+365
+55
 Weekday
 weekday
 17
@@ -995,23 +966,23 @@ HORIZONTAL
 SLIDER
 5
 372
-227
+230
 405
 has-symptoms
 has-symptoms
 0
 100
-70.0
+100.0
 1
 1
 %
 HORIZONTAL
 
 PLOT
-1145
-210
-1505
-400
+1025
+320
+1300
+585
 Where are people currently?
 hours since start
 n people
@@ -1030,9 +1001,9 @@ PENS
 
 TEXTBOX
 5
-530
+495
 160
-548
+513
 Behavioral Assumptions
 15
 0.0
@@ -1043,21 +1014,21 @@ SLIDER
 550
 230
 583
-self-isolating
-self-isolating
+friends-isolating-%
+friends-isolating-%
 0
 100
-85.0
+100.0
 1
 1
 %
 HORIZONTAL
 
 PLOT
-775
-210
-1145
-400
+770
+320
+1025
+585
 Where were people infected?
 hours since start
 n people
@@ -1075,11 +1046,11 @@ PENS
 "Bar" 1.0 0 -13840069 true "" "plot count people with [place-infected = \"Bar/Restaurant\"]"
 
 PLOT
-775
-400
-1145
-585
-How many people did one individual infect?
+1300
+55
+1555
+320
+How many people did one person infect?
 Nr of people I infected
 Count
 0.0
@@ -1091,6 +1062,66 @@ false
 "" ""
 PENS
 "default" 1.0 1 -16777216 true "" "histogram [count people-i-infected] of people with [has-been-infected?]"
+
+SWITCH
+5
+515
+230
+548
+isolate-if-friends-isolate?
+isolate-if-friends-isolate?
+0
+1
+-1000
+
+MONITOR
+605
+10
+690
+55
+Have been sick
+count people with [has-been-infected?]
+17
+1
+11
+
+PLOT
+1025
+55
+1300
+320
+People who have been sick by age
+hours since start
+n people
+0.0
+10.0
+0.0
+1.0
+true
+true
+"" ""
+PENS
+"Children" 1.0 0 -12087248 true "" "if ticks > 0 [plot count all-students with [has-been-infected?] / count all-students]"
+"Adults" 1.0 0 -13345367 true "" "if ticks > 0 [plot count workers with [has-been-infected?] / count workers]"
+"Elders" 1.0 0 -2674135 true "" "if ticks > 0 [plot count elderly with [has-been-infected?] / count elderly]"
+
+PLOT
+1555
+55
+1755
+320
+% of people isolating
+NIL
+NIL
+0.0
+10.0
+0.0
+100.0
+true
+false
+"" ""
+PENS
+"% of people" 1.0 0 -16777216 true "" "if ticks > 0 [plot 100 * count people with [isolating?] / count people]"
 
 @#$#@#$#@
 ## WHAT IS IT?
