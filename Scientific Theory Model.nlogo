@@ -176,7 +176,6 @@ end
 
 to go
   every .01 [
-
     ;; update time
     set time ticks mod 24
     ask patches [set pcolor patch-color] ;;change colors depending on the time of day (see patch-color reporter)
@@ -203,42 +202,71 @@ to go
 
 
 ;;socializing:
+
+    ;IN WEEKENDS, PEOPLE MAY ALSO VISIT SOMEONE AT 13 O CLOCK! (and then ALSO again later at 17):
+if weekend? and time = 13 [
+      ask people [
+        let chance random-float -1 ;a number between -1 and 0
+        if not isolating-this-turn? and chance + social-needs > 0 [ visit-friend ]
+      ]
+    ]
+
+
 if time = 17 [
-      ;;going to bars/stores:
+      ;;going to bars/stores/friend visits:
       ;;@IBH: nu går alle på bar kl 17 - kan evt sprede det ud/gøre det mere realistik
-      ifelse close-bars-and-stores?
-        [ ask people [move-to my-household] ] ;;if closed
-        ;;if open:
-        [ ask people [
-          ifelse age-group != "child" and not isolating-this-turn? ;&not at privat socialt arrangement?
+      ifelse  close-bars-and-stores?
+        [ ;;IF BARS CLOSED:
+          ask people [
+            ;maybe hang out with friends instead:
+            let chance random-float -1 ;a number between -1 and 0
+            ifelse not isolating-this-turn? and chance + social-needs > 0 [ visit-friend ] [ move-to my-household ]
+          ]
+      ]
+        ;;IF BARS OPEN:
+        [
+        ask people [
+          ifelse not isolating-this-turn?
             [
             ifelse weekday = "Thursday" or weekday = "Friday" ;;bigger chance of going out on these days
-              [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;if we have a person with high social needs we now have a person who no matter what goes out on thursdays and fridays
+              [set placeholder random-float -0.75] ;;a number between -0.75 and 0 ;(people's social needs range from 0.2 to ?)
               [set placeholder random-float -1] ;a number between -1 and 0]
-            let chance placeholder
-            ifelse chance + social-needs > 0 and any? bars-with-space [ move-to one-of bars-with-space] [ move-to my-household ] ;;@:her kan vi ændre sandsynligheden for at gå på bar
-            ;;@kan evt gøre, så de går på bar med folk fra deres vennegruppe (brug my-friends)
-        ]
-            [move-to my-household] ;;if not adult
+            let chance placeholder ;hver person har deres egen unikke sandsynligheds-threshold for at gå ud den dag, som deres fixed social-needs så skal overstige
 
-      ]
-     ]
+            ifelse chance + social-needs > 0
+              [ ;IF FEELING SOCIAL:
+                ifelse any? bars-with-space and age-group != "child"
+                [
+                  let choice one-of ["bar" "friends"] ;random, 50% for each
+                  ifelse choice = "friends" and any? my-friend-house-options [visit-friend] [move-to one-of bars-with-space] ;if no options, actually just bar instead (so a bit more than 50%)
+
+                ]
+                [ ;if no bars with space, or if a child:
+                  visit-friend ;(if no friend house options, this just ends up sending them home anyway)
+                ]
+              ]
+              [ ;IF NOT FEELING SOCIAL:
+                move-to my-household
+              ]
+
+        ]
+          [
+            move-to my-household
+          ]
+        ]
+     ] ;end of if bars open
     ] ;;end of if time = 17
 
-
-
     ifelse weekday = "Friday" or weekday = "Saturday" [
-      if time = 24 [ ask people [ move-to my-household] ]
+      if time = 0 [ ask people [ move-to my-household] ]
     ]
     [
       if time = 20 [ ask people [ move-to my-household] ]
     ]
 
-
-    ;;SKER HVERT TICK (no matter the time):
+  ;;SKER HVERT TICK (no matter the time):
 
     ;; ask people who are infected to potentially infect others:
-
     ask people with [infected?] [
 
       ifelse isolating-this-turn? ;;isolating? er true hvis de selv eller nogen fra deres husstand har symptomer
@@ -288,7 +316,31 @@ if time = 17 [
 end
 
 to-report bars-with-space
-  report bars with [count people-here < max-people-restriction] ;a turtleset, used in go (when people go out at 17)
+  ifelse not close-bars-and-stores?
+  [
+    report bars with [count people-here < max-people-restriction] ;a turtleset, used in go (when people go to the bar at 17)
+  ]
+  [
+    report no-turtles ;empty turtleset
+  ]
+end
+
+to-report my-friend-house-options ;agent reporter. Reports a turtleset, used in visit-friend
+  let houses turtle-set [my-household] of my-friends
+  let safe-houses houses with [not any? members with [isolating-this-turn?]]
+  report safe-houses with [count people-here + 1 < max-people-restriction]
+  ;so these houses: a) don't have anyone isolating b) have space
+end
+
+to visit-friend ;agent procedure, used in go
+  ;@simple version now - not guaranteed that the friend is actually also there... (they might have gone to the bar or to another friend's house)
+  ifelse any? my-friend-house-options
+  [
+    move-to one-of my-friend-house-options
+  ]
+  [
+    move-to my-household ;if there are no options, they actually just go home instead
+  ]
 end
 
 to recolor
@@ -324,6 +376,7 @@ end
 
 to-report determine-place-of-infection
   if member? my-household  turtles-here [report "Home"]
+  if any? households-here and not member? my-household households-here [report "Friend's house"]
   if member? my-workplace turtles-here [
     if is-school? my-workplace [report "School"]
     if is-workplace? my-workplace [report "Work"]
@@ -420,7 +473,7 @@ to-report age-group ;;IBH: bruger de tre grupper fra DKs Statistik (ret forsimpl
 end
 
 
-to-report social-needs-distribution ;Der er noget galt med denne men kan ikke finde ud af hvad det er... -gus
+to-report social-needs-distribution ;social-needs bruges både til at gå på bar og besøge venner
   ;LSG: Jeg har justeret parametrene til at være mere repræsentable OG mere simple (50/50 chance for hver gruppe - bortset fra unge, som alle er ens)
   ; @LSG: Evt. læg en smule random-float ind, så ikke alle agenter i samme gruppe er HELT ens
 
@@ -439,7 +492,7 @@ to-report social-needs-distribution ;Der er noget galt med denne men kan ikke fi
 
   if age-group = "elder" [
     let chance random-float 1
-    ifelse chance < 0.5 [ report 0 ] [ report 0.2 ] ; ældre tager enten ud 20% af gange eller 0%
+    ifelse chance < 0.2 [ report 0 ] [ report 0.2 ] ; 20% af ældre tager aldrig ud, 80% gør det 20% af tiden
   ]
 end
 
@@ -530,7 +583,7 @@ to-report isolating? ;;people reporter
     [report false]
   ]
   [
-    ifelse currently-symptomous? or ( any? [members with [currently-symptomous?]] of my-household )
+    ifelse any? [members with [currently-symptomous?]] of my-household ;includes themselves
     [report true]
     [report false]
   ]
@@ -635,9 +688,8 @@ to-report people-at-bar
 end
 
 to-report people-at-visit
-  report 0 ;;at a household, but not their own
+  report count people with [any? households-here and not member? my-household households-here] ;at a household, but not their own
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 240
@@ -972,7 +1024,7 @@ has-symptoms
 has-symptoms
 0
 100
-100.0
+80.0
 1
 1
 %
@@ -998,6 +1050,7 @@ PENS
 "Work" 1.0 0 -2674135 true "" "plot people-at-work"
 "School" 1.0 0 -955883 true "" "plot people-at-school"
 "Bar" 1.0 0 -13840069 true "" "plot people-at-bar"
+"Visit" 1.0 0 -8630108 true "" "plot people-at-visit"
 
 TEXTBOX
 5
@@ -1044,6 +1097,7 @@ PENS
 "Work" 1.0 0 -2674135 true "" "plot count people with [place-infected = \"Work\"]"
 "School" 1.0 0 -955883 true "" "plot count people with [place-infected = \"School\"]"
 "Bar" 1.0 0 -13840069 true "" "plot count people with [place-infected = \"Bar/Restaurant\"]"
+"Visit" 1.0 0 -8630108 true "" "plot count people with [place-infected = \"Friend's house\"]"
 
 PLOT
 1300
@@ -1070,7 +1124,7 @@ SWITCH
 548
 isolate-if-friends-isolate?
 isolate-if-friends-isolate?
-0
+1
 1
 -1000
 
