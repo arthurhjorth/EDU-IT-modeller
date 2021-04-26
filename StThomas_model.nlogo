@@ -1319,10 +1319,11 @@ end
 
 to import-img
   ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [ ;from drive
-  fetch:url-async  "http://86.52.121.12/stthomas.png" [    p ->
-    import-a:pcolors p
+  ;fetch:url-async  "http://86.52.121.12/stthomas.png" [    p ->
+    ;import-a:pcolors p
+  import-pcolors "stthomas.png"
     initialize-map
-  ]
+  ;]
 end
 
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
@@ -1573,7 +1574,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-7
+45
 
 CHOOSER
 1050
@@ -1583,7 +1584,7 @@ CHOOSER
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
-0
+1
 
 BUTTON
 955
@@ -1641,7 +1642,7 @@ nr-features-exchanged
 nr-features-exchanged
 1
 10
-1.0
+6.0
 1
 1
 NIL
@@ -1663,7 +1664,7 @@ INPUTBOX
 220
 145
 start-odds
-3.0
+10.0
 1
 0
 Number
@@ -1677,7 +1678,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-1.0
+2.0
 1
 1
 NIL
@@ -1704,7 +1705,7 @@ INPUTBOX
 195
 70
 nr-colonists
-25.0
+100.0
 1
 0
 Number
@@ -1765,7 +1766,7 @@ SWITCH
 338
 newcomers?
 newcomers?
-1
+0
 1
 -1000
 
@@ -1808,7 +1809,7 @@ INPUTBOX
 600
 520
 convs-per-month
-3.0
+30.0
 1
 0
 Number
@@ -1833,7 +1834,7 @@ kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-1.0
+2.0
 1
 1
 NIL
@@ -1863,7 +1864,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-100.0
+85.0
 5
 1
 %
@@ -1963,7 +1964,7 @@ CHOOSER
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
-2
+0
 
 SLIDER
 5
@@ -1974,7 +1975,7 @@ risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-0.0
+0.5
 0.1
 1
 %
