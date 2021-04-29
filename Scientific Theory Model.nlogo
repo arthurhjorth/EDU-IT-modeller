@@ -1165,8 +1165,8 @@ PLOT
 1755
 320
 % of people isolating
-NIL
-NIL
+hours since start
+% people isolating
 0.0
 10.0
 0.0
