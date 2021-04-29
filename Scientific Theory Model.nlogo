@@ -632,7 +632,7 @@ end
 
 to-report productivity ;;people reporter for productivity plot (this reports the productivity of a single agent)
   ifelse age-group = "adult" or age-group = "young" [
-    if infected? [report 0]
+    if infected? [report 0] ;@change to if showing symptoms?
 
     ifelse is-homeschooling? [
       report productivity-while-homeschooling / 100 ;;even if working from home AND homeschooling, we only calculate the homeschooling productivity
