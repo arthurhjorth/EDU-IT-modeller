@@ -22,7 +22,6 @@ people-own [ ;; human attributes
   my-household
   my-workplace
   infected-at
-  time-of-death ;;so every turtle only checks if they die ONCE every day (kinda sinister... @IBH: better solution?)
   will-show-symptoms?
   my-friends ;;agentset
 
@@ -91,7 +90,6 @@ to setup
 
     ;;IBH: landsdækkende statistik om husstandsstørrelse fra http://apps.aalborgkommune.dk/images/teknisk/PLANBYG/BOLIGUNDERSOEGELSE/Del2.pdf (side 13)
     ;;1 = 39%, 2 = 33%, 3 = 12%, 4 = 11%, 5 = 4%, 6 (eller derover) = 1%
-    ;;@alderssammensætningen er stadig ret tilfældig/forsimplet og ikke baseret på statistik...
     let probability random-float 1
     if probability < 0.39                         [set placeholder 1]
     if probability >= 0.39 and probability < 0.72 [set placeholder 2]
@@ -110,8 +108,6 @@ to setup
       ;;@IBH: fix alderssammensætningen: den er stadig ret tilfældig/forsimplet og ikke baseret på statistik...
       ;;eg. a household of 5 is very likely to consist of 4 adults and a child...
       ;;(skriv: ask households [show [age-group] of members] i command center efter setup for at få et indblik i sammensætningen...)
-
-
 
       ;;make sure the first person created is always an adult or elder:
       ifelse not any? [members] of myself [
