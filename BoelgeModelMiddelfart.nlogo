@@ -43,7 +43,7 @@ to setup
   set impact 9
   set angle 90 ;; this can be used to easily create waves
   set surface-tension 51
-  set friction 90
+  set friction 94
   set three-d? false
 
   reset-ticks
@@ -172,7 +172,7 @@ wave-strength
 wave-strength
 1
 1000
-1000.0
+389.0
 1
 1
 NIL
