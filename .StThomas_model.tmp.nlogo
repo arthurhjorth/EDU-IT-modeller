@@ -508,7 +508,7 @@ to ship-arrival ;run in go (very first thing every tick)
 
 
       ;add colonists:
-      let c-nr-arrived round (s-nr-arrived / 50) ; @ reducing amount of people arriving. from /10 to /20. However it seems like it doesn't really work
+      let c-nr-arrived round (s-nr-arrived / 40) ; @ reducing amount of people arriving. from /10 to /20.
       if c-nr-arrived < 1 [set c-nr-arrived 1] ;always at least one colonist
       repeat c-nr-arrived [ make-person "colonist" one-of col-lang-list ] ;@just random european language now
 
@@ -1776,7 +1776,7 @@ INPUTBOX
 295
 450
 random-one
-1.0
+0.0
 1
 0
 Number
@@ -1787,7 +1787,7 @@ INPUTBOX
 505
 450
 on-my-plantation
-6.0
+1.0
 1
 0
 Number
@@ -1798,7 +1798,7 @@ INPUTBOX
 410
 450
 neighbour-plantation
-3.0
+0.0
 1
 0
 Number
