@@ -1,4 +1,4 @@
-extensions [fetch import-a csv table profiler]
+extensions [fetch import-a csv table ]
 
 globals [
   wals-list
@@ -17,8 +17,7 @@ globals [
   ship-table ;the one we use!
   year-month-list
 
-  color-list ;;for plotting
-  agent-color-list ;;for visualizing
+
 
   sea-patches
   land-patches
@@ -74,18 +73,22 @@ plantations-own [
   max-members
 ]
 
-to profile
-  profiler:reset
-  setup
-  profiler:start
-  repeat 50 [go]
-  print profiler:report
-end
 
 
 to setup
+;  show all? patches [pcolor != black]
+;  if count patches with [pcolor = black] > 400 [
+;    user-message "Import the background image first, please"
+;    stop
+;  ]
+;  let patch-colors [(list self pcolor)] of patches
+
   clear-all
   reset-ticks
+;  foreach patch-colors [ t ->
+;    ask item 0 t [set pcolor item 1 t]
+;  ]
+
   ;;create the map:
   ;;import-pcolors "stthomas.png"
 
@@ -96,7 +99,9 @@ to setup
 
   ;;get the data files and initialize variables:
   import-csv ;;gets WALS data from url, makes it into a table
+;  show "done csv"
   import-ship-csv
+;  show "done ship"
   initialize-variables ;;moved down to its own procedure so setup isn't too cluttered
 
   make-plantations ;also sets up links
@@ -109,44 +114,72 @@ end
 
 
 to setup-as-parkvall
-  ;specify all parameters:
-  set include-words? true
-  set start-odds 20 ;@@@
+  set start-odds 10
   set nr-slaves 100
   set nr-colonists 100
   set deaths? false
-  set children? false ;double check that it works properly
-  set newcomers? true ;in his model people left and arrived according to historic data
+  set children? false
+  set newcomers? true
   set distribution-method "random plantation"
   set convs-per-month 30
-  set random-one 1 ;@@
-  set on-my-plantation 1 ;@
-  set neighbour-plantation 1 ;@
+  set random-one 1
+  set on-my-plantation 0 ;
+  set neighbour-plantation 0 ;
   set nr-features-exchanged 1
   set include-status? false
+  set max-population 10000
+  set %-understood-for-overall-success 100
+  set if-overall-success "Hearer increases all speaker's values"
+  set odds-increase-successful 2
+  set kids-odds-inc-success 2
+  set odds-decrease 0
+  set kids-odds-dec 0
+  set if-overall-failure "Nothing decreases"
+  set hearer-decreases-from-failure? false
+  set odds-increase-unsuccessful 1
+  set kids-odds-inc-unsuccess 1
+  set if-overall-success "Both increase all speaker's values"
+
+
+  ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
+  ;vores model kan altså ikke 1-1 gengive dette.
+end
+
+to reset-settings
+  ;specify all parameters:
+;  set include-words? true
+  set start-odds 3 ;@
+  set nr-slaves 100
+  set nr-colonists 25
+  set deaths? false
+  set children? false ;double check that it works properly
+  set newcomers? false ;in his model people left and arrived according to historic data
+  set distribution-method "random plantation"
+  set convs-per-month 3
+  set random-one 0 ; randomly chosen for parkvall
+  set on-my-plantation 1 ;
+  set neighbour-plantation 0 ;
+  set nr-features-exchanged 1
+  set include-status? false
+  set max-population 10000
+  set dying-age 70
 
   ;Hos parkvall er Sandsynligheden for at hearer bruge dét ord speaker har brugt, stiger med inverse probability p ganget med en faktor E mellem 0 og 1, som afhænger af coordination og discounting.
   ;vores model kan altså ikke 1-1 gengive dette.
   set %-understood-for-overall-success 100
-  set if-overall-success "Hearer increases all speaker's values"
-  set odds-increase-successful 2 ;@
-  set kids-odds-inc-success 2
-  set odds-decrease 1 ;@@
-  set if-overall-failure "nothing decreases"
-  set hearer-decreases-from-failure? true ;@@@@gus
+  set if-overall-success "Both increase successful/matching values only"
+
+  set odds-increase-successful 1 ;@
+  set kids-odds-inc-success 1
+  set odds-decrease 0
+  set kids-odds-dec 0
+  set if-overall-failure "Decrease unsuccessful values only (if known)"
+  set hearer-decreases-from-failure? false
   set odds-increase-unsuccessful 1 ;@
   set kids-odds-inc-unsuccess 1
-
-
-
-  set if-overall-success "Both increase all speaker's values"
-
-
-
-
-
-  setup
 end
+
+
 
 to make-plantations
   ;;layout the world
@@ -195,7 +228,8 @@ to initialize-variables ;;run in setup
 
   set word-list []
   ;;nr-words is a number showing how many different word meanings agents have (for each meaning, every language will then have a unique word)
-    foreach range nr-words [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
+
+  foreach range 0 [ ;;for the numbers 0 to one less than nr-words (e.g. if nr-words = 10, it loops through 0 to 9 - which still equals 10 unique words (0-9)
       n ->
       set word-list lput (word "word" n) word-list
     ]
@@ -207,9 +241,6 @@ to initialize-variables ;;run in setup
     table:put chosen-table key value ;;table:put adds this key-value combination to the agent's table
   ]
 
-
-  set color-list [0 16 106 44 56 115 26 84 6] ;;colors for plotting (ensures through indexing that the same value is always the same color)
-  set agent-color-list [white 14 104 45 53] ;;@ can add more
 end
 
 to initialize-agent-variables ;;agent procedure, run in setup
@@ -250,8 +281,12 @@ to go
 
   ;ask people [ communicate ] ;;procedure where agents talk to each other
   set agreement lput (list successes-this-tick fails-this-tick) agreement ;;nested list, each round updated with counts of successes and fails (nested list with the two totals)
+
+  if ticks mod 6 = 0 [
   update-feature-plot
   update-convergence-plot
+    color-by-lang
+  ]
 
   ask people [
     get-older ;;agents get older and maybe die ;and have children
@@ -466,14 +501,14 @@ to ship-arrival ;run in go (very first thing every tick)
       let s-nr-arrived item 2 info ;which of the two estimates do we wanna use, @Lisa? ;vi bruger N-slaves-estimate
       let s-ship-lang item 0 info ;the language code
 
-      repeat s-nr-arrived [ make-person "slave" s-ship-lang ] ;plantation allocation also included in make-person
+      repeat s-nr-arrived  [ make-person "slave" s-ship-lang ] ;plantation allocation also included in make-person
                                                           ;@OBS:
                                                           ;hvor mange colonists var med? (tilføjer kun slaver lige nu!
                                                           ;tilføj evt. , at 17% var børn - hvordan? (alder sættes i make-person, tilfældigt normaltfordelt nu)
 
 
       ;add colonists:
-      let c-nr-arrived round (s-nr-arrived / 10)
+      let c-nr-arrived round (s-nr-arrived / 100) ; @ reducing amount of people arriving. from /10 to /20. However it seems like it doesn't really work
       if c-nr-arrived < 1 [set c-nr-arrived 1] ;always at least one colonist
       repeat c-nr-arrived [ make-person "colonist" one-of col-lang-list ] ;@just random european language now
 
@@ -551,7 +586,7 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
   let chosen-topics chosen-features
   if include-words? [
     ;;A. Choose which word meaning to utter:
-    set chosen-word one-of word-list ;;e.g. 'word3'
+;    set chosen-word one-of word-list ;;e.g. 'word3'
     set chosen-topics lput chosen-word chosen-features ;;better name, store it ;;so the list is of ALL topics in this interaction, features and words, e.g. ["X9A" "X29A" "word3"]
 
 
@@ -579,9 +614,12 @@ to communicate ;;agent procedure run in go ;;no longer coded from the speaker's 
   ;;(understood in this context means that the hearer and speaker both drew/chose the exact same value/word, nothing else matters)
   let nr-understood length filter [i -> i = true] outcome-list ;;nr of trues in the list
   let percent-understood nr-understood / length outcome-list ;;the percentage understood of the exchanged items
+;  show (list speaker-choices hearer-choices  )
+;    show percent-understood
   let percent-needed (%-understood-for-overall-success / 100) ;;threshold from interface
   ;;check if understanding is above the threshold:
   let success? "NA" ;;placeholder to initiate variable outside ifelse blocks
+;    show (list percent-understood percent-needed)
   ifelse percent-understood >= percent-needed [ ;;if percent successes (for all the features and words exchanged in this interaction) is above the threshold, OVERALL SUCCESS!
     set success? true ;;measures overall success
     set success-count success-count + 1 ;;total cumulative
@@ -750,8 +788,8 @@ end
 
 to color-by-lang
   ask people [
-    let my-choice most-likely-value color-feature ;;their most likely value for this feature (highest odds)
-    set color item my-choice agent-color-list ;;using the value as indexing for what color to choose from the global agent-color-list
+    let my-choice most-likely-value plot-feature ;;their most likely value for this feature (highest odds)
+    set color item my-choice base-colors ;;using the value as indexing for what color to choose from the global base-colors
   ]
 end
 
@@ -826,7 +864,7 @@ end
 
 ;;--- PLOTS
 to update-feature-plot ;;run in go (and setup)
-  if ticks mod 6 = 0 [ ;only updates every 6 months
+
     set-current-plot "Feature plot" ;;the following manual plot commands will only be used on this plot
     clear-plot
     ;;interface chooser decides what feature we focus on ('plot-feature')
@@ -863,7 +901,7 @@ to update-feature-plot ;;run in go (and setup)
 
 
 
-        let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+        let c item s base-colors ;  ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
         create-temporary-plot-pen (word s) ;;the instance/value name made into a string
         set-plot-pen-mode 1 ;;bar mode
         set-plot-pen-color c
@@ -894,7 +932,7 @@ to update-feature-plot ;;run in go (and setup)
         ;;let y table:get counts s ;;@CHANGE THIS TO THE AVERAGE PROBABILITY FOR THIS VALUE
         let y avg-value-prob plot-feature s ;;uses the reporter 'avg-value-prob' with the current feature and instance/value as input - so y is the average probability across agents
 
-        let c item s color-list
+        let c item s base-colors
         create-temporary-plot-pen (word s)
         set-plot-pen-mode 1
         set-plot-pen-color c
@@ -924,7 +962,7 @@ to update-feature-plot ;;run in go (and setup)
       (foreach instances range n [
         [s i] ->
         let y item s counts-list ;;the nr of times this value has been chosen (using indexing because that's the structure of chosen-table and counts-list)
-        let c item s color-list ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
+        let c item s base-colors ;;so i.e. 'value 1' is always associated with item 1 in color-list (a specific color)
         create-temporary-plot-pen (word s) ;;the instance/value name made into a string
         set-plot-pen-mode 1 ;;bar mode
         set-plot-pen-color c
@@ -935,12 +973,12 @@ to update-feature-plot ;;run in go (and setup)
         set-plot-pen-color c ;;to get the right color in the legend
       ])
     ]
-  ] ;end of ticks mod 6
+
 
 end
 
 to update-convergence-plot ;;run in go (and setup). Visualizes convergence for the island as a whole
-  if ticks mod 6 = 0 [ ;only updates every 6 months
+
     let proportion-list []
     foreach feature-list [
       the-feature ->
@@ -984,7 +1022,7 @@ to update-convergence-plot ;;run in go (and setup). Visualizes convergence for t
       plotxy i y
       ;;set-plot-pen-color c ; to get the right color in the legend
     ])
-  ]
+
 
 
 end
@@ -1281,12 +1319,11 @@ end
 
 to import-img
   ;;fetch:url-async "https://drive.google.com/uc?export=download&id=1b9i6SpS2BCsYk80N8FLGd_dorG0_5Y5p" [ ;from drive
-  fetch:url-async "http://86.52.121.12/stthomas.png" [
-    ;^^from Arthur's server ;works! BUT NL web...!!!
-
-    p ->
-    import-a:pcolors p
-  ]
+  ;fetch:url-async  "http://86.52.121.12/stthomas.png" [    p ->
+    ;import-a:pcolors p
+  import-pcolors "stthomas.png"
+    initialize-map
+  ;]
 end
 
 ;;following this guide to use Google sheets to host a downloadable csv url: https://www.megalytic.com/knowledge/using-google-sheets-to-host-editable-csv-files
@@ -1303,27 +1340,28 @@ to import-csv
   fetch:url-async "https://docs.google.com/spreadsheets/d/1RA6wBtIiiOQG242R0iB0qV60n_xPCMBQQ_EmBhqr-tw/gviz/tq?tqx=out:csv" [
     text ->
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
-    ;;now to convert it:
+                                        ;;now to convert it:
     set wals-list []
     set wals-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
-    ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
-    ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+                                                                       ;;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
+                                                                       ;;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+
+    set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
+    set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
+    set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
+
+    ;;now to make the table:
+    set wals-table table:make ;;initialize the empty table
+
+    ;;loop to create the wals table based on the list:
+    foreach wals-list [ ;;wals-list is a list of lists
+      x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
+      let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
+      let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
+      table:put wals-table key value ;;table:put adds this key-value combination to the table
+    ]
   ]
 
-  set header-list item 0 wals-list ;;the headers from the csv ('Affiliation', 'ID', followed by feature names) (matching the values in wals-list) ;;probably don't need this?
-  set feature-list but-first but-first header-list ;;removes first two items - now only the feature names (matching the positions for values in wals-table)
-  set wals-list but-first wals-list ;;now wals-list only contains affiliation, language ID, and associated feature lists (and not the header-list which was item 0)
-
-  ;;now to make the table:
-  set wals-table table:make ;;initialize the empty table
-
-  ;;loop to create the wals table based on the list:
-  foreach wals-list [ ;;wals-list is a list of lists
-    x -> ;;x is each sublist in the form ["Atlantic creoles" "cSANo" 1 1 1 1 3 1 1 1 8 ... ]
-    let key item 1 x ;;item 1 in this sublist is the language ID - what we want to be the table key
-    let value but-first but-first x ;;the table value should be just the numbered feature list, without the affiliation and language ID
-    table:put wals-table key value ;;table:put adds this key-value combination to the table
-  ]
 end
 
 ;;@Ida's notes about how to handle the data:
@@ -1342,10 +1380,12 @@ to import-ship-csv
   ;downloadable link: https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/gviz/tq?tqx=out:csv
   fetch:url-async "https://docs.google.com/spreadsheets/d/1QnWrmyJwaDlk_rWcSfyo__jM__64fi3pWHNAaSVAU5s/gviz/tq?tqx=out:csv" [
     text ->
+;    show text
     let whole-file csv:from-string text ;;this gives us ONE long list of single-item lists
     ;convert it:
     set ship-list []
     set ship-list ( map [i -> csv:from-row reduce word i] whole-file ) ;;a full list of lists (every sheets row is an item)
+;    show ship-list
     set ship-header-list item 0 ship-list ;["Language" "Year" "Month" "N-slaves" "N-slaves-estimate" "N-slaves-estimate-simple-mean"] ;matching ship-list!
     set ship-list but-first ship-list ;without the headers - now only the ship data ;[["wolNA" 1673 "Jan" 103 103 103] ["wolNA" 1674 "Jan" 103 103 103] ... ]
     let year-list map [i -> item 1 i] ship-list ;list with all the years
@@ -1366,7 +1406,9 @@ to import-ship-csv
   ]
 end
 
-
+to-report include-words?
+  report false
+end
 
 ;;---GRAPHICS:
 
@@ -1395,9 +1437,9 @@ to color-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-230
+225
 10
-960
+955
 357
 -1
 -1
@@ -1422,10 +1464,10 @@ ticks
 30.0
 
 BUTTON
-725
-530
-788
-563
+5
+180
+220
+213
 NIL
 setup
 NIL
@@ -1439,10 +1481,10 @@ NIL
 1
 
 BUTTON
-790
-530
-853
-563
+5
+215
+105
+248
 NIL
 go
 T
@@ -1456,9 +1498,9 @@ NIL
 1
 
 MONITOR
-235
+230
 305
-292
+287
 350
 Month
 this-month
@@ -1467,9 +1509,9 @@ this-month
 11
 
 MONITOR
-290
+285
 305
-347
+342
 350
 Year
 year
@@ -1478,29 +1520,29 @@ year
 11
 
 PLOT
-965
+1175
 10
-1285
-185
-Communication outcomes (per tick)
+1495
+170
+Communication outcomes
 Time
 Count
 0.0
 10.0
 0.0
-10.0
+1.0
 true
 true
 "" ""
 PENS
-"Successes" 1.0 0 -14439633 true "" "plot successes-this-tick"
-"Failures" 1.0 0 -5298144 true "" "plot fails-this-tick"
+"Successes" 1.0 0 -14439633 true "" "if ticks > 0 [ plot successes-this-tick / (successes-this-tick + fails-this-tick)]"
+"Failures" 1.0 0 -5298144 true "" "if ticks > 0 [ plot fails-this-tick / (successes-this-tick + fails-this-tick)]"
 
 INPUTBOX
-20
-145
-100
-205
+10
+10
+90
+70
 nr-slaves
 100.0
 1
@@ -1508,10 +1550,10 @@ nr-slaves
 Number
 
 PLOT
-985
-240
-1205
-480
+955
+85
+1175
+355
 Feature plot
 Values
 NIL
@@ -1525,42 +1567,32 @@ true
 PENS
 
 CHOOSER
-985
-190
-1077
-235
+955
+10
+1047
+55
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-0
+45
 
 CHOOSER
-1080
-190
-1205
-235
+1050
+10
+1175
+55
 plot-this
 plot-this
 "max value (count)" "average probability" "times chosen"
 1
 
-TEXTBOX
-1215
-255
-1395
-476
-- max value (count): hvor mange der har den value som top choice\n\n- average probability: gennemsnitlig sandsynlighed over alle agenter for at vælge præcis den value for den feature\n\n- times chosen: kumulativ optælling af, hvor mange gange den værdi er valgt (af hearer eller speaker) for den værdi\n\n
-12
-0.0
-1
-
 BUTTON
-1035
-480
-1155
-513
-NIL
-update-feature-plot
+955
+55
+1175
+88
+Update Visualization
+update-feature-plot\ncolor-by-lang
 NIL
 1
 T
@@ -1572,97 +1604,40 @@ NIL
 1
 
 TEXTBOX
-940
-515
-1240
-545
-Denne knap kan bruges til at opdatere plottet, hvis du ændrer plot-feature eller plot-this, mens modellen ikke kører.
-11
-0.0
-1
-
-BUTTON
-755
-435
-850
-468
-NIL
-color-by-lang
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-CHOOSER
-755
-390
-850
-435
-color-feature
-color-feature
-"X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-11
-
-TEXTBOX
-860
-391
-980
-456
-@coloring by most likely value for that feature now (colors match the ones in feature plot)
-11
-0.0
-1
-
-TEXTBOX
-80
-655
-175
-686
+520
+370
+665
+388
 Conversation
 14
 0.0
 1
 
 TEXTBOX
-55
-385
-180
-403
+235
+370
+360
+388
 Partner-Selection
 14
 0.0
 1
 
 TEXTBOX
-390
-480
-525
-511
+840
+360
+975
+391
 Learning update
 14
 0.0
 1
 
-TEXTBOX
-780
-365
-895
-396
-Visualisation
-14
-0.0
-1
-
 SLIDER
-0
-675
-145
-708
+510
+390
+655
+423
 nr-features-exchanged
 nr-features-exchanged
 1
@@ -1673,43 +1648,32 @@ nr-features-exchanged
 NIL
 HORIZONTAL
 
-SWITCH
-10
-30
-220
-63
-include-words?
-include-words?
-1
-1
--1000
-
 TEXTBOX
-75
-125
-210
-156
+5
+250
+140
+281
 Demography
 14
 0.0
 1
 
 INPUTBOX
-120
-65
+5
+85
 220
-125
+145
 start-odds
-20.0
+7.0
 1
 0
 Number
 
 SLIDER
-300
-555
-455
-588
+840
+435
+995
+468
 odds-increase-successful
 odds-increase-successful
 0
@@ -1721,67 +1685,36 @@ NIL
 HORIZONTAL
 
 SLIDER
-300
-655
-455
-688
+1155
+415
+1310
+448
 odds-decrease
 odds-decrease
 -3
 0
-1.0
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 INPUTBOX
-125
-145
-205
-205
-nr-colonists
-100.0
-1
-0
-Number
-
-TEXTBOX
-1020
-595
-1425
-640
-Satterfield 2008 outcome: hvor meget ændrer grammatik og lexicon sig på individ- og alle-niveau? hvor stor ændring? (ikke hvilken retning) eller hvor langt er agenterne fra deres startsprog?
-11
-0.0
-1
-
-TEXTBOX
-1200
-550
-1495
-595
-Som i Parkvall 2013: vis i %: hvor meget minder agenternes sprog/wals-features om Dutch creole? (cVIDd) (kan evt. også farve dem)
-11
-0.0
-1
-
-INPUTBOX
+115
 10
-65
-95
-125
-nr-words
-10.0
+195
+70
+nr-colonists
+25.0
 1
 0
 Number
 
 PLOT
-1290
-10
-1525
-185
+1175
+170
+1495
+355
 Convergence plot
 NIL
 NIL
@@ -1795,63 +1728,31 @@ false
 PENS
 
 TEXTBOX
-1295
-185
-1520
-245
-convergence plot:\nfor each WALS feature, shows the proportion of agents that have the most common max value as their max value for that feature
-11
-0.0
-1
-
-MONITOR
-1215
-65
-1285
-110
-Successes
-success-count
-17
-1
-11
-
-MONITOR
-1215
-110
-1285
-155
-Failures
-fail-count
-17
-1
-11
-
-TEXTBOX
-95
 10
-170
-28
+70
+85
+88
 Language
 14
 0.0
 1
 
 SWITCH
-10
-210
-100
-243
+5
+270
+95
+303
 deaths?
 deaths?
-0
+1
 1
 -1000
 
 SWITCH
-100
-210
-215
-243
+95
+270
+220
+303
 children?
 children?
 1
@@ -1859,31 +1760,21 @@ children?
 -1000
 
 SWITCH
-105
-245
-225
-278
+100
+305
+220
+338
 newcomers?
 newcomers?
 0
 1
 -1000
-
-TEXTBOX
-40
-535
-190
-553
-Tilføj odds for hver mulighed:
-11
-0.0
-1
 
 INPUTBOX
-10
-550
-80
-610
+225
+390
+295
+450
 random-one
 1.0
 1
@@ -1891,43 +1782,43 @@ random-one
 Number
 
 INPUTBOX
-200
-550
-295
-610
+410
+390
+505
+450
 on-my-plantation
-1.0
+6.0
 1
 0
 Number
 
 INPUTBOX
-85
-550
-200
-610
+295
+390
+410
+450
 neighbour-plantation
-1.0
+3.0
 1
 0
 Number
 
 INPUTBOX
-10
+510
 460
-100
+600
 520
 convs-per-month
-5.0
+3.0
 1
 0
 Number
 
 SWITCH
-145
-675
-280
-708
+655
+390
+790
+423
 include-status?
 include-status?
 1
@@ -1935,25 +1826,25 @@ include-status?
 -1000
 
 SLIDER
-455
-555
-610
-588
+995
+435
+1150
+468
 kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-5.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-455
-655
-610
-688
+1310
+415
+1465
+448
 kids-odds-dec
 kids-odds-dec
 -3
@@ -1965,10 +1856,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-325
-380
-555
-413
+510
+425
+790
+458
 %-understood-for-overall-success
 %-understood-for-overall-success
 0
@@ -1979,31 +1870,11 @@ SLIDER
 %
 HORIZONTAL
 
-TEXTBOX
-395
-360
-505
-391
-Understanding
-14
-0.0
-1
-
-CHOOSER
-300
-510
-610
-555
-if-overall-success
-if-overall-success
-"Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-3
-
 SLIDER
-300
-750
-480
-783
+1155
+450
+1335
+483
 odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
@@ -2015,161 +1886,121 @@ NIL
 HORIZONTAL
 
 SLIDER
-480
-750
-660
-783
+1335
+450
+1475
+483
 kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
 5
-5.0
+1.0
 1
 1
 NIL
 HORIZONTAL
 
-TEXTBOX
-330
-415
-570
-471
-Hvor mange % af de udvekslede features og ord hearer skal forstå for at interaktionen er overall successful (forståelse = eksakt match)
-11
-0.0
-1
-
 SLIDER
-10
-245
-102
-278
+5
+305
+97
+338
 dying-age
 dying-age
 0
 100
-50.0
+60.0
 1
 1
 NIL
 HORIZONTAL
 
-TEXTBOX
-710
-575
-895
-631
-Parkvall: kun hearer opdaterer, ingen decrease, success er ca fail x2. kun en feature.
-11
-0.0
-1
-
 CHOOSER
-10
-405
-215
-450
+5
+410
+220
+455
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
-2
+0
 
 SWITCH
-480
-700
-732
-733
+1155
+485
+1475
+518
 hearer-decreases-from-failure?
 hearer-decreases-from-failure?
-0
+1
 1
 -1000
 
 TEXTBOX
-300
-495
-400
-513
+840
+375
+1050
+393
 If overall success:
 12
 0.0
 1
 
 TEXTBOX
-300
-595
-450
-613
+1155
+355
+1305
+373
 If overall failure:
 12
 0.0
 1
 
 CHOOSER
-300
-610
-627
-655
+1155
+370
+1475
+415
 if-overall-failure
 if-overall-failure
 "Nothing decreases" "Decrease all speaker's values (if known)" "Decrease unsuccessful values only (if known)"
 0
 
-TEXTBOX
-310
-690
-500
-745
-If on, hearer follows 'if-overall-failure'. If off, hearer instead increases ALL speaker's values:
-11
-0.0
-1
-
-TEXTBOX
-95
-710
-270
-735
-If on: colonists are always speakers in colonist-slave interactions
-11
-0.0
-1
-
 SLIDER
-10
-280
-225
-313
+5
+340
+220
+373
 risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-3.2
+14.0
 0.1
 1
 %
 HORIZONTAL
 
 SLIDER
-10
-315
-225
-348
+5
+375
+220
+408
 nr-children-per-woman
 nr-children-per-woman
 0
-10
-10.0
+15
+2.0
 0.5
 1
 NIL
 HORIZONTAL
 
 MONITOR
-625
-360
-725
-405
+340
+305
+440
+350
 NIL
 current-population
 17
@@ -2177,26 +2008,26 @@ current-population
 11
 
 SLIDER
-610
-405
-740
-438
+5
+455
+220
+488
 max-population
 max-population
 200
 10000
-8200.0
+10000.0
 200
 1
 NIL
 HORIZONTAL
 
 BUTTON
-740
-495
-840
-528
-NIL
+105
+145
+220
+178
+Parkvall sett.
 setup-as-parkvall
 NIL
 1
@@ -2208,14 +2039,48 @@ NIL
 NIL
 1
 
-TEXTBOX
-135
-450
-285
-491
-only affects new slaves coming in with ships
-11
-0.0
+CHOOSER
+840
+390
+1150
+435
+if-overall-success
+if-overall-success
+"Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
+1
+
+BUTTON
+115
+215
+220
+248
+100 years
+repeat 1200 [go]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+5
+145
+105
+178
+Original Sett
+reset-settings
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
