@@ -107,7 +107,6 @@ to setup
   make-plantations ;also sets up links
   populate ;;create starting population (allocate-to-plantation included in make-person)
   ask people [ initialize-agent-variables ] ;@not needed?
-  ask people [ forward random 7]
   update-feature-plot
   update-convergence-plot
 end
@@ -293,7 +292,8 @@ to go
   ]
 
   set time ticks mod 12 ;;update time
-  if year = 1940 [stop]
+  if year = 1730 [stop]
+  ;if year = 1940 [stop]
 
   tick
 end
@@ -421,6 +421,7 @@ to make-person [kind language] ;;function that creates a person and takes their 
         ;move-to one-of land-patches with [not any? slaves-here]
 
         allocate-to-plantation
+        forward random 7 ; now newly created agents also forward random 7
 
       ]
     ]
@@ -501,19 +502,19 @@ to ship-arrival ;run in go (very first thing every tick)
       let s-nr-arrived item 2 info ;which of the two estimates do we wanna use, @Lisa? ;vi bruger N-slaves-estimate
       let s-ship-lang item 0 info ;the language code
 
-      repeat s-nr-arrived [ make-person "slave" s-ship-lang ] ;plantation allocation also included in make-person
+      repeat (s-nr-arrived / 10) [ make-person "slave" s-ship-lang ] ;plantation allocation also included in make-person
                                                           ;@OBS:
                                                           ;hvor mange colonists var med? (tilføjer kun slaver lige nu!
                                                           ;tilføj evt. , at 17% var børn - hvordan? (alder sættes i make-person, tilfældigt normaltfordelt nu)
 
 
       ;add colonists:
-      let c-nr-arrived round (s-nr-arrived / 50) ; @ reducing amount of people arriving. from /10 to /20. However it seems like it doesn't really work
+      let c-nr-arrived round (s-nr-arrived / 100) ; @ 10x fewer colonists
       if c-nr-arrived < 1 [set c-nr-arrived 1] ;always at least one colonist
       repeat c-nr-arrived [ make-person "colonist" one-of col-lang-list ] ;@just random european language now
 
 
-      print (word year " " this-month ". A ship just arrived with " s-nr-arrived " slaves speaking " s-ship-lang " and " c-nr-arrived " colonists!") ;just testing
+      print (word year " " this-month ". A ship just arrived with " round (s-nr-arrived / 10) " slaves speaking " s-ship-lang " and " c-nr-arrived " colonists!") ;just testing
 
 
       ;@can add little animation if time:
@@ -1574,7 +1575,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-45
+49
 
 CHOOSER
 1050
@@ -1642,7 +1643,7 @@ nr-features-exchanged
 nr-features-exchanged
 1
 10
-1.0
+3.0
 1
 1
 NIL
@@ -1664,7 +1665,7 @@ INPUTBOX
 220
 145
 start-odds
-7.0
+8.0
 1
 0
 Number
@@ -1678,7 +1679,7 @@ odds-increase-successful
 odds-increase-successful
 0
 3
-2.0
+3.0
 1
 1
 NIL
@@ -1776,7 +1777,7 @@ INPUTBOX
 295
 450
 random-one
-1.0
+0.0
 1
 0
 Number
@@ -1787,7 +1788,7 @@ INPUTBOX
 505
 450
 on-my-plantation
-6.0
+1.0
 1
 0
 Number
@@ -1798,7 +1799,7 @@ INPUTBOX
 410
 450
 neighbour-plantation
-3.0
+0.0
 1
 0
 Number
@@ -1834,7 +1835,7 @@ kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-2.0
+3.0
 1
 1
 NIL
@@ -1864,7 +1865,7 @@ SLIDER
 %-understood-for-overall-success
 0
 100
-100.0
+50.0
 5
 1
 %
@@ -1975,7 +1976,7 @@ risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-14.0
+1.0
 0.1
 1
 %
@@ -2047,7 +2048,7 @@ CHOOSER
 if-overall-success
 if-overall-success
 "Both increase all speaker's values" "Both increase successful/matching values only" "Hearer increases all speaker's values" "Hearer increases successful/matching values only"
-1
+0
 
 BUTTON
 115
