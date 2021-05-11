@@ -9,57 +9,158 @@ globals [
   angle  ;; this can be used to easily create waves
   surface-tension
   friction
+
+  hour ;keeping track of time
 ]
 
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
-patches-own [depth base-height current-momentum next-momentum]
+
+patches-own [
+  depth base-height current-momentum next-momentum
+
+  terrain-height ;baseret på kort fra DKs højdemodel
+  soil-type
+  satiety ;mæthedsgrad
+  water-level
+]
 
 breed [momentums momentum]
 momentums-own [force nearby-momentums forces-next-turn]
 
 to setup
   ca
-  import-pcolors "middelfart2.png"
+  import-map
 
-  ask patches with [shade-of? pcolor sky] [set pcolor blue] ;; this is too inclusive
-  set sea-patches patches with [pcolor = blue]
-  set-default-shape turtles "circle"
-  ask sea-patches [sprout 1  [
-    set color blue
-    set zpos 0
-    set xpos xcor
-    set ypos ycor
-    set delta-z 0
-;    show (list xcor ycor)
-    ]
-  ]
-  ask turtles [
-    set neighbor-turtles turtles-on neighbors4
-  ]
-  set drop-width 2
+  ;import-pcolors "middelfart2.png"
 
+;  ask patches with [shade-of? pcolor sky] [set pcolor blue] ;; this is too inclusive
+;  set sea-patches patches with [pcolor = blue]
+;  set-default-shape turtles "circle"
+;  ask sea-patches [sprout 1  [
+;    set color blue
+;    set zpos 0
+;    set xpos xcor
+;    set ypos ycor
+;    set delta-z 0
+;;    show (list xcor ycor)
+;    ]
+;  ]
+;  ask turtles [
+;    set neighbor-turtles turtles-on neighbors4
+;  ]
+;  set drop-width 2
+;
+;  set impact 9
+;  set angle 90 ;; this can be used to easily create waves
+;  set surface-tension 51
+;  set friction 94
+;  set three-d? false
 
-
-  set impact 9
-  set angle 90 ;; this can be used to easily create waves
-  set surface-tension 51
-  set friction 94
-  set three-d? false
-
+  set hour 0
   reset-ticks
 end
 
 to go
 
+  ;update time
+  if ticks mod (24 * 4) = 0 [set hour 0] ;here it loops around from 23 to 0
+  print hour
+  if ticks mod 4 = 0 and ticks > 0 [set hour hour + 1] ;each tick is 15 minutes ;FIX THIS
+  print hour
+
+
+  ;old wave stuff:
   if (mouse-down?) [
     ask turtles [release-drop mouse-xcor mouse-ycor]
   ]
     ask turtles [compute-delta-z]
     ask turtles [update-position-and-color]
+
   tick
+end
+
+to import-map
+  ;import-pcolors "middelfart3.png"
+  ;import-pcolors "mf-map-simple.png"
+  import-pcolors "mf-map-contrast.png"
+
+  ;import-pcolors "mf-terrain.png"
+
+end
+
+to color-correct-terrain ;used after import of terrain map
+  ask patches with [shade-of? pcolor red] [set pcolor pink]
+  ask patches with [shade-of? pcolor orange] [set pcolor grey]
+  ask patches with [shade-of? pcolor yellow] [set pcolor violet]
+  ask patches with [shade-of? pcolor green] [set pcolor yellow]
+  ask patches with [shade-of? pcolor turquoise] [set pcolor orange]
+  ask patches with [shade-of? pcolor blue] [set pcolor green]
+  ask patches with [shade-of? pcolor sky] [set pcolor green]
+end
+
+to color-correct-map
+  ask patches with [shade-of? pcolor blue] [set pcolor blue]
+  ask patches with [shade-of? pcolor red] [set pcolor brown]
+  ask patches with [shade-of? pcolor orange] [set pcolor brown]
+  ask patches with [shade-of? pcolor yellow] [set pcolor white]
+  ask patches with [shade-of? pcolor brown] [set pcolor orange]
+  ask patches with [shade-of? pcolor orange] [set pcolor 18]
+  repeat 4 [ ask patches with [ count neighbors4 with [shade-of? pcolor blue ] >= 3 ] [set pcolor blue] ]
+end
+
+to rainfall
 
 
 end
+
+to wave
+
+end
+
+to build-wall
+  ;
+end
+
+
+;INTERFACE REPORTERS:
+
+to-report minute
+  if ticks mod 4 = 0 [report "00"]
+  if ticks mod 4 = 1 [report "15"]
+  if ticks mod 4 = 2 [report "30"]
+  if ticks mod 4 = 3 [report "45"]
+end
+
+to-report str-time ;for interface
+  report (word hour ":" minute)
+end
+
+to-report day
+  report ticks mod (24 * 4)
+end
+
+to-report nedsivningsevne
+  ;baseret på https://www.plastmo.dk/beregnere/faskineberegner.aspx
+  if jordtype = "Groft sand" [report 0.001] ;10^-3
+  if jordtype = "Fint sand" [report 0.0001] ;10^-4
+  if jordtype = "Fint jord" [report 0.00001] ;10^-5
+  if jordtype = "Sandet ler" [report 0.000001] ;10^-6
+  if jordtype = "Siltet ler" [report 0.0000001] ;10^-7
+  if jordtype = "Asfalt" [report 0] ;ingen nedsivning @?
+end
+
+to-report nedsivningsevne-interface ;as string (so shown as decimal nr)
+  ;baseret på https://www.plastmo.dk/beregnere/faskineberegner.aspx
+  if jordtype = "Groft sand" [report "0.001 m/sek"] ;10^-3
+  if jordtype = "Fint sand" [report "0.0001 m/sek"] ;10^-4
+  if jordtype = "Fint jord" [report "0.00001 m/sek"] ;10^-5
+  if jordtype = "Sandet ler" [report "0.000001 m/sek"] ;10^-6
+  if jordtype = "Siltet ler" [report "0.0000001 m/sek"] ;10^-7
+  if jordtype = "Asfalt" [report "Ingen nedsivning"] ;ingen nedsivning @?
+end
+
+
+;TING FRA BØLGEMODELLEN:
 
 to release-drop    [drop-xpos drop-ypos]    ;Turtle procedure for releasing a drop onto the pond
   if (((xpos - drop-xpos) ^ 2) + ((ypos - drop-ypos) ^ 2) <= ((.5 * drop-width) ^ 2))
@@ -89,40 +190,28 @@ to update-position-and-color  ;Turtle procedure
       show-turtle ]
       [ hide-turtle ]]
 end
-
-
-
-to test-wave
-
-end
-
-
-to-report water-color
-
-end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-1064
-865
+250
+15
+928
+367
 -1
 -1
-6.0
+3.545
 1
 10
 1
 1
 1
 0
+0
+0
 1
-1
-1
--70
-70
--70
-70
+-94
+94
+-48
+48
 0
 0
 1
@@ -130,10 +219,10 @@ ticks
 30.0
 
 BUTTON
-53
-129
-116
-162
+135
+30
+210
+63
 NIL
 go\n
 T
@@ -147,10 +236,10 @@ NIL
 1
 
 BUTTON
-114
-78
-187
-111
+35
+30
+108
+63
 NIL
 setup\n
 NIL
@@ -163,11 +252,94 @@ NIL
 NIL
 1
 
-SLIDER
+BUTTON
+1355
+90
+1465
+123
+Make wave
+ask sea-patches with [pycor = 54] [ask turtles-here [set zpos wave-strength]]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+75
+270
+235
+315
+Jordtype
+Jordtype
+"Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
+1
+
+BUTTON
+400
+480
+500
+525
+Lav bølge
+wave
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+675
+480
+777
+525
+Start nedbør
+rainfall
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+935
+265
+1032
+310
+Hav-vandstand
+\"x meter\"
 17
-212
-189
-245
+1
+11
+
+MONITOR
+935
+325
+1032
+370
+Vandspejl
+\"x meter\"
+17
+1
+11
+
+SLIDER
+1325
+50
+1497
+83
 wave-strength
 wave-strength
 1
@@ -178,14 +350,156 @@ wave-strength
 NIL
 HORIZONTAL
 
-BUTTON
-38
-321
+SLIDER
+35
+115
+210
 148
-354
-Make wave
-ask sea-patches with [pycor = 54] [ask turtles-here [set zpos wave-strength]]
+hav-niveau
+hav-niveau
+0
+100
+50.0
+1
+1
+m
+HORIZONTAL
+
+MONITOR
+935
+65
+990
+110
+Tid
+str-time
+17
+1
+11
+
+MONITOR
+75
+320
+235
+365
+Jordens nedsivningsevne
+nedsivningsevne-interface
+17
+1
+11
+
+SLIDER
+600
+390
+850
+423
+mm-per-30-min
+mm-per-30-min
+0
+50
+10.0
+1
+1
+mm
+HORIZONTAL
+
+SLIDER
+600
+430
+850
+463
+nedbør-varighed
+nedbør-varighed
+0
+5
+1.5
+.25
+1
+timer
+HORIZONTAL
+
+BUTTON
+1360
+265
+1490
+298
 NIL
+color-correct-terrain
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1360
+310
+1487
+343
+NIL
+color-correct-map
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+935
+15
+990
+60
+Dag
+day
+17
+1
+11
+
+SLIDER
+355
+390
+540
+423
+bølge-højde
+bølge-højde
+0
+300
+90.0
+5
+1
+cm
+HORIZONTAL
+
+SLIDER
+355
+430
+540
+463
+bølge-styrke
+bølge-styrke
+0
+50
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+65
+435
+230
+495
+BYG EN BØLGEBRYDER
+build-wall
+T
 1
 T
 OBSERVER
@@ -537,7 +851,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -554,5 +868,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@
