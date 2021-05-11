@@ -292,7 +292,7 @@ to go
   ]
 
   set time ticks mod 12 ;;update time
-  if year = 1710 [stop]
+  if year = 1730 [stop]
   ;if year = 1940 [stop]
 
   tick
@@ -1575,7 +1575,7 @@ CHOOSER
 plot-feature
 plot-feature
 "X9A" "X10A" "X18A" "X27A" "X28A" "X29A" "X30A" "X31A" "X33A" "X39A" "X40A" "X44A" "X48A" "X57A" "X63A" "X65A" "X66A" "X69A" "X73A" "X82A" "X83A" "X85A" "X86A" "X88A" "X89A" "X90A" "X94A" "X104A" "X118A" "X119A" "X1A" "X2A" "X4A" "X11A" "X13A" "X19A" "X37A" "X38A" "X41A" "X45A" "X52A" "X55A" "X71A" "X91A" "X105A" "X112A" "X116A" "X117A" "X120A" "X124A"
-15
+49
 
 CHOOSER
 1050
@@ -1665,7 +1665,7 @@ INPUTBOX
 220
 145
 start-odds
-6.0
+8.0
 1
 0
 Number
@@ -1777,7 +1777,7 @@ INPUTBOX
 295
 450
 random-one
-1.0
+0.0
 1
 0
 Number
@@ -1788,7 +1788,7 @@ INPUTBOX
 505
 450
 on-my-plantation
-6.0
+1.0
 1
 0
 Number
@@ -1799,7 +1799,7 @@ INPUTBOX
 410
 450
 neighbour-plantation
-3.0
+0.0
 1
 0
 Number
@@ -1835,7 +1835,7 @@ kids-odds-inc-success
 kids-odds-inc-success
 0
 5
-5.0
+3.0
 1
 1
 NIL
@@ -1880,7 +1880,7 @@ odds-increase-unsuccessful
 odds-increase-unsuccessful
 0
 3
-2.0
+1.0
 1
 1
 NIL
@@ -1895,7 +1895,7 @@ kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
 5
-2.0
+1.0
 1
 1
 NIL
@@ -1924,7 +1924,7 @@ CHOOSER
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
-1
+0
 
 SWITCH
 1155
@@ -1976,7 +1976,7 @@ risk-premature-death-yearly
 risk-premature-death-yearly
 0
 100
-2.5
+1.0
 0.1
 1
 %
@@ -1991,7 +1991,7 @@ nr-children-per-woman
 nr-children-per-woman
 0
 15
-7.0
+2.0
 0.5
 1
 NIL
