@@ -1,3 +1,5 @@
+extensions [table]
+
 globals [
   start-wave ;; for drawing a wave
   end-wave ;; for drawing a wave, not sure we need it
@@ -11,6 +13,9 @@ globals [
   friction
 
   hour ;keeping track of time
+
+  testing
+  colortest
 ]
 
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
@@ -29,7 +34,10 @@ momentums-own [force nearby-momentums forces-next-turn]
 
 to setup
   ca
-  import-map
+  set-terrain-height
+  ;import-map
+
+
 
   ;import-pcolors "middelfart2.png"
 
@@ -79,11 +87,42 @@ to go
   tick
 end
 
+to set-terrain-height
+  ;import-pcolors "mf-terrain.png"
+  import-pcolors "mf-terrain-grayscale.png"
+  ask patches with [pcolor = white] [set pcolor sky] ;the sea
+  ask patches with [pcolor = 89.9] [set pcolor 9.8] ;the extreme values, only a few patches
+  ask patches with [pcolor = 39.9] [set pcolor 9.8]
+
+  ;now pcolors range from 1.5 to 9.8 ...
+  ;and the terrain should be from around 13.5 to 1.5 meters...
+
+
+  set testing sort [pcolor] of patches
+  ;show table:counts testing
+
+
+  ;transform/scale the colors:
+
+
+end
+
+to show-pcolor
+  if mouse-inside? [
+    ask patch mouse-xcor mouse-ycor [set colortest pcolor]
+  ]
+end
+
+to-report unique-pcolor-nr
+  set testing [pcolor] of patches
+  report length table:keys table:counts testing
+end
+
+
 to import-map
   ;import-pcolors "middelfart3.png"
   ;import-pcolors "mf-map-simple.png"
   import-pcolors "mf-map-contrast.png"
-
   ;import-pcolors "mf-terrain.png"
 
 end
@@ -96,6 +135,9 @@ to color-correct-terrain ;used after import of terrain map
   ask patches with [shade-of? pcolor turquoise] [set pcolor orange]
   ask patches with [shade-of? pcolor blue] [set pcolor green]
   ask patches with [shade-of? pcolor sky] [set pcolor green]
+  ask patches with [ count neighbors4 with [shade-of? pcolor green ] = 4 ] [set pcolor green]
+  ask patches with [ count neighbors4 with [shade-of? pcolor yellow ] = 4 ] [set pcolor yellow]
+  ask patches with [ count neighbors4 with [shade-of? pcolor violet ] = 4 ] [set pcolor violet]
 end
 
 to color-correct-map
@@ -193,12 +235,12 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 250
-15
-928
-367
+10
+973
+385
 -1
 -1
-3.545
+3.7831
 1
 10
 1
@@ -314,9 +356,9 @@ NIL
 1
 
 MONITOR
-935
+985
 265
-1032
+1082
 310
 Hav-vandstand
 \"x meter\"
@@ -325,9 +367,9 @@ Hav-vandstand
 11
 
 MONITOR
-935
+985
 325
-1032
+1082
 370
 Vandspejl
 \"x meter\"
@@ -366,9 +408,9 @@ m
 HORIZONTAL
 
 MONITOR
-935
+985
 65
-990
+1040
 110
 Tid
 str-time
@@ -419,9 +461,9 @@ HORIZONTAL
 
 BUTTON
 1360
-265
+330
 1490
-298
+363
 NIL
 color-correct-terrain
 NIL
@@ -436,9 +478,9 @@ NIL
 
 BUTTON
 1360
-310
+375
 1487
-343
+408
 NIL
 color-correct-map
 NIL
@@ -452,9 +494,9 @@ NIL
 1
 
 MONITOR
-935
+985
 15
-990
+1040
 60
 Dag
 day
@@ -500,6 +542,113 @@ BUTTON
 BYG EN BØLGEBRYDER
 build-wall
 T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1115
+90
+1205
+123
+NIL
+show-pcolor
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+1115
+45
+1205
+90
+NIL
+colortest
+17
+1
+11
+
+BUTTON
+1135
+190
+1257
+223
+draw height lines
+import-drawing \"mf-heightline-ref.png\"
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1220
+235
+1322
+268
+NIL
+clear-drawing
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+1185
+130
+1280
+175
+NIL
+unique-pcolor-nr
+17
+1
+11
+
+BUTTON
+1275
+190
+1382
+223
+draw city map
+import-drawing \"mf-map.png\"
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1360
+295
+1505
+328
+import rainbow terrain
+import-pcolors \"mf-terrain.png\"
+NIL
 1
 T
 OBSERVER
