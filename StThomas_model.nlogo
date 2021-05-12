@@ -1895,7 +1895,7 @@ kids-odds-inc-unsuccess
 kids-odds-inc-unsuccess
 0
 5
-2.0
+3.0
 1
 1
 NIL
@@ -1924,7 +1924,7 @@ CHOOSER
 distribution-method
 distribution-method
 "random plantation" "plantation with least similar speakers" "plantation with most similar speakers"
-1
+0
 
 SWITCH
 1155
