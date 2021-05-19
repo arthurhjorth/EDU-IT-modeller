@@ -4,6 +4,7 @@ globals [
   start-wave ;; for drawing a wave
   end-wave ;; for drawing a wave, not sure we need it
   sea-patches
+  land-patches
   drop-width k
   three-d?
 
@@ -12,10 +13,17 @@ globals [
   surface-tension
   friction
 
-  hour ;keeping track of time
+  minute ;keeping track of time
+  hour
+  day
 
   testing
   colortest
+
+  start-rainfall?
+  currently-raining?
+  ticks-rained
+  stop-rainfall?
 ]
 
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
@@ -35,11 +43,8 @@ momentums-own [force nearby-momentums forces-next-turn]
 to setup
   ca
   set-terrain-height
-  ;import-map
+  setup-variables
 
-
-
-  ;import-pcolors "middelfart2.png"
 
 ;  ask patches with [shade-of? pcolor sky] [set pcolor blue] ;; this is too inclusive
 ;  set sea-patches patches with [pcolor = blue]
@@ -63,26 +68,40 @@ to setup
 ;  set surface-tension 51
 ;  set friction 94
 ;  set three-d? false
-
-  set hour 0
   reset-ticks
 end
 
+to setup-variables
+  set minute "00"
+  set day 1
+  set hour 0
+  ask sea-patches [set water-level "sea"] ;all land-patches automatically have water-level 0
+  set start-rainfall? false set currently-raining? false set stop-rainfall? false
+end
+
+
 to go
-
   ;update time
+  let index ticks mod 4
+  set minute item index ["15" "30" "45" "00"]
+  if minute = "00" and ticks > 0 [set hour hour + 1]
+  if hour = 24 [set hour 0]
   if ticks mod (24 * 4) = 0 [set hour 0] ;here it loops around from 23 to 0
-  print hour
-  if ticks mod 4 = 0 and ticks > 0 [set hour hour + 1] ;each tick is 15 minutes ;FIX THIS
-  print hour
+  if str-time = "0:00" and ticks > 0 [set day day + 1]
 
+
+  if start-rainfall? or currently-raining? [rainfall] ;maybe rain (depending on button press in interface)
+
+  ask land-patches [seepage] ;nedsivning  beregnet for hver patch (definition af land-patch?)
+  ask land-patches [move-water] ;afløb af vand til nabo-patches beregnet for hver patch
+  ask land-patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
 
   ;old wave stuff:
-  if (mouse-down?) [
-    ask turtles [release-drop mouse-xcor mouse-ycor]
-  ]
-    ask turtles [compute-delta-z]
-    ask turtles [update-position-and-color]
+;  if (mouse-down?) [
+;    ask turtles [release-drop mouse-xcor mouse-ycor]
+;  ]
+;    ask turtles [compute-delta-z]
+;    ask turtles [update-position-and-color]
 
   tick
 end
@@ -91,29 +110,31 @@ to set-terrain-height
   ;import-pcolors "mf-terrain.png"
   import-pcolors "mf-terrain-grayscale.png"
   ask patches with [pcolor = white] [set pcolor sky] ;the sea
+  set sea-patches patches with [pcolor = sky]
+  set land-patches patches with [pcolor != sky]
   ask patches with [pcolor = 89.9] [set pcolor 9.8] ;the extreme values, only a few patches
   ask patches with [pcolor = 39.9] [set pcolor 9.8]
 
   ;now pcolors range from 1.5 to 9.8 ...
   ;and the terrain should be from around 13.5 to 1.5 meters...
 
+  ;@DO SOME TRANSFORMATION OF COLORS HERE SO THE HEIGHT FITS
 
-  set testing sort [pcolor] of patches
-  ;show table:counts testing
-
-
-  ;transform/scale the colors:
-
-
-end
-
-to show-pcolor
-  if mouse-inside? [
-    ask patch mouse-xcor mouse-ycor [set colortest pcolor]
+  ask land-patches [
+    set pcolor scale-color gray pcolor 12 3
+    set terrain-height pcolor ;@but make sure the color is right!
+    set pcolor white
   ]
 end
 
-to-report unique-pcolor-nr
+to show-pcolor ;for testing height colors in set-terrain-height
+  if mouse-inside? [
+    ask patch mouse-xcor mouse-ycor [set colortest pcolor]
+    ;ask patch mouse-xcor mouse-ycor [set colortest terrain-height]
+  ]
+end
+
+to-report unique-pcolor-nr ;to check granularity loss through using scale-color to manipulate terrain map
   set testing [pcolor] of patches
   report length table:keys table:counts testing
 end
@@ -127,19 +148,6 @@ to import-map
 
 end
 
-to color-correct-terrain ;used after import of terrain map
-  ask patches with [shade-of? pcolor red] [set pcolor pink]
-  ask patches with [shade-of? pcolor orange] [set pcolor grey]
-  ask patches with [shade-of? pcolor yellow] [set pcolor violet]
-  ask patches with [shade-of? pcolor green] [set pcolor yellow]
-  ask patches with [shade-of? pcolor turquoise] [set pcolor orange]
-  ask patches with [shade-of? pcolor blue] [set pcolor green]
-  ask patches with [shade-of? pcolor sky] [set pcolor green]
-  ask patches with [ count neighbors4 with [shade-of? pcolor green ] = 4 ] [set pcolor green]
-  ask patches with [ count neighbors4 with [shade-of? pcolor yellow ] = 4 ] [set pcolor yellow]
-  ask patches with [ count neighbors4 with [shade-of? pcolor violet ] = 4 ] [set pcolor violet]
-end
-
 to color-correct-map
   ask patches with [shade-of? pcolor blue] [set pcolor blue]
   ask patches with [shade-of? pcolor red] [set pcolor brown]
@@ -150,38 +158,104 @@ to color-correct-map
   repeat 4 [ ask patches with [ count neighbors4 with [shade-of? pcolor blue ] >= 3 ] [set pcolor blue] ]
 end
 
-to rainfall
+
+;IMPORTANT WATER PROCEDURES:
+
+to seepage ;(land-)patch procedure, nedsivning af vand i patches per tick. Run in go.
+  ;skal komme an på:
+  ;jordtypen (tjek)
+  ;mæthed (?)
+  ;vandspejlets højde (?)
+
+  ;NEDSIVNING AF VAND
+  let amount-seeped ( seepage-m-per-s * seconds-per-tick ) ;hvor mange meter vandet nedsiver på ét tick (baseret på jordtype)
+  ;@nu er det 0.9 meter for den hurtigste jordtype, 0.00009 m for den langsomste... (med et kvarter per tick, uden mæthed og vandspejl indregnet) ...
+
+  if water-level != 0 [ set water-level ( water-level - amount-seeped ) ]
+  ;@transformér til mæthedsgrad på en eller anden måde
+  ;set mæthed ?
+  if water-level < 0 [set water-level 0]
+end
+
+to move-water ;(land-)patch procedure, sker efter seepage procedure (random rækkefølge af patches), run in go.
+
+  ;AFLØB AF VAND TIL NABO-PATCHES
+  ;tjek: hvor omkring mig er vandstand + højde lavere end min vandstand + højde?
+
+  ;using the total-water-height patch reporter to create nested list of neighbors:
+  let neighbor-height-list [list self (total-water-height)] of neighbors ;e.g [ [(patch 15 1) 2.7] [(patch 13 2) 2.6] [(patch 15 2) 2.8] [(patch 14 2) 2.5] ... ]
+
+  ;hvis nabo-patchs højde + vandstand er lavere end min højde + vandstand, skal det løbe derover
+
+  ;hvor meget vand?
+  ;hvad med sea-patch-naboer?
 
 
+end
+
+to rainfall ;land-patch procedure. Aktiveret med knap i interface (som aktiverer start-rainfall?), fortsætter herefter selv i go-procedure indtil stop
+  ;fra interface: brug mængde og varighed
+
+  if not currently-raining? [ set currently-raining? true set ticks-rained 0] ;køres første run-through
+
+  ask land-patches [
+    set water-level ( water-level + ( mm-per-15-min / 1000) ) ;in meters. all patches increase their water-level based on the rain this tick
+  ]
+
+  set ticks-rained ( ticks-rained + 1 )
+
+  ;when the rainfall is over:
+  if ticks-rained = nedbør-varighed-i-ticks [
+    set currently-raining? false set start-rainfall? false set stop-rainfall? true
+  ]
+end
+
+to start-rain ;button in interface
+  set start-rainfall? true
+  if stop-rainfall? [set stop-rainfall? false set start-rainfall? false stop] ;mostly for visuals - forever button stops when the rain stops
+  ;(@maybe add failsafe for if the user stops it/clicks it multiple times while it's running...)
 end
 
 to wave
+  ;fra interface: brug bølgehøjde og styrke
 
 end
 
-to build-wall
-  ;
+to build-wall ;forever button in interface
+
+
+end
+
+;VISUALS:
+
+to recolor ;patch procedure, reflekterer vandspejlets højde
+  ;@SKAL DET VÆRE DEN TOTALE HØJDE? (terræn + vandspejl) - eller bare vandspejlet???
+  ;water-level
+  ifelse water-level = "sea" [
+    set pcolor pink
+  ]
+  [
+    ;set pcolor scale-color sky water-level (max [water-level] of patches )  (min [water-level] of patches )
+    set pcolor scale-color sky water-level 0.2 0
+  ]
 end
 
 
 ;INTERFACE REPORTERS:
 
-to-report minute
-  if ticks mod 4 = 0 [report "00"]
-  if ticks mod 4 = 1 [report "15"]
-  if ticks mod 4 = 2 [report "30"]
-  if ticks mod 4 = 3 [report "45"]
-end
+;@time mod stuff still not fully working
+;to-report minute
+;  if ticks mod 4 = 0 [report "00"]
+;  if ticks mod 4 = 1 [report "15"]
+;  if ticks mod 4 = 2 [report "30"]
+;  if ticks mod 4 = 3 [report "45"]
+;end
 
 to-report str-time ;for interface
   report (word hour ":" minute)
 end
 
-to-report day
-  report ticks mod (24 * 4)
-end
-
-to-report nedsivningsevne
+to-report seepage-m-per-s
   ;baseret på https://www.plastmo.dk/beregnere/faskineberegner.aspx
   if jordtype = "Groft sand" [report 0.001] ;10^-3
   if jordtype = "Fint sand" [report 0.0001] ;10^-4
@@ -202,7 +276,31 @@ to-report nedsivningsevne-interface ;as string (so shown as decimal nr)
 end
 
 
-;TING FRA BØLGEMODELLEN:
+;TING TIL BEREGNINGER
+
+to-report seconds-per-tick ;@skift tidsenhed her!
+  report 900 ;hvis hvert tick er 15 minutter
+end
+
+to-report minutes-per-tick
+  report ( seconds-per-tick / 60 )
+end
+
+to-report nedbør-varighed-i-ticks
+  ;nu er slideren i minutter!
+  report nedbør-varighed / 15
+end
+
+to-report total-water-height ;patch reporter
+  ifelse water-level = "sea" [
+    report "sea"
+  ]
+  [
+    report water-level + terrain-height
+  ]
+end
+
+;GAMLE TING FRA BØLGEMODELLEN:
 
 to release-drop    [drop-xpos drop-ypos]    ;Turtle procedure for releasing a drop onto the pond
   if (((xpos - drop-xpos) ^ 2) + ((ypos - drop-ypos) ^ 2) <= ((.5 * drop-width) ^ 2))
@@ -232,15 +330,20 @@ to update-position-and-color  ;Turtle procedure
       show-turtle ]
       [ hide-turtle ]]
 end
+
+to old-make-wave
+  let wave-strength random 80 ;interface slider instead
+  ask sea-patches with [pycor = 54] [ask turtles-here [set zpos wave-strength]]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 250
 10
-973
-385
+1018
+409
 -1
 -1
-3.7831
+4.0212
 1
 10
 1
@@ -294,23 +397,6 @@ NIL
 NIL
 1
 
-BUTTON
-1355
-90
-1465
-123
-Make wave
-ask sea-patches with [pycor = 54] [ask turtles-here [set zpos wave-strength]]
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 CHOOSER
 75
 270
@@ -319,13 +405,13 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-1
+3
 
 BUTTON
-400
-480
+460
 500
-525
+560
+545
 Lav bølge
 wave
 NIL
@@ -339,13 +425,13 @@ NIL
 1
 
 BUTTON
-675
-480
-777
-525
+735
+500
+837
+545
 Start nedbør
-rainfall
-NIL
+start-rain
+T
 1
 T
 OBSERVER
@@ -356,10 +442,10 @@ NIL
 1
 
 MONITOR
-985
+1025
+220
+1122
 265
-1082
-310
 Hav-vandstand
 \"x meter\"
 17
@@ -367,30 +453,15 @@ Hav-vandstand
 11
 
 MONITOR
-985
+1025
+280
+1122
 325
-1082
-370
 Vandspejl
 \"x meter\"
 17
 1
 11
-
-SLIDER
-1325
-50
-1497
-83
-wave-strength
-wave-strength
-1
-1000
-389.0
-1
-1
-NIL
-HORIZONTAL
 
 SLIDER
 35
@@ -408,10 +479,10 @@ m
 HORIZONTAL
 
 MONITOR
-985
-65
 1040
-110
+70
+1095
+115
 Tid
 str-time
 17
@@ -430,74 +501,40 @@ nedsivningsevne-interface
 11
 
 SLIDER
-600
-390
-850
-423
-mm-per-30-min
-mm-per-30-min
+660
+425
+910
+458
+mm-per-15-min
+mm-per-15-min
 0
 50
-10.0
+9.0
 1
 1
 mm
 HORIZONTAL
 
 SLIDER
-600
-430
-850
-463
+660
+465
+910
+498
 nedbør-varighed
 nedbør-varighed
-0
-5
-1.5
-.25
+15
+180
+120.0
+15
 1
-timer
+minutter
 HORIZONTAL
 
-BUTTON
-1360
-330
-1490
-363
-NIL
-color-correct-terrain
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-1360
-375
-1487
-408
-NIL
-color-correct-map
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 MONITOR
-985
-15
 1040
-60
+20
+1095
+65
 Dag
 day
 17
@@ -505,10 +542,10 @@ day
 11
 
 SLIDER
-355
-390
-540
-423
+415
+425
+600
+458
 bølge-højde
 bølge-højde
 0
@@ -520,10 +557,10 @@ cm
 HORIZONTAL
 
 SLIDER
-355
-430
-540
-463
+415
+465
+600
+498
 bølge-styrke
 bølge-styrke
 0
@@ -535,10 +572,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-65
-435
-230
-495
+60
+485
+225
+545
 BYG EN BØLGEBRYDER
 build-wall
 T
@@ -552,10 +589,10 @@ NIL
 1
 
 BUTTON
-1115
-90
-1205
-123
+1300
+455
+1390
+488
 NIL
 show-pcolor
 T
@@ -569,10 +606,10 @@ NIL
 1
 
 MONITOR
-1115
-45
-1205
-90
+1300
+410
+1390
+455
 NIL
 colortest
 17
@@ -580,10 +617,10 @@ colortest
 11
 
 BUTTON
-1135
-190
-1257
-223
+1392
+180
+1492
+213
 draw height lines
 import-drawing \"mf-heightline-ref.png\"
 NIL
@@ -597,10 +634,10 @@ NIL
 1
 
 BUTTON
-1220
-235
-1322
-268
+1390
+230
+1492
+263
 NIL
 clear-drawing
 NIL
@@ -614,10 +651,10 @@ NIL
 1
 
 MONITOR
-1185
-130
-1280
-175
+1400
+440
+1495
+485
 NIL
 unique-pcolor-nr
 17
@@ -625,12 +662,12 @@ unique-pcolor-nr
 11
 
 BUTTON
-1275
-190
-1382
-223
+1160
+375
+1267
+408
 draw city map
-import-drawing \"mf-map.png\"
+import-drawing \"mf-map-alpha60.png\"
 NIL
 1
 T
@@ -642,12 +679,12 @@ NIL
 1
 
 BUTTON
-1360
-295
-1505
-328
-import rainbow terrain
-import-pcolors \"mf-terrain.png\"
+1160
+335
+1265
+368
+NIL
+set-terrain-height
 NIL
 1
 T
@@ -657,6 +694,117 @@ NIL
 NIL
 NIL
 1
+
+TEXTBOX
+1165
+425
+1315
+536
+luk inde:\n- nedbørsvand\n- bølger/stormflod\n\nignorer nedsivning for havet
+15
+0.0
+1
+
+TEXTBOX
+1215
+190
+1365
+208
+klimaatlas.dk
+15
+0.0
+1
+
+SLIDER
+60
+445
+225
+478
+bølgebryder-højde
+bølgebryder-højde
+0
+10
+1.5
+.5
+1
+m
+HORIZONTAL
+
+MONITOR
+1290
+105
+1455
+150
+NIL
+max [water-level] of patches
+17
+1
+11
+
+MONITOR
+1290
+55
+1455
+100
+NIL
+min [water-level] of patches
+17
+1
+11
+
+TEXTBOX
+1115
+115
+1265
+166
+ENHEDER!\nterrain-height = m\nwater-level = ?
+14
+0.0
+1
+
+MONITOR
+965
+500
+1060
+545
+NIL
+currently-raining?
+17
+1
+11
+
+MONITOR
+965
+450
+1060
+495
+NIL
+start-rainfall?
+17
+1
+11
+
+MONITOR
+965
+545
+1060
+590
+NIL
+stop-rainfall?
+17
+1
+11
+
+MONITOR
+1070
+485
+1147
+530
+NIL
+ticks-rained
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
