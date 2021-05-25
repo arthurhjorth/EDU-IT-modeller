@@ -19,11 +19,17 @@ globals [
 
   testing
   colortest
+  heighttest
+  capacitytest
+  satietytest
+  satietypercenttest
 
   start-rainfall?
   currently-raining?
   ticks-rained
   stop-rainfall?
+
+  test-var
 ]
 
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
@@ -35,6 +41,10 @@ patches-own [
   soil-type
   satiety ;mæthedsgrad
   water-level
+
+  mouse-here? ;for placing bølgebrydere
+  wall-patch?
+  my-wall-color
 ]
 
 breed [momentums momentum]
@@ -75,8 +85,9 @@ to setup-variables
   set minute "00"
   set day 1
   set hour 0
-  ask sea-patches [set water-level "sea"] ;all land-patches automatically have water-level 0
+  ask sea-patches [set water-level "sea" set satiety "sea"] ;all land-patches automatically have water-level 0
   set start-rainfall? false set currently-raining? false set stop-rainfall? false
+  ask patches [set mouse-here? false set wall-patch? false]
 end
 
 
@@ -93,7 +104,7 @@ to go
   if start-rainfall? or currently-raining? [rainfall] ;maybe rain (depending on button press in interface)
 
   ask land-patches [seepage] ;nedsivning  beregnet for hver patch (definition af land-patch?)
-  ask land-patches [move-water] ;afløb af vand til nabo-patches beregnet for hver patch
+  ;ask land-patches [move-water] ;afløb af vand til nabo-patches beregnet for hver patch
   ask land-patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
 
   ;old wave stuff:
@@ -110,11 +121,17 @@ to set-terrain-height
   ;import-pcolors "mf-terrain.png"
   import-pcolors "mf-terrain-grayscale.png"
   ask patches with [pcolor = white] [set pcolor sky] ;the sea
-  set sea-patches patches with [pcolor = sky]
-  set land-patches patches with [pcolor != sky]
   ask patches with [pcolor = 89.9] [set pcolor 9.8] ;the extreme values, only a few patches
   ask patches with [pcolor = 39.9] [set pcolor 9.8]
+  ;meget specifik finpudsning:
+  let also-seapatches (patch-set patch 0 -2)
+  ask also-seapatches [set pcolor sky]
 
+  let kystklo-patches (patch-set patch 7 9 patch 12 9 patch 13 8 patch 15 8)
+  ask kystklo-patches [set pcolor pink]
+
+  set sea-patches patches with [pcolor = sky]
+  set land-patches patches with [pcolor != sky]
   ;now pcolors range from 1.5 to 9.8 ...
   ;and the terrain should be from around 13.5 to 1.5 meters...
 
@@ -122,15 +139,34 @@ to set-terrain-height
 
   ask land-patches [
     set pcolor scale-color gray pcolor 12 3
+    ;manual kystklo-fixes:
+    ask kystklo-patches [set pcolor 2.4444444444444438 set terrain-height pcolor set pcolor white]
+
+
     set terrain-height pcolor ;@but make sure the color is right!
     set pcolor white
   ]
 end
 
-to show-pcolor ;for testing height colors in set-terrain-height
+to show-test ;for testing height colors in set-terrain-height
   if mouse-inside? [
     ask patch mouse-xcor mouse-ycor [set colortest pcolor]
-    ;ask patch mouse-xcor mouse-ycor [set colortest terrain-height]
+  ]
+
+  if mouse-inside? [
+    ask patch mouse-xcor mouse-ycor [set heighttest terrain-height]
+  ]
+
+  if mouse-inside? [
+    ask patch mouse-xcor mouse-ycor [set capacitytest capacity]
+  ]
+
+  if mouse-inside? [
+    ask patch mouse-xcor mouse-ycor [set satietytest satiety]
+  ]
+
+  if mouse-inside? [
+    ask patch mouse-xcor mouse-ycor [set satietypercenttest satiety-percent]
   ]
 end
 
@@ -162,33 +198,113 @@ end
 ;IMPORTANT WATER PROCEDURES:
 
 to seepage ;(land-)patch procedure, nedsivning af vand i patches per tick. Run in go.
-  ;skal komme an på:
-  ;jordtypen (tjek)
-  ;mæthed (?)
-  ;vandspejlets højde (?)
+  ;skal komme an på: jordtypen (tjek), mæthed (?), vandspejlets højde (?)
 
-  ;NEDSIVNING AF VAND
-  let amount-seeped ( seepage-m-per-s * seconds-per-tick ) ;hvor mange meter vandet nedsiver på ét tick (baseret på jordtype)
-  ;@nu er det 0.9 meter for den hurtigste jordtype, 0.00009 m for den langsomste... (med et kvarter per tick, uden mæthed og vandspejl indregnet) ...
+  ;hver patch skal have en kapacitet af vand som er proportionel med højden på patchen og på porøsiteten (der kan vi bare bruge nedsivningskoefficienten).
+  ;Baseret på hvor fuld den er kan vi så bestemme hvor hurtigt vand kan sive ind i den.
+  ;Hvis du bare skriver det som en netlogo funktion så kan vi senere beslutte os for om den skal være lineær eller 1 / x så nedsivningen falder afh. af hvor fuld af vand patchen er.
 
+  ;NEDSIVNING AF VAND (baseret på jordtype og mæthed):
+  let amount-norm ( seepage-m-per-s * seconds-per-tick ) ;hvor mange meter vandet nedsiver på ét tick (baseret på jordtype)
+  ;@nu er det 0.9 meter for den hurtigste jordtype, 0.00009 m for den langsomste... (med et kvarter per tick, UDEN mæthed og vandspejl indregnet) ...
+  ;@SKAL KOMME AN PÅ NUVÆRENDE MÆTHED - MEN HVORDAN?:
+  ;@fix
+  let amount-seeped ( amount-norm ) ;
+
+  ;OPDATÉR MÆTHEDSGRAD:
+  set satiety ( satiety + amount-seeped ) ;satiety = simply how many meters of water is currently absorbed in the patch ;there's also satiety-percent reporter
+  if satiety > capacity [
+    set satiety capacity
+    let extra (satiety - capacity)
+    set amount-seeped ( amount-seeped - extra )
+  ]
+
+  ;UPDATE WATER LEVEL:
   if water-level != 0 [ set water-level ( water-level - amount-seeped ) ]
-  ;@transformér til mæthedsgrad på en eller anden måde
-  ;set mæthed ?
+  ;@transformér til mæthedsgrad på en eller anden måde?
   if water-level < 0 [set water-level 0]
+
+  ;REDUCER MÆTHEDSGRAD:
+  ;@fix ;@noget vand skal vel også forsvinde ud af simulationen igen, så mætheden falder hvert tick? ;@hvilket step skal det være - allerførst eller allersidst?
+  set satiety satiety - amount-norm ;@hvis dette er det samme som den almindelige nedsivning (dog uden højde for mæthed), svarer det vel bare til at sende det videre til en 'ekstra patch'?
+end
+
+to-report capacity ;patch reporter. Mætheds/vand-kapacitet.
+  report terrain-height * seepage-m-per-s  ;jo hurtigere nedsivning, jo grovere jord, og jo større kapacitet før mæthed...
+  ;@er forholdet rigtigt? skal tallet tweakes? ;@enhed??? i meter???
+  ;@LIGE NU ALT FOR LAV!!!
+  ;@fix
+end
+
+to-report satiety-percent ;patch reporter
+  ifelse capacity = 0 [report 0] [report satiety / capacity]
+  ;@anden måde at beregne det på?
 end
 
 to move-water ;(land-)patch procedure, sker efter seepage procedure (random rækkefølge af patches), run in go.
 
+  ;Hver patch beregner det gennemsnitlige fald til nabopatches som har en samlet vandstand.
+  ;Baseret på det så trækker den halvdelen af sit "overskydende" vand (altså dets samlede vandstand - den gennemsnitlige vandstand til de underliggende patches)
+  ;og fordeler det til dem proportionelt med faldet til hver af dem.
+  ;Det er ikke helt præcist fordi vi ikke medregner trykket fra de overliggende patches, men jeg tror at det vil være godt nok.
+  ;Det kan være at vandet igen løber for hurtigt væk, men så kan vi skalere det ned, så kun en femtedel eller en tiendedel af vandet bliver fordelt til de underliggende patches.
+
+  ;@fix:
+
   ;AFLØB AF VAND TIL NABO-PATCHES
   ;tjek: hvor omkring mig er vandstand + højde lavere end min vandstand + højde?
 
-  ;using the total-water-height patch reporter to create nested list of neighbors:
-  let neighbor-height-list [list self (total-water-height)] of neighbors ;e.g [ [(patch 15 1) 2.7] [(patch 13 2) 2.6] [(patch 15 2) 2.8] [(patch 14 2) 2.5] ... ]
+  ;using the my-water-height patch reporter to create nested list of neighbors:
+  ;let neighbor-height-list [list self (my-water-height)] of neighbors ;e.g [ [(patch 15 1) 2.7] [(patch 13 2) 2.6] [(patch 15 2) 2.8] [(patch 14 2) 2.5] ... ]
 
-  ;hvis nabo-patchs højde + vandstand er lavere end min højde + vandstand, skal det løbe derover
+  ;BEREGN GENNEMSNITLIGT FALD FRA MIG TIL NABO-PATCHES:
+  ;@@@ONLY FOR LAND-PATCHES! (ignoring the sea for now)
+  let distributor-height my-water-height
+  let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [member? self land-patches] ;e.g [ [(patch 15 1) 0.02] [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
+  let patch-fall-list2 [list self (water-distance-to distributor-height)] of neighbors with [member? self land-patches and my-water-height < distributor-height]
+  ;alle '2'-variable medregner kun naboer med LAVERE my-water-height!
 
-  ;hvor meget vand?
-  ;hvad med sea-patch-naboer?
+  print "STARTING:"
+  print (word "patch-fall-list2: " patch-fall-list2)
+  let fall-list map last patch-fall-list
+  let fall-list2 map last patch-fall-list2
+  let total-fall sum fall-list
+  let total-fall2 sum fall-list2
+  let avg-fall total-fall / ( length fall-list ) ;avg-fall negative if surrounding patches are mostly lower, positive if they're higher
+  let avg-fall2 total-fall2 / ( length fall-list2 )
+  ;(men hvad med sea-patches?)
+
+  print (word "avg fall2: " avg-fall2)
+  ;if avg-fall < 0 [ ;FORTSÆTTER KUN, HVIS DE OMKRINGLIGGENDE GENNEMSNITLIGT LIGGER LAVERE?
+
+    let excess-water2 abs avg-fall2 / 2 ;@tager nu halvdelen af dette 'overskydende vand'
+
+    ;fordeles proportionelt med faldet til hver af de omkringliggende patches:
+    ;@(kun hvis de ligger lavere?):
+    ;@og hvad med sea-patch-naboer og afløb til havet?
+
+    let water-moved 0 ;keeping track of it (if it doesn't end up being exactly excess-water, so all water stays in the system)
+    print (word "total fall2: " total-fall2 ", total excess2: " excess-water2)
+    ;@lad evt noget afløbe til sea-patch-naboer først?
+
+    foreach patch-fall-list2 [
+      pair ->
+      let the-patch item 0 pair
+      let the-fall item 1 pair
+      let prorated-value (the-fall / total-fall2) * excess-water2 ;let proratedValue (basis / basisTotal) * prorationAmount
+      ;@PRORATED-VALUE KAN VÆRE POSITIV ELLER NEGATIV!!... (så for højere patch 'stjæler' patchen her faktisk vand lige nu.... men det skal vel ikke flyttes derfra endnu?!)
+      print (word "fall: " the-fall ", prorated-value: " prorated-value)
+      ask the-patch [ set water-level (water-level + prorated-value) ] ;prorated-value vil være negativ for lavere vand-patches
+
+      set water-moved (water-moved + abs prorated-value) ;keeping track
+    ]
+    print (word "water moved: " water-moved)
+    print (word "level before: " water-level)
+    set water-level (water-level - water-moved) ;the original patch now lowers its level accordingly
+  ;@OBS - lige nu går water level i minus!!
+    print (word "and after: " water-level)
+  ;]
+
 
 
 end
@@ -221,22 +337,67 @@ to wave
 
 end
 
+;---BØLGEBRYDER-STUFF
+
 to build-wall ;forever button in interface
+  ifelse mouse-inside? [
+    ask sea-patches [set mouse-here? false]
+    ask mouse-patches [
+      set mouse-here? true
+      set my-wall-color wall-color
+    ]
+    ask sea-patches [recolor]
+
+    if mouse-down? [ ;IF THEY CLICK
+      ask mouse-patches [
+        set wall-patch? true
+        set water-level "wall"
+        set my-wall-color wall-color
+        recolor
+      ]
+    ]
 
 
+  ]
+  [ ;if not mouse inside:
+    ask sea-patches [set mouse-here? false recolor]
+    ]
 end
+
+to-report mouse-patches ;where the mouse is currently hovering - used in build-wall
+  let wall-length ( position længde ["PLACEHOLDER" "Lille" "Medium" "Stor"] ) * 2 ;results in wall-length of either 2, 4 or 6
+  report sea-patches with [(abs (pxcor - mouse-xcor) <= wall-length) and (abs (pycor - mouse-ycor) < 1)]
+end
+
+to-report wall-color ;used in recolor for bølgebrydere
+  report item bølgebryder-højde ["PLACEHOLDER" 47 44 26 15 12] ;1-5 meter ;@tweakes?
+end
+
+to remove-all-walls ;interface-knap
+  ask wall-patches [
+    set water-level "sea"
+    set pcolor sky
+    set wall-patch? false
+  ]
+end
+
+to-report wall-patches
+  report (patch-set patches with [water-level = "wall"])
+end
+
+;---
 
 ;VISUALS:
 
 to recolor ;patch procedure, reflekterer vandspejlets højde
   ;@SKAL DET VÆRE DEN TOTALE HØJDE? (terræn + vandspejl) - eller bare vandspejlet???
   ;water-level
-  ifelse water-level = "sea" [
-    set pcolor pink
+  ifelse water-level = "sea" or water-level = "wall" [
+    ifelse mouse-here? or wall-patch? [set pcolor my-wall-color] [set pcolor sky]
   ]
   [
     ;set pcolor scale-color sky water-level (max [water-level] of patches )  (min [water-level] of patches )
-    set pcolor scale-color sky water-level 0.2 0
+    set pcolor scale-color sky water-level 0.05 0 ;@tweak this scale (water-level is in meters)
   ]
 end
 
@@ -291,7 +452,7 @@ to-report nedbør-varighed-i-ticks
   report nedbør-varighed / 15
 end
 
-to-report total-water-height ;patch reporter
+to-report my-water-height ;patch reporter
   ifelse water-level = "sea" [
     report "sea"
   ]
@@ -299,6 +460,13 @@ to-report total-water-height ;patch reporter
     report water-level + terrain-height
   ]
 end
+
+to-report water-distance-to [input-height] ;patch reporter. given a water level, reports the distance from the patch's own total water height (terrain-height + water-level) to this input level
+  report my-water-height - input-height
+  ;difference in meters. negative = the patch's level is lower than the input nr.
+end
+
+
 
 ;GAMLE TING FRA BØLGEMODELLEN:
 
@@ -398,14 +566,14 @@ NIL
 1
 
 CHOOSER
-75
-270
+45
+190
+205
 235
-315
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-3
+1
 
 BUTTON
 460
@@ -490,10 +658,10 @@ str-time
 11
 
 MONITOR
-75
-320
-235
-365
+45
+240
+205
+285
 Jordens nedsivningsevne
 nedsivningsevne-interface
 17
@@ -508,8 +676,8 @@ SLIDER
 mm-per-15-min
 mm-per-15-min
 0
-50
-9.0
+25
+6.0
 1
 1
 mm
@@ -524,7 +692,7 @@ nedbør-varighed
 nedbør-varighed
 15
 180
-120.0
+60.0
 15
 1
 minutter
@@ -572,10 +740,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-60
-485
-225
-545
+40
+440
+205
+500
 BYG EN BØLGEBRYDER
 build-wall
 T
@@ -589,12 +757,12 @@ NIL
 1
 
 BUTTON
-1300
-455
-1390
-488
+1200
+310
+1287
+343
 NIL
-show-pcolor
+show-test
 T
 1
 T
@@ -606,10 +774,10 @@ NIL
 1
 
 MONITOR
-1300
-410
-1390
-455
+1200
+500
+1280
+545
 NIL
 colortest
 17
@@ -651,10 +819,10 @@ NIL
 1
 
 MONITOR
-1400
-440
-1495
-485
+1280
+500
+1375
+545
 NIL
 unique-pcolor-nr
 17
@@ -662,10 +830,10 @@ unique-pcolor-nr
 11
 
 BUTTON
-1160
-375
-1267
-408
+1275
+215
+1382
+248
 draw city map
 import-drawing \"mf-map-alpha60.png\"
 NIL
@@ -678,28 +846,11 @@ NIL
 NIL
 1
 
-BUTTON
-1160
-335
-1265
-368
-NIL
-set-terrain-height
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 TEXTBOX
-1165
-425
-1315
-536
+265
+435
+415
+546
 luk inde:\n- nedbørsvand\n- bølger/stormflod\n\nignorer nedsivning for havet
 15
 0.0
@@ -716,16 +867,16 @@ klimaatlas.dk
 1
 
 SLIDER
-60
-445
-225
-478
+40
+400
+205
+433
 bølgebryder-højde
 bølgebryder-højde
-0
-10
-1.5
-.5
+1
+5
+1.0
+1
 1
 m
 HORIZONTAL
@@ -756,17 +907,17 @@ TEXTBOX
 1115
 115
 1265
-166
-ENHEDER!\nterrain-height = m\nwater-level = ?
+181
+ENHEDER!\nterrain-height = m\nwater-level = m\nhold alt i meter?
 14
 0.0
 1
 
 MONITOR
-965
-500
-1060
-545
+925
+475
+1020
+520
 NIL
 currently-raining?
 17
@@ -774,10 +925,10 @@ currently-raining?
 11
 
 MONITOR
-965
-450
-1060
-495
+925
+425
+1020
+470
 NIL
 start-rainfall?
 17
@@ -785,10 +936,10 @@ start-rainfall?
 11
 
 MONITOR
-965
-545
-1060
-590
+925
+520
+1020
+565
 NIL
 stop-rainfall?
 17
@@ -796,15 +947,86 @@ stop-rainfall?
 11
 
 MONITOR
-1070
-485
-1147
-530
+1030
+460
+1107
+505
 NIL
 ticks-rained
 17
 1
 11
+
+MONITOR
+1200
+350
+1340
+395
+NIL
+heighttest
+17
+1
+11
+
+MONITOR
+1200
+395
+1340
+440
+NIL
+capacitytest
+17
+1
+11
+
+MONITOR
+1200
+440
+1340
+485
+NIL
+satietytest
+17
+1
+11
+
+MONITOR
+1340
+440
+1440
+485
+NIL
+satietypercenttest
+17
+1
+11
+
+CHOOSER
+80
+355
+172
+400
+længde
+længde
+"Lille" "Medium" "Stor"
+2
+
+BUTTON
+45
+505
+202
+538
+Fjern alle bølgebrydere
+remove-all-walls
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
