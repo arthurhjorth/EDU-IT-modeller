@@ -267,48 +267,60 @@ to-report satiety-percent ;patch reporter
   ;@anden måde at beregne det på?
 end
 
+
+
 to move-water ;patch procedure, sker efter seepage procedure (random rækkefølge af patches), run in go (for patches with water-level != 0)
   ;AFLØB AF VAND TIL NABO-PATCHES
   ;BEREGN GENNEMSNITLIGT FALD FRA MIT VAND TIL NABO-PATCHES' VAND (hvis lavere):
-  let distributor-height my-water-height
-  let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [my-water-height < distributor-height] ;også sea-patches! ;e.g [ [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
 
-  if length patch-fall-list != 0 [ ;if anyone's lower:
-    let fall-list map last patch-fall-list
-    let total-fall sum fall-list
-    let avg-fall total-fall / ( length fall-list ) ;average fall/difference down to all the neighbors with lower total water levels (negative number!)
+  if member? self land-patches or wall-patch? [
 
-    ;TAG HØJDE FOR KANT-SEA-PATCHES, de skal desuden sende vand videre ud i 'intetheden'/til patches ude af systemet:
-    if member? self edge-sea-patches [
-      let outside-patch list no-patches avg-fall ;@hvor stort skal 'faldet' ud til intetheden være? (nu bare gennemsnittet ned til andre lavere patches)
-      repeat missing-neighbors [set patch-fall-list lput outside-patch patch-fall-list] ;missing-neighbors is the nr of outside neighbors
+    let distributor-height my-water-height
+    let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [my-water-height < distributor-height] ;også sea-patches! ;e.g [ [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
+
+    if length patch-fall-list != 0 [ ;if anyone's lower:
+      let fall-list map last patch-fall-list
+      let total-fall sum fall-list
+      let avg-fall total-fall / ( length fall-list ) ;average fall/difference down to all the neighbors with lower total water levels (negative number!)
+
+      ;TAG HØJDE FOR KANT-SEA-PATCHES, de skal desuden sende vand videre ud i 'intetheden'/til patches ude af systemet:
+      if member? self edge-sea-patches [
+        let outside-patch list no-patches avg-fall ;@hvor stort skal 'faldet' ud til intetheden være? (nu bare gennemsnittet ned til andre lavere patches)
+        repeat missing-neighbors [set patch-fall-list lput outside-patch patch-fall-list] ;missing-neighbors is the nr of outside neighbors
+      ]
+
+      ;@BEREGN HVOR MEGET VAND DER I ALT SKAL FLYTTES
+      ;1)
+      ;let excess-water water-level + avg-fall ;(avg-fall is a negative number) ;@giver ikke mening, jo større fald, jo mindre flyttes? @her bliver excess-water ofte negativt!!!
+      ;if excess-water < 0 [set excess-water water-level] ;@@@? men nu flyttes ALT vandet så!
+      ;2)
+      let excess-water (abs avg-fall) / 2 ;@FIX OG TWEAK - HVOR MEGET VAND SKAL FLYTTES?
+      if excess-water > water-level [set excess-water water-level] ;@men hvad med sea-patches tæt på land hvis sea-level er højt?
+
+      ;if water-level != 0 [ print (word "WL: " water-level ", avg-fall: " avg-fall ", excess w: " excess-water) ]
+
+      ;FORDEL VANDET PROPORTIONELT TIL NABO-PATCHES (som ligger lavere)
+      let water-moved 0 ;keeping track of it (if it doesn't end up being exactly excess-water, so all water stays in the system)
+      foreach patch-fall-list [ ;loop over hver (lavere) nabo
+        pair ->
+        let the-patch item 0 pair let the-fall item 1 pair
+        let prorated-value (the-fall / total-fall) * excess-water ;let proratedValue (basis / basisTotal) * prorationAmount
+                                                                  ;show (word "fall: " the-fall ", prorated-value: " prorated-value)
+        ask the-patch [ set water-level (water-level + prorated-value) ] ;if an outside sea-patch, the-patch is an empty patch-set, and the water just disappears out of the system
+        set water-moved (water-moved + abs prorated-value) ;keeping track
+      ]
+      ;print (word "water moved: " water-moved) print (word "distributor level before: " water-level)
+      set water-level (water-level - water-moved) ;the original patch now lowers its level accordingly
+      if water-level < 0 [set water-level 0] ;pga små decimal-forskelle med floats, sikrer her, at water-level aldrig går i minus
+                                             ;print (word "and after: " water-level)
     ]
-
-    ;@BEREGN HVOR MEGET VAND DER I ALT SKAL FLYTTES
-    ;1)
-    ;let excess-water water-level + avg-fall ;(avg-fall is a negative number) ;@giver ikke mening, jo større fald, jo mindre flyttes? @her bliver excess-water ofte negativt!!!
-    ;if excess-water < 0 [set excess-water water-level] ;@@@? men nu flyttes ALT vandet så!
-    ;2)
-    let excess-water (abs avg-fall) / 10 ;@FIX OG TWEAK - HVOR MEGET VAND SKAL FLYTTES?
-    if excess-water > water-level [set excess-water water-level] ;@men hvad med sea-patches tæt på land hvis sea-level er højt?
-
-    ;if water-level != 0 [ print (word "WL: " water-level ", avg-fall: " avg-fall ", excess w: " excess-water) ]
-
-    ;FORDEL VANDET PROPORTIONELT TIL NABO-PATCHES (som ligger lavere)
-    let water-moved 0 ;keeping track of it (if it doesn't end up being exactly excess-water, so all water stays in the system)
-    foreach patch-fall-list [ ;loop over hver (lavere) nabo
-      pair ->
-      let the-patch item 0 pair let the-fall item 1 pair
-      let prorated-value (the-fall / total-fall) * excess-water ;let proratedValue (basis / basisTotal) * prorationAmount
-      ;show (word "fall: " the-fall ", prorated-value: " prorated-value)
-      ask the-patch [ set water-level (water-level + prorated-value) ] ;if an outside sea-patch, the-patch is an empty patch-set, and the water just disappears out of the system
-      set water-moved (water-moved + abs prorated-value) ;keeping track
-    ]
-    ;print (word "water moved: " water-moved) print (word "distributor level before: " water-level)
-    set water-level (water-level - water-moved) ;the original patch now lowers its level accordingly
-    if water-level < 0 [set water-level 0] ;pga små decimal-forskelle med floats, sikrer her, at water-level aldrig går i minus
-    ;print (word "and after: " water-level)
   ]
+  if member? self sea-patches and not wall-patch? [
+    let sea-neighbors (patch-set self neighbors with [member? self sea-patches and not wall-patch?])
+    let avg-water-level mean [my-water-height] of sea-neighbors
+    ask sea-neighbors [set water-level avg-water-level]
+  ]
+
 end
 
 to start-rain ;button in interface
@@ -403,7 +415,7 @@ end
 to erase-wall ;viskelæder
   if mouse-down? [
     ask patch mouse-xcor mouse-ycor [
-      if member? self sea-patches [
+      if wall-patch? [
         set water-level 0 ;now a sea-patch ;@set water-level hav-niveau i stedet???
         set sea-patches (patch-set sea-patches self)
         ;set pcolor sky
@@ -697,7 +709,7 @@ hav-niveau
 hav-niveau
 0
 12
-0.0
+1.5
 .25
 1
 m
@@ -734,7 +746,7 @@ mm-per-15-min
 mm-per-15-min
 0
 15
-4.0
+15.0
 1
 1
 mm
@@ -749,7 +761,7 @@ nedbør-varighed
 nedbør-varighed
 15
 180
-90.0
+180.0
 15
 1
 minutter
@@ -775,7 +787,7 @@ bølge-højde
 bølge-højde
 0
 300
-130.0
+55.0
 5
 1
 cm
@@ -932,7 +944,7 @@ bølgebryder-højde
 bølgebryder-højde
 1
 5
-1.0
+5.0
 1
 1
 m
