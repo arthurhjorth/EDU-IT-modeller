@@ -317,7 +317,7 @@ to move-water ;patch procedure, sker efter seepage procedure (random rækkefølg
   ]
   if member? self sea-patches and not wall-patch? [
     let sea-neighbors (patch-set self neighbors with [member? self sea-patches and not wall-patch?])
-    let avg-water-level mean [my-water-height] of sea-neighbors
+    let avg-water-level mean [water-level] of sea-neighbors
     ask sea-neighbors [set water-level avg-water-level]
   ]
 
@@ -709,7 +709,7 @@ hav-niveau
 hav-niveau
 0
 12
-1.5
+0.25
 .25
 1
 m
@@ -1434,7 +1434,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
