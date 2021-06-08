@@ -30,9 +30,6 @@ globals [
   ticks-rained
   nedbør-varighed-i-ticks
 
-  now-building?
-  now-erasing?
-
   test-var
   patches-moving-too-much
 ]
@@ -42,7 +39,7 @@ breed [ drops drop] ;for rain animation
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
 
 patches-own [
-  depth base-height current-momentum next-momentum
+  depth base-height current-momentum next-momentum ;old wave stuff
 
   terrain-height ;baseret på kort fra DKs højdemodel
   soil-type
@@ -51,6 +48,7 @@ patches-own [
 
   my-wall-height
   my-wall-color
+  my-wall-price
 
   missing-neighbors ;only used for edge-sea-patches
 ]
@@ -273,7 +271,7 @@ to move-water ;patch procedure, sker efter seepage procedure (random rækkefølg
   ;AFLØB AF VAND TIL NABO-PATCHES
   ;BEREGN GENNEMSNITLIGT FALD FRA MIT VAND TIL NABO-PATCHES' VAND (hvis lavere):
 
-  if member? self land-patches or wall-patch? [
+  if member? self land-patches or wall-patch? [ ;LAND-PATCHES AND WALL-PATCHES (in sea or on land):
 
     let distributor-height my-water-height
     let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [my-water-height < distributor-height] ;også sea-patches! ;e.g [ [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
@@ -290,14 +288,8 @@ to move-water ;patch procedure, sker efter seepage procedure (random rækkefølg
       ]
 
       ;@BEREGN HVOR MEGET VAND DER I ALT SKAL FLYTTES
-      ;1)
-      ;let excess-water water-level + avg-fall ;(avg-fall is a negative number) ;@giver ikke mening, jo større fald, jo mindre flyttes? @her bliver excess-water ofte negativt!!!
-      ;if excess-water < 0 [set excess-water water-level] ;@@@? men nu flyttes ALT vandet så!
-      ;2)
       let excess-water (abs avg-fall) / 2 ;@FIX OG TWEAK - HVOR MEGET VAND SKAL FLYTTES?
       if excess-water > water-level [set excess-water water-level] ;@men hvad med sea-patches tæt på land hvis sea-level er højt?
-
-      ;if water-level != 0 [ print (word "WL: " water-level ", avg-fall: " avg-fall ", excess w: " excess-water) ]
 
       ;FORDEL VANDET PROPORTIONELT TIL NABO-PATCHES (som ligger lavere)
       let water-moved 0 ;keeping track of it (if it doesn't end up being exactly excess-water, so all water stays in the system)
@@ -315,7 +307,8 @@ to move-water ;patch procedure, sker efter seepage procedure (random rækkefølg
                                              ;print (word "and after: " water-level)
     ]
   ]
-  if member? self sea-patches and not wall-patch? [
+
+  if member? self sea-patches and not wall-patch? [ ;SEA-PATCHES:
     let sea-neighbors (patch-set self neighbors with [member? self sea-patches and not wall-patch?])
     let avg-water-level mean [water-level] of sea-neighbors
     ask sea-neighbors [set water-level avg-water-level]
@@ -398,15 +391,15 @@ end
 ;---BØLGEBRYDER-STUFF
 
 to build-wall ;forever button in interface
-
-  if mouse-down? [
-    ask patch mouse-xcor mouse-ycor [
-      if member? self sea-patches [
-        set my-wall-height bølgebryder-højde ;fra interface
-        set water-level 0 ;@(men hvad hvis hav-niveauet allerede er højere? tag højde for det!)
-        let wall-color item bølgebryder-højde ["PLACEHOLDER" 47 44 26 15 12] ;1-5 meter ;@tweakes?
-        set my-wall-color wall-color
-        recolor display
+  if can-afford wall-cost [ ;hvis de har råd (wall-cost er reporter)
+    if mouse-down? [
+      ask patch mouse-xcor mouse-ycor [ ;både land-patches og sea-patches!
+          set my-wall-height mur-højde ;fra interface
+          set water-level 0 ;@(men hvad hvis hav-niveauet allerede er højere? tag højde for det!)
+          let wall-color item mur-højde ["PLACEHOLDER" 47 44 26 15 12] ;1-5 meter
+          set my-wall-color wall-color
+          set my-wall-price wall-cost
+          recolor display
       ]
     ]
   ]
@@ -416,9 +409,7 @@ to erase-wall ;viskelæder
   if mouse-down? [
     ask patch mouse-xcor mouse-ycor [
       if wall-patch? [
-        set water-level 0 ;now a sea-patch ;@set water-level hav-niveau i stedet???
-        set sea-patches (patch-set sea-patches self)
-        ;set pcolor sky
+        set water-level 0
         set my-wall-height "none"
         recolor display
       ]
@@ -429,44 +420,65 @@ end
 to remove-all-walls ;interface-knap
   ask wall-patches [
     set water-level 0 ;now a sea-patch ;@set water-level hav-niveau i stedet???
-    set sea-patches (patch-set sea-patches self)
     ;set pcolor sky
     set my-wall-height "none"
     recolor display
   ]
 end
 
+;--money stuff:
 to-report wall-patches
   report (patch-set patches with [wall-patch?])
 end
+
+to-report money-spent
+  report sum [my-wall-price] of wall-patches
+end
+
+to-report money-left
+  report budget - money-spent
+end
+
+to-report any-money-left?
+  report money-left > 0
+end
+
+to-report can-afford [price]
+  report money-left >= price
+end
+
+to-report wall-cost
+  report 100 ;@skift her, hvad EN wall-patch koster! (og skal det komme an på højden?)
+end
+
+;--tilfredshed stuff:
+to-report happiness
+  report 0 ; @how to measure it?
+end
+
+
 
 ;---
 ;VISUALS:
 
 to recolor ;patch procedure, reflekterer vandspejlets højde
-  ;@SKAL DET VÆRE DEN TOTALE HØJDE? (terræn + vandspejl) - eller bare vandspejlet???
-  ;water-level
-  ifelse member? self sea-patches or water-level = "wall" [
-    ifelse wall-patch?
-      [ ;wall-patches:
-        ifelse water-level > 0
+  ;@SKAL DE FARVES EFTER DEN TOTALE HØJDE? (terræn + water-level eller sea-level + water-level) - eller bare vandspejlet???
+  ;@undgå sort og hvid...
+
+  (ifelse
+    wall-patch? [ ;WALL-PATCHES:
+      ifelse water-level > 0
           [set pcolor 104] ;@hvordan vil vi visualisere vand ovenpå?
           [set pcolor my-wall-color]
     ]
-      [ ;sea-patches:
+    member? self sea-patches [ ;SEA-PATCHES:
       set pcolor (scale-color sky water-level 0.8 -0.05) ;@water-level eller my-water-height??? ;@tweak scale-color
     ]
-  ]
-  [ ;land-patches:
-    ;set pcolor scale-color sky water-level (max [water-level] of patches )  (min [water-level] of patches )
-    ifelse water-level = 0 [
-      set pcolor white
-    ]
-    [
-      set pcolor scale-color sky water-level 0.8 -0.05 ;@tweak this scale (water-level is in meters)
-    ]
-    ;@og undgå sort og hvid
-  ]
+    member? self land-patches [ ;LAND-PATCHES:
+     ifelse water-level = 0
+        [set pcolor white]
+        [set pcolor scale-color sky water-level 0.8 -0.05] ;@tweak this scale (water-level is in meters)
+  ])
 end
 
 
@@ -510,11 +522,14 @@ end
 to-report my-water-height ;patch reporter
   ifelse
     terrain-height = "sea" [
-    ifelse wall-patch? [report my-wall-height + water-level] ;wall-patches hold no water and do not run seepage or move-water - but this is used in water-distance-to
-      [report water-level + sea-level] ;sea-patches have no terrain-height]
+      ifelse wall-patch?
+        [report my-wall-height + water-level] ;wall-patches in the sea (NOT dependant on sea-level)
+        [report sea-level + water-level] ;sea-patches. grund-hav-niveau + regnvand. sea-patches have no terrain-height
   ]
   [ ;land-patches:
-    report water-level + terrain-height
+    ifelse wall-patch?
+      [report terrain-height + my-wall-height + water-level] ;wall-patches on land
+      [report water-level + terrain-height] ;land-patches
   ]
 end
 
@@ -642,13 +657,13 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-2
+3
 
 BUTTON
-460
-500
-560
-545
+1350
+565
+1450
+610
 Lav bølge
 wave
 NIL
@@ -662,10 +677,10 @@ NIL
 1
 
 BUTTON
-735
-500
-837
-545
+765
+495
+867
+540
 Start nedbør
 start-rain
 NIL
@@ -709,7 +724,7 @@ hav-niveau
 hav-niveau
 0
 12
-0.25
+0.0
 .25
 1
 m
@@ -738,30 +753,30 @@ nedsivningsevne-interface
 11
 
 SLIDER
-660
-425
-910
-458
+690
+420
+940
+453
 mm-per-15-min
 mm-per-15-min
 0
 15
-15.0
+4.0
 1
 1
 mm
 HORIZONTAL
 
 SLIDER
-660
-465
-910
-498
+690
+460
+940
+493
 nedbør-varighed
 nedbør-varighed
 15
 180
-180.0
+105.0
 15
 1
 minutter
@@ -779,10 +794,10 @@ day
 11
 
 SLIDER
-415
-425
-600
-458
+1305
+490
+1490
+523
 bølge-højde
 bølge-højde
 0
@@ -794,10 +809,10 @@ cm
 HORIZONTAL
 
 SLIDER
-415
-465
-600
-498
+1305
+530
+1490
+563
 bølge-frekvens
 bølge-frekvens
 0
@@ -809,11 +824,11 @@ NIL
 HORIZONTAL
 
 BUTTON
-40
-435
-205
-475
-BYG EN BØLGEBRYDER
+135
+480
+300
+516
+BYG EN HØJVANDSMUR
 build-wall
 T
 1
@@ -826,10 +841,10 @@ NIL
 1
 
 BUTTON
-1300
-300
-1387
-333
+1345
+280
+1432
+313
 NIL
 show-test
 T
@@ -843,10 +858,10 @@ NIL
 1
 
 MONITOR
-1155
-455
-1235
-500
+1200
+435
+1280
+480
 NIL
 colortest
 17
@@ -854,12 +869,12 @@ colortest
 11
 
 BUTTON
-135
+125
 280
-235
+210
 313
-draw height lines
-import-drawing \"mf-heightline-ref.png\"
+Vis højdekort
+import-drawing \"mf-heightline-ref-alpha55.png\"
 NIL
 1
 T
@@ -871,11 +886,11 @@ NIL
 1
 
 BUTTON
-65
+70
 320
-167
+172
 353
-NIL
+Skjul kort
 clear-drawing
 NIL
 1
@@ -888,10 +903,10 @@ NIL
 1
 
 MONITOR
-1235
-455
-1402
-500
+1280
+435
+1447
+480
 NIL
 unique-pcolor-nr
 17
@@ -899,11 +914,11 @@ unique-pcolor-nr
 11
 
 BUTTON
-25
+35
 280
-132
+120
 313
-draw city map
+Vis bykort
 import-drawing \"mf-map-kystfix-alpha55.png\"
 NIL
 1
@@ -913,16 +928,6 @@ NIL
 NIL
 NIL
 NIL
-1
-
-TEXTBOX
-265
-435
-415
-546
-luk inde:\n- nedbørsvand\n- bølger/stormflod\n\nignorer nedsivning for havet
-15
-0.0
 1
 
 TEXTBOX
@@ -936,25 +941,25 @@ klimaatlas.dk
 1
 
 SLIDER
-40
-395
-205
-428
-bølgebryder-højde
-bølgebryder-højde
+135
+440
+300
+473
+mur-højde
+mur-højde
 1
 5
-5.0
+3.0
 1
 1
 m
 HORIZONTAL
 
 MONITOR
-1155
-305
-1295
-350
+1200
+285
+1340
+330
 NIL
 terrainheighttest
 17
@@ -962,10 +967,10 @@ terrainheighttest
 11
 
 MONITOR
-1155
-350
-1295
-395
+1200
+330
+1340
+375
 NIL
 capacitytest
 17
@@ -973,10 +978,10 @@ capacitytest
 11
 
 MONITOR
-1155
-395
-1295
-440
+1200
+375
+1340
+420
 NIL
 satietytest
 17
@@ -984,10 +989,10 @@ satietytest
 11
 
 MONITOR
-1295
-395
-1450
-440
+1340
+375
+1495
+420
 NIL
 satietypercenttest
 17
@@ -995,10 +1000,10 @@ satietypercenttest
 11
 
 BUTTON
-125
-480
-205
-513
+220
+525
+300
+558
 Fjern alle
 remove-all-walls
 NIL
@@ -1047,10 +1052,10 @@ NIL
 1
 
 SWITCH
-880
-505
-970
-538
+875
+500
+965
+533
 vis-regn?
 vis-regn?
 0
@@ -1058,10 +1063,10 @@ vis-regn?
 -1000
 
 MONITOR
-1295
-350
-1450
-395
+1340
+330
+1495
+375
 NIL
 waterleveltest
 17
@@ -1069,10 +1074,10 @@ waterleveltest
 11
 
 BUTTON
-40
-480
-120
-513
+135
+525
+215
+558
 Viskelæder
 erase-wall
 T
@@ -1084,6 +1089,80 @@ NIL
 NIL
 NIL
 1
+
+TEXTBOX
+335
+545
+485
+563
+højvandsmur - tynd streg
+11
+0.0
+1
+
+TEXTBOX
+1000
+425
+1150
+466
+stormflod har effekt\nbølger begrænset højde (30cm), ikke så afgørende
+11
+0.0
+1
+
+TEXTBOX
+495
+570
+645
+596
+hæv havet + højvandsmure kombi
+11
+0.0
+1
+
+INPUTBOX
+25
+425
+125
+485
+budget
+10000.0
+1
+0
+Number
+
+MONITOR
+25
+485
+125
+530
+NIL
+money-spent
+17
+1
+11
+
+MONITOR
+25
+530
+125
+575
+NIL
+money-left
+17
+1
+11
+
+MONITOR
+425
+445
+520
+490
+NIL
+happiness
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1434,7 +1513,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
