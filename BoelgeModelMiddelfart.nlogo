@@ -103,7 +103,7 @@ to go
     if raining? [rain-animation rainfall] ;maybe rain (depending on button press in interface)
 
     ask land-patches [seepage] ;nedsivning  beregnet for hver patch (definition af land-patch?)
-    ask patches [if water-level != 0 [move-water]] ;afløb af vand til nabo-patches beregnet for hver patch (sea, land OG wall)
+    ask patches [if water-level > 0 [move-water3]] ;afløb af vand til nabo-patches beregnet for hver patch (sea, land OG wall)
     ask patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
 
     tick
@@ -265,6 +265,42 @@ to-report satiety-percent ;patch reporter
   ;@anden måde at beregne det på?
 end
 
+to move-water3 ;; all patches goer det her
+
+    let distributor-height my-water-height
+    let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [my-water-height < distributor-height] ;også sea-patches! ;e.g [ [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
+
+    if length patch-fall-list != 0 [ ;if anyone's lower:
+      let fall-list map last patch-fall-list
+      let total-fall sum fall-list
+      let avg-fall total-fall / ( length fall-list ) ;average fall/difference down to all the neighbors with lower total water levels (negative number!)
+
+      ;TAG HØJDE FOR KANT-SEA-PATCHES, de skal desuden sende vand videre ud i 'intetheden'/til patches ude af systemet:
+      if member? self edge-sea-patches [
+        let outside-patch list no-patches avg-fall ;@hvor stort skal 'faldet' ud til intetheden være? (nu bare gennemsnittet ned til andre lavere patches)
+        repeat missing-neighbors [set patch-fall-list lput outside-patch patch-fall-list] ;missing-neighbors is the nr of outside neighbors
+      ]
+
+      ;@BEREGN HVOR MEGET VAND DER I ALT SKAL FLYTTES
+      let excess-water (abs avg-fall)  ;@FIX OG TWEAK - HVOR MEGET VAND SKAL FLYTTES?
+      if excess-water > water-level [set excess-water water-level] ;@men hvad med sea-patches tæt på land hvis sea-level er højt?
+
+      ;FORDEL VANDET PROPORTIONELT TIL NABO-PATCHES (som ligger lavere)
+      let water-moved 0 ;keeping track of it (if it doesn't end up being exactly excess-water, so all water stays in the system)
+      foreach patch-fall-list [ ;loop over hver (lavere) nabo
+        pair ->
+        let the-patch item 0 pair let the-fall item 1 pair
+        let prorated-value (the-fall / total-fall) * excess-water ;let proratedValue (basis / basisTotal) * prorationAmount
+                                                                  ;show (word "fall: " the-fall ", prorated-value: " prorated-value)
+        ask the-patch [ set water-level (water-level + prorated-value) ] ;if an outside sea-patch, the-patch is an empty patch-set, and the water just disappears out of the system
+        set water-moved (water-moved + abs prorated-value) ;keeping track
+      ]
+      ;print (word "water moved: " water-moved) print (word "distributor level before: " water-level)
+      set water-level (water-level - water-moved) ;the original patch now lowers its level accordingly
+      if water-level < 0 [set water-level 0] ;pga små decimal-forskelle med floats, sikrer her, at water-level aldrig går i minus
+                                             ;print (word "and after: " water-level)
+    ]
+end
 
 
 to move-water ;patch procedure, sker efter seepage procedure (random rækkefølge af patches), run in go (for patches with water-level != 0)
@@ -378,7 +414,9 @@ to hæv-havet ;forever button in interface, can try to raise the sea level
 end
 
 to hæv-havet2
-  ;
+  ask sea-patches  [
+   set water-level hav-niveau
+  ]
 end
 
 
@@ -538,7 +576,7 @@ to-report my-water-height ;patch reporter
     terrain-height = "sea" [
       ifelse wall-patch?
         [report my-wall-height + water-level] ;wall-patches in the sea (@NOT dependant on sea-level)
-        [report sea-level + water-level] ;sea-patches. grund-hav-niveau + regnvand. sea-patches have no terrain-height
+        [report water-level] ;sea-patches. grund-hav-niveau + regnvand. sea-patches have no terrain-height
   ]
   [ ;land-patches:
     ifelse wall-patch?
@@ -720,12 +758,12 @@ SLIDER
 40
 330
 215
-361
+363
 hav-niveau
 hav-niveau
 0
 12
-0.0
+7.0
 .25
 1
 m
@@ -920,7 +958,7 @@ mur-højde
 mur-højde
 0.5
 3
-1.0
+3.0
 0.5
 1
 m
