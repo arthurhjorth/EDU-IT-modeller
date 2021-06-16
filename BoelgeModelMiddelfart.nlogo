@@ -1,4 +1,4 @@
-extensions [table profiler]
+extensions [csv table sound profiler]
 
 globals [
   start-wave ;; for drawing a wave
@@ -30,8 +30,8 @@ globals [
   ticks-rained
   nedbør-varighed-i-ticks
 
-  test-var
-  patches-moving-too-much
+  test
+  test2
 ]
 
 breed [ drops drop] ;for rain animation
@@ -349,7 +349,8 @@ to rain-animation ;run in go if it's raining
   ifelse count drops = 0 [ ;if it's the first rain tick:
     ask n-of (count patches / 30) patches [
       sprout-drops 1 [
-        set shape "drop" set size 2 set color [170 220 255 100] ;RGBA color (last number is alpha to make it semi-transparent)
+        set shape "drop" set size 2 set color [110 160 255 100] ;RGBA color (last number is alpha to make it semi-transparent)
+          ;[170 220 255 100] ;old color
         set heading 180
       ]
     ]
@@ -376,6 +377,10 @@ to hæv-havet ;forever button in interface, can try to raise the sea level
   display
 end
 
+to hæv-havet2
+  ;
+end
+
 
 to wave ;@VENT MED BØLGER
   ;fra interface: brug bølgehøjde og styrke
@@ -391,16 +396,23 @@ end
 ;---BØLGEBRYDER-STUFF
 
 to build-wall ;forever button in interface
-  if can-afford wall-cost [ ;hvis de har råd (wall-cost er reporter)
+  ifelse can-afford wall-cost [ ;hvis de har råd (wall-cost er reporter)
     if mouse-down? [
       ask patch mouse-xcor mouse-ycor [ ;både land-patches og sea-patches!
           set my-wall-height mur-højde ;fra interface
           set water-level 0 ;@(men hvad hvis hav-niveauet allerede er højere? tag højde for det!)
-          let wall-color item mur-højde ["PLACEHOLDER" 47 44 26 15 12] ;1-5 meter
+          let color-index position my-wall-height [0.5 1 1.5 2 2.5 3]
+          let wall-color item color-index [pink magenta violet orange brown red]
           set my-wall-color wall-color
           set my-wall-price wall-cost
           recolor display
       ]
+    ]
+  ]
+  [ ;if can't afford:
+    if mouse-down? [
+      ;sound:play-note "REED ORGAN" 30 64 0.3 ;pitch, intensity, duration
+      ;@instead of sound, maybe just do message, or do nothing
     ]
   ]
 end
@@ -436,7 +448,7 @@ to-report money-spent
 end
 
 to-report money-left
-  report budget - money-spent
+  report Budget - money-spent
 end
 
 to-report any-money-left?
@@ -485,7 +497,9 @@ end
 ;INTERFACE REPORTERS:
 
 to-report str-time ;for interface
-  report (word hour ":" minute)
+  let str-hour hour
+  if str-hour < 10 [set str-hour (word "0" hour )]
+  report (word str-hour ":" minute)
 end
 
 to-report seepage-m-per-s ;(jordens hydrauliske ledeevne)
@@ -523,7 +537,7 @@ to-report my-water-height ;patch reporter
   ifelse
     terrain-height = "sea" [
       ifelse wall-patch?
-        [report my-wall-height + water-level] ;wall-patches in the sea (NOT dependant on sea-level)
+        [report my-wall-height + water-level] ;wall-patches in the sea (@NOT dependant on sea-level)
         [report sea-level + water-level] ;sea-patches. grund-hav-niveau + regnvand. sea-patches have no terrain-height
   ]
   [ ;land-patches:
@@ -549,6 +563,32 @@ end
 to-report terrain-difference-to [input-terrain-height] ;patch reporter. given a terrain level, reports the distance from the patch's own terrain height to this input height
   report terrain-height - input-terrain-height
   ;in meters. negative = the ptach's level is lower than the input number.
+end
+
+;---IMPORT DATA
+
+to-report import-month [filename] ;e.g. "Maj2010Båring.csv"
+  let file csv:from-file filename ;this gives us ONE long list of single-item lists (each list containing one string)
+  let nice-file map [i -> csv:from-row reduce word i] file ;a full list of lists (every sheets row is an item)
+                                                                  ;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
+                                                                  ;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
+  report nice-file
+
+
+  ;@MAKE TABLE!!! (already in setup? or only when the month is called on?)
+
+end
+
+
+to-report data-time [input]
+  let time input
+  repeat 11 [set time but-first time] ;now only "07:00" left, or "13:00"
+  report time
+  ;then check if this matches str-time
+end
+
+to-report data-day
+  ;
 end
 
 
@@ -589,13 +629,13 @@ to old-make-wave
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-250
+270
 10
-1018
-409
+1048
+414
 -1
 -1
-4.0212
+4.0741
 1
 10
 1
@@ -616,11 +656,11 @@ ticks
 30.0
 
 BUTTON
-135
-30
-210
-63
-NIL
+270
+425
+380
+471
+START/STOP
 go\n
 T
 1
@@ -633,11 +673,11 @@ NIL
 1
 
 BUTTON
-35
 30
-108
-63
-NIL
+15
+247
+55
+OPSÆT / NULSTIL SIMULATIONEN
 setup\n
 NIL
 1
@@ -650,37 +690,20 @@ NIL
 1
 
 CHOOSER
-45
-165
-205
+50
+415
 210
+460
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-3
+2
 
 BUTTON
-1350
+520
+530
+675
 565
-1450
-610
-Lav bølge
-wave
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-765
-495
-867
-540
 Start nedbør
 start-rain
 NIL
@@ -693,33 +716,11 @@ NIL
 NIL
 1
 
-MONITOR
-1030
-165
-1127
-210
-Hav-vandstand
-\"x meter\"
-17
-1
-11
-
-MONITOR
-1030
-225
-1127
-270
-Vandspejl
-\"x meter\"
-17
-1
-11
-
 SLIDER
-20
-80
-230
-113
+40
+330
+215
+361
 hav-niveau
 hav-niveau
 0
@@ -731,10 +732,10 @@ m
 HORIZONTAL
 
 MONITOR
-1040
-70
-1095
-115
+1050
+55
+1105
+100
 Tid
 str-time
 17
@@ -742,10 +743,10 @@ str-time
 11
 
 MONITOR
-45
-215
-205
-260
+50
+465
+210
+510
 Jordens nedsivningsevne
 nedsivningsevne-interface
 17
@@ -753,25 +754,25 @@ nedsivningsevne-interface
 11
 
 SLIDER
-690
-420
-940
-453
+425
+450
+675
+483
 mm-per-15-min
 mm-per-15-min
 0
 15
-4.0
+8.0
 1
 1
 mm
 HORIZONTAL
 
 SLIDER
-690
-460
-940
-493
+425
+490
+675
+523
 nedbør-varighed
 nedbør-varighed
 15
@@ -783,51 +784,21 @@ minutter
 HORIZONTAL
 
 MONITOR
-1040
-20
-1095
-65
+1050
+10
+1105
+55
 Dag
 day
 17
 1
 11
 
-SLIDER
-1305
-490
-1490
-523
-bølge-højde
-bølge-højde
-0
-300
-55.0
-5
-1
-cm
-HORIZONTAL
-
-SLIDER
-1305
-530
-1490
-563
-bølge-frekvens
-bølge-frekvens
-0
-50
-7.0
-1
-1
-NIL
-HORIZONTAL
-
 BUTTON
-135
-480
-300
-516
+115
+140
+260
+195
 BYG EN HØJVANDSMUR
 build-wall
 T
@@ -842,9 +813,9 @@ NIL
 
 BUTTON
 1345
-280
-1432
-313
+260
+1440
+300
 NIL
 show-test
 T
@@ -859,9 +830,9 @@ NIL
 
 MONITOR
 1200
-435
+400
 1280
-480
+445
 NIL
 colortest
 17
@@ -869,12 +840,12 @@ colortest
 11
 
 BUTTON
-125
-280
-210
-313
+95
+550
+165
+583
 Vis højdekort
-import-drawing \"mf-heightline-ref-alpha55.png\"
+clear-drawing\nimport-drawing \"mf-heightline-ref-alpha55.png\"
 NIL
 1
 T
@@ -886,10 +857,10 @@ NIL
 1
 
 BUTTON
-70
-320
-172
-353
+170
+550
+240
+583
 Skjul kort
 clear-drawing
 NIL
@@ -904,9 +875,9 @@ NIL
 
 MONITOR
 1280
-435
+400
 1447
-480
+445
 NIL
 unique-pcolor-nr
 17
@@ -914,12 +885,12 @@ unique-pcolor-nr
 11
 
 BUTTON
-35
-280
-120
-313
+20
+550
+90
+583
 Vis bykort
-import-drawing \"mf-map-kystfix-alpha55.png\"
+clear-drawing\nimport-drawing \"mf-map-kystfix-alpha55.png\"
 NIL
 1
 T
@@ -931,35 +902,35 @@ NIL
 1
 
 TEXTBOX
-1030
-130
-1180
-148
+1085
+360
+1235
+378
 klimaatlas.dk
 15
 0.0
 1
 
 SLIDER
-135
-440
-300
-473
+115
+100
+260
+133
 mur-højde
 mur-højde
-1
-5
-3.0
-1
+0.5
+3
+1.0
+0.5
 1
 m
 HORIZONTAL
 
 MONITOR
 1200
-285
+260
 1340
-330
+305
 NIL
 terrainheighttest
 17
@@ -968,9 +939,9 @@ terrainheighttest
 
 MONITOR
 1200
-330
+305
 1340
-375
+350
 NIL
 capacitytest
 17
@@ -979,9 +950,9 @@ capacitytest
 
 MONITOR
 1200
-375
+350
 1340
-420
+395
 NIL
 satietytest
 17
@@ -990,9 +961,9 @@ satietytest
 
 MONITOR
 1340
-375
+350
 1495
-420
+395
 NIL
 satietypercenttest
 17
@@ -1000,10 +971,10 @@ satietypercenttest
 11
 
 BUTTON
-220
-525
-300
-558
+190
+200
+260
+250
 Fjern alle
 remove-all-walls
 NIL
@@ -1017,13 +988,13 @@ NIL
 1
 
 PLOT
-1160
-20
-1485
+1115
+10
+1465
 195
-mean water-level of land-patches (in meters)
-ticks
-water-levle (m)
+Gns. vandspejl på land
+tid
+vandspejl (m)
 0.0
 10.0
 0.0
@@ -1035,10 +1006,10 @@ PENS
 "default" 1.0 0 -13345367 true "" "plot mean [water-level] of land-patches"
 
 BUTTON
-100
-115
-192
-148
+40
+295
+132
+328
 NIL
 hæv-havet
 T
@@ -1052,10 +1023,10 @@ NIL
 1
 
 SWITCH
-875
-500
-965
-533
+425
+530
+515
+563
 vis-regn?
 vis-regn?
 0
@@ -1064,9 +1035,9 @@ vis-regn?
 
 MONITOR
 1340
-330
+305
 1495
-375
+350
 NIL
 waterleveltest
 17
@@ -1074,10 +1045,10 @@ waterleveltest
 11
 
 BUTTON
-135
-525
-215
-558
+115
+200
+185
+250
 Viskelæder
 erase-wall
 T
@@ -1091,78 +1062,202 @@ NIL
 1
 
 TEXTBOX
+1075
+280
+1185
 335
-545
-485
-563
-højvandsmur - tynd streg
+højvandsmur tynd streg + ikke vand ovenpå?
 11
-0.0
+13.0
 1
 
 TEXTBOX
-1000
-425
-1150
-466
+1075
+225
+1225
+266
 stormflod har effekt\nbølger begrænset højde (30cm), ikke så afgørende
 11
 0.0
 1
 
 TEXTBOX
-495
-570
-645
-596
-hæv havet + højvandsmure kombi
+20
+365
+260
+391
+lav integreret hæv havet + højvandsmure kombi
 11
-0.0
+13.0
 1
 
 INPUTBOX
-25
-425
-125
-485
-budget
-10000.0
+10
+100
+110
+160
+Budget
+1.0E7
 1
 0
 Number
 
 MONITOR
-25
-485
-125
-530
-NIL
+10
+160
+110
+205
+Beløb brugt
 money-spent
 17
 1
 11
 
 MONITOR
-25
-530
-125
-575
-NIL
+10
+205
+110
+250
+Beløb tilbage
 money-left
 17
 1
 11
 
 MONITOR
-425
-445
-520
-490
+1340
+510
+1435
+555
 NIL
 happiness
 17
 1
 11
+
+BUTTON
+140
+295
+215
+328
+NIL
+hæv-havet2
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+80
+70
+210
+90
+Højvandsmure
+17
+0.0
+1
+
+TEXTBOX
+520
+425
+575
+446
+Nedbør
+17
+0.0
+1
+
+TEXTBOX
+85
+525
+185
+546
+Visualisering
+17
+0.0
+1
+
+TEXTBOX
+955
+505
+1105
+531
+https://www.dmi.dk/vejrarkiv/normaler-danmark/
+11
+12.0
+1
+
+BUTTON
+905
+465
+1130
+498
+NIL
+show import-month \"maj2021Båring.csv\"
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+95
+390
+170
+411
+Jordtype
+17
+0.0
+1
+
+TEXTBOX
+65
+265
+215
+286
+Havets vandstand
+17
+0.0
+1
+
+TEXTBOX
+1340
+465
+1450
+506
+(Indbyggernes tilfredshed)
+17
+0.0
+1
+
+TEXTBOX
+750
+430
+945
+455
+(Auto-kør typisk måned)
+17
+0.0
+1
+
+CHOOSER
+750
+460
+888
+505
+måned
+måned
+"Maj 2010" "Maj 2021"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
