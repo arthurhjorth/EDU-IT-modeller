@@ -9,16 +9,24 @@ breed [consumers consumer]
 
 merchants-own [
   alpha
+  beta
   money
   tableware
   mrs
+
+  ;trade
+  partner
  ]
 
 consumers-own [
   alpha
+  beta
   money
   tableware
   mrs
+
+  ;trade
+  partner
 ]
 
 
@@ -28,10 +36,10 @@ to setup
 
   populate
   set-variables
-
-
-
+  set-partner ;can be included in set-variables
 end
+
+
 
 to go
 
@@ -45,6 +53,12 @@ to go
 
 end
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;; FUNCTIONS ;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 to populate ;;run in setup. Create starting population
@@ -60,6 +74,7 @@ to make-ppls [kind]
    create-merchants 1 [
    set shape "person" set size 1 set color white
    set alpha alpha-merchants
+   set beta ( 1 - alpha-merchants )
    set money money-merchants
    set tableware tableware-merchants
    set mrs 0
@@ -72,6 +87,7 @@ to make-ppls [kind]
    create-consumers 1 [
    set shape "person" set size 1 set color white
    set alpha alpha-consumers
+   set beta ( 1 - alpha-consumers )
    set money money-consumers
    set tableware tableware-consumers
    set mrs 0
@@ -86,7 +102,6 @@ ask merchants [
     let nr ( alpha-merchants * money )  / ( ( 1 - alpha-merchants ) * tableware )
     let rounded precision nr 3
     set mrs rounded
-
 ]
 
 
@@ -106,24 +121,35 @@ end
 
 
 
+to set-partner
+  ;this model has just two agents, so we can just partner them up manually
+
+ask merchant 1
+  [set partner consumer 1]
+
+  ask consumer 1
+  [set partner merchant 1]
+
+end
+
 
 to trade
-; buyer and seller both find their optimal price point based on preferences:
-; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time)
+ ;buyer and seller both find their optimal price point based on preferences:
+ ;equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time)
 
 
 ;based on equilibrum from red cross parcel
   ;need to define partner
 
 
-;    if price-setting = "equilibrium"
-; [
-;    ask consumers
-;   [  set price  precision (
-;                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-;                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]
-; ]
-;
+    if price-setting = "equilibrium"
+ [
+    ask consumers
+   [  set price  precision (
+                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
+                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]    ;mangler beta
+ ]
+
 
 
 
