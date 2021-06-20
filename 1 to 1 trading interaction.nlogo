@@ -1,5 +1,6 @@
 
 globals [
+  price ;
 
 ]
 
@@ -27,6 +28,7 @@ to setup
   reset-ticks
 
   populate
+  set-variables
 
 
 
@@ -61,6 +63,7 @@ to make-ppls [kind]
    set alpha alpha-moneyprefs
    set money money-moneyprefs
    set tableware tableware-moneyprefs
+   set mrs 0
 
       setxy random-xcor random-ycor
   ]
@@ -72,6 +75,7 @@ to make-ppls [kind]
    set alpha alpha-wareprefs
    set money money-wareprefs
    set tableware tableware-wareprefs
+   set mrs 0
 
       setxy random-xcor random-ycor
   ]
@@ -80,29 +84,48 @@ end
 
 to set-variables
 ask moneyprefs [
-
-    set mrs ( alpha-moneyprefs * money )  / ( ( 1 - alpha-moneyprefs ) * tableware )
+    let nr ( alpha-moneyprefs * money )  / ( ( 1 - alpha-moneyprefs ) * tableware )
+    let rounded precision nr 3
+    set mrs rounded
 
 ]
 
 
 ask wareprefs [
 
-    set mrs ( alpha-wareprefs * money )  / ( ( 1 - alpha-wareprefs ) * tableware )
+    let nr ( alpha-wareprefs * money )  / ( ( 1 - alpha-wareprefs ) * tableware )
+    let rounded precision nr 3
+    set mrs rounded
 
 ]
 
 ;Cudos to   chap5 edgeworth box game.
   ;   set mrsCapt ( alphaCapt * captsCigs )  / ( ( 1 - alphaCapt ) * captsChocs )
-  ;    set mrsSgt  ( alphaSgt * sgtsCigs  )  / ( ( 1 - alphaSgt ) *  sgtsChocs )
+  ;   set mrsSgt  ( alphaSgt * sgtsCigs  )  / ( ( 1 - alphaSgt ) *  sgtsChocs )
 
 end
 
 
 to trade
 
+   let minMRS min [ mrs ] of turtles
+   let maxMRS max [ mrs ] of turtles
+  set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
 
+end
+
+to-report report-price
+  report price
+
+end
+
+to-report report-mrs-moneyprefs
+  report [ mrs ] of moneyprefs
+end
+
+to-report report-mrs-wareprefs
+  report [ mrs ] of wareprefs
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -281,6 +304,39 @@ Variables for the warepref turtle
 11
 0.0
 1
+
+MONITOR
+913
+22
+992
+67
+NIL
+report-price
+17
+1
+11
+
+MONITOR
+909
+81
+1051
+126
+NIL
+report-mrs-moneyprefs
+17
+1
+11
+
+MONITOR
+910
+131
+1043
+176
+NIL
+report-mrs-wareprefs
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
