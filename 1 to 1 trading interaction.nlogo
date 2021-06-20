@@ -4,19 +4,21 @@ globals [
 ]
 
 
-breed [ppls ppl]
-breed [ppls2 ppl2]
+breed [moneyprefs moneypref]
+breed [wareprefs warepref]
 
-ppls-own [
+moneyprefs-own [
   alpha
-  nr-chocolates
-  nr-cigarettes
+  money
+  tableware
+  mrs
  ]
 
-ppls2-own [
- alpha
- nr-chocolates
- nr-cigarettes
+wareprefs-own [
+  alpha
+  money
+  tableware
+  mrs
 ]
 
 
@@ -45,36 +47,57 @@ end
 
 
 to populate ;;run in setup. Create starting population
-  repeat (nr-ppls / 2) [ make-ppls "ppls"]
-  repeat (nr-ppls / 2) [ make-ppls "ppls2"]
+  repeat (nr-ppls / 2) [ make-ppls "moneyprefs"]
+  repeat (nr-ppls / 2) [ make-ppls "wareprefs"]
 
 end
 
 
 to make-ppls [kind]
 
-  if kind = "ppls" [
-   create-ppls 1 [
+  if kind = "moneyprefs" [
+   create-moneyprefs 1 [
    set shape "person" set size 1 set color white
-   set alpha alpha-ppls
-   set nr-cigarettes nr-cigarettes-ppls
-   set nr-chocolates nr-chocolates-ppls
+   set alpha alpha-moneyprefs
+   set money money-moneyprefs
+   set tableware tableware-moneyprefs
 
       setxy random-xcor random-ycor
   ]
   ]
 
-  if kind = "ppls2" [
-   create-ppls 1 [
+  if kind = "wareprefs" [
+   create-wareprefs 1 [
    set shape "person" set size 1 set color white
-   set alpha alpha-ppls2
-   set nr-cigarettes nr-cigarettes-ppls
-   set nr-chocolates nr-cigarettes-ppls2
+   set alpha alpha-wareprefs
+   set money money-wareprefs
+   set tableware tableware-wareprefs
 
       setxy random-xcor random-ycor
   ]
   ]
 end
+
+to set-variables
+ask moneyprefs [
+
+    set mrs ( alpha-moneyprefs * money )  / ( ( 1 - alpha-moneyprefs ) * tableware )
+
+]
+
+
+ask wareprefs [
+
+    set mrs ( alpha-wareprefs * money )  / ( ( 1 - alpha-wareprefs ) * tableware )
+
+]
+
+;Cudos to   chap5 edgeworth box game.
+  ;   set mrsCapt ( alphaCapt * captsCigs )  / ( ( 1 - alphaCapt ) * captsChocs )
+  ;    set mrsSgt  ( alphaSgt * sgtsCigs  )  / ( ( 1 - alphaSgt ) *  sgtsChocs )
+
+end
+
 
 to trade
 
@@ -121,66 +144,44 @@ nr-ppls
 Number
 
 INPUTBOX
-258
-200
-324
-260
-alpha-ppls
-0.9
+35
+343
+136
+403
+money-moneyprefs
+50.0
 1
 0
 Number
 
 INPUTBOX
-327
-200
-394
-260
-alpha-ppls2
-0.1
+315
+345
+417
+405
+money-wareprefs
+50.0
 1
 0
 Number
 
 INPUTBOX
-220
-267
-321
-327
-nr-cigarettes-ppls
+35
+407
+137
+467
+tableware-moneyprefs
 70.0
 1
 0
 Number
 
 INPUTBOX
-324
-268
-426
-328
-nr-cigarettes-ppls2
-70.0
-1
-0
-Number
-
-INPUTBOX
-220
-331
-322
-391
-nr-chocolates-ppls
-70.0
-1
-0
-Number
-
-INPUTBOX
-325
-331
-428
-391
-nr-chocolates-ppls2
+316
+408
+419
+468
+tableware-wareprefs
 70.0
 1
 0
@@ -230,6 +231,56 @@ stop-after-x-tick
 1
 0
 Number
+
+SLIDER
+0
+306
+172
+339
+alpha-moneyprefs
+alpha-moneyprefs
+0
+1
+0.2
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+280
+307
+452
+340
+alpha-wareprefs
+alpha-wareprefs
+0
+1
+0.7
+0.1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+14
+275
+164
+303
+Variables for the moneypref turtle
+11
+0.0
+1
+
+TEXTBOX
+299
+270
+449
+298
+Variables for the warepref turtle
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
