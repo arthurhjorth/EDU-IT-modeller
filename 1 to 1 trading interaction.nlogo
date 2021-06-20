@@ -1,21 +1,20 @@
-
 globals [
   price ;
 
 ]
 
 
-breed [moneyprefs moneypref]
-breed [wareprefs warepref]
+breed [merchants merchant]
+breed [consumers consumer]
 
-moneyprefs-own [
+merchants-own [
   alpha
   money
   tableware
   mrs
  ]
 
-wareprefs-own [
+consumers-own [
   alpha
   money
   tableware
@@ -49,32 +48,32 @@ end
 
 
 to populate ;;run in setup. Create starting population
-  repeat (nr-ppls / 2) [ make-ppls "moneyprefs"]
-  repeat (nr-ppls / 2) [ make-ppls "wareprefs"]
+  repeat (nr-ppls / 2) [ make-ppls "merchants"]
+  repeat (nr-ppls / 2) [ make-ppls "consumers"]
 
 end
 
 
 to make-ppls [kind]
 
-  if kind = "moneyprefs" [
-   create-moneyprefs 1 [
+  if kind = "merchants" [
+   create-merchants 1 [
    set shape "person" set size 1 set color white
-   set alpha alpha-moneyprefs
-   set money money-moneyprefs
-   set tableware tableware-moneyprefs
+   set alpha alpha-merchants
+   set money money-merchants
+   set tableware tableware-merchants
    set mrs 0
 
       setxy random-xcor random-ycor
   ]
   ]
 
-  if kind = "wareprefs" [
-   create-wareprefs 1 [
+  if kind = "consumers" [
+   create-consumers 1 [
    set shape "person" set size 1 set color white
-   set alpha alpha-wareprefs
-   set money money-wareprefs
-   set tableware tableware-wareprefs
+   set alpha alpha-consumers
+   set money money-consumers
+   set tableware tableware-consumers
    set mrs 0
 
       setxy random-xcor random-ycor
@@ -83,17 +82,17 @@ to make-ppls [kind]
 end
 
 to set-variables
-ask moneyprefs [
-    let nr ( alpha-moneyprefs * money )  / ( ( 1 - alpha-moneyprefs ) * tableware )
+ask merchants [
+    let nr ( alpha-merchants * money )  / ( ( 1 - alpha-merchants ) * tableware )
     let rounded precision nr 3
     set mrs rounded
 
 ]
 
 
-ask wareprefs [
+ask consumers [
 
-    let nr ( alpha-wareprefs * money )  / ( ( 1 - alpha-wareprefs ) * tableware )
+    let nr ( alpha-consumers * money )  / ( ( 1 - alpha-consumers ) * tableware )
     let rounded precision nr 3
     set mrs rounded
 
@@ -106,26 +105,53 @@ ask wareprefs [
 end
 
 
-to trade
 
+
+to trade
+; buyer and seller both find their optimal price point based on preferences:
+; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time)
+
+
+;based on equilibrum from red cross parcel
+  ;need to define partner
+
+
+;    if price-setting = "equilibrium"
+; [
+;    ask consumers
+;   [  set price  precision (
+;                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
+;                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]
+; ]
+;
+
+
+
+
+  if price-setting = "random"
+  [
    let minMRS min [ mrs ] of turtles
    let maxMRS max [ mrs ] of turtles
   set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+  ]
 
 
 end
+
+
+
 
 to-report report-price
   report price
 
 end
 
-to-report report-mrs-moneyprefs
-  report [ mrs ] of moneyprefs
+to-report report-mrs-merchants
+  report [ mrs ] of merchants
 end
 
-to-report report-mrs-wareprefs
-  report [ mrs ] of wareprefs
+to-report report-mrs-consumers
+  report [ mrs ] of consumers
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -171,7 +197,7 @@ INPUTBOX
 343
 136
 403
-money-moneyprefs
+money-merchants
 50.0
 1
 0
@@ -182,7 +208,7 @@ INPUTBOX
 345
 417
 405
-money-wareprefs
+money-consumers
 50.0
 1
 0
@@ -193,7 +219,7 @@ INPUTBOX
 407
 137
 467
-tableware-moneyprefs
+tableware-merchants
 70.0
 1
 0
@@ -204,7 +230,7 @@ INPUTBOX
 408
 419
 468
-tableware-wareprefs
+tableware-consumers
 70.0
 1
 0
@@ -260,8 +286,8 @@ SLIDER
 306
 172
 339
-alpha-moneyprefs
-alpha-moneyprefs
+alpha-merchants
+alpha-merchants
 0
 1
 0.2
@@ -275,8 +301,8 @@ SLIDER
 307
 452
 340
-alpha-wareprefs
-alpha-wareprefs
+alpha-consumers
+alpha-consumers
 0
 1
 0.7
@@ -319,10 +345,10 @@ report-price
 MONITOR
 909
 81
-1051
+1065
 126
 NIL
-report-mrs-moneyprefs
+report-mrs-merchants
 17
 1
 11
@@ -330,13 +356,23 @@ report-mrs-moneyprefs
 MONITOR
 910
 131
-1043
+1069
 176
 NIL
-report-mrs-wareprefs
+report-mrs-consumers
 17
 1
 11
+
+CHOOSER
+26
+183
+174
+228
+price-setting
+price-setting
+"market-clearing" "equilibrium" "random"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
