@@ -36,7 +36,6 @@ to setup
 
   populate
   set-variables
-  set-partner ;can be included in set-variables
 end
 
 
@@ -78,6 +77,7 @@ to make-ppls [kind]
    set money money-merchants
    set tableware tableware-merchants
    set mrs 0
+  ; set partner consumer 1  ;@@lisa: not functioning rn
 
       setxy random-xcor random-ycor
   ]
@@ -91,6 +91,7 @@ to make-ppls [kind]
    set money money-consumers
    set tableware tableware-consumers
    set mrs 0
+ ;  set partner merchant 1 ;@@lisa: not functioning rn
 
       setxy random-xcor random-ycor
   ]
@@ -120,17 +121,6 @@ ask consumers [
 end
 
 
-
-to set-partner
-  ;this model has just two agents, so we can just partner them up manually
-
-ask merchant 1
-  [set partner consumer 1]
-
-  ask consumer 1
-  [set partner merchant 1]
-
-end
 
 
 to trade
