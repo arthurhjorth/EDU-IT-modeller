@@ -10,6 +10,7 @@ globals [
 
 breed [merchants merchant]
 breed [consumers consumer]
+breed [buildings building]
 
 merchants-own [
   alpha
@@ -50,11 +51,17 @@ to setup
   clear-all
   reset-ticks
 
+  layout
+
   populate
   set-variables
+<<<<<<< HEAD
   calculate-utility
   set-initial-utility
 
+=======
+end
+>>>>>>> 4621e52b322bfadf2642f0cbbe026e566e8a2545
 
 
 end
@@ -84,30 +91,77 @@ to make-ppls [kind]
 
   if kind = "merchants" [
    create-merchants 1 [
-   set shape "person" set size 1 set color white
    set alpha alpha-merchants
    set beta precision ( 1 - alpha-merchants ) 3
    set money money-merchants
    set tableware tableware-merchants
    set mrs 0
 
-      setxy random-xcor random-ycor
+   ;looks
+   set shape "tableware"
+   set size 7
+   set color blue
+   setxy -10 -10
+   set heading 90
+
+      ;partner
+  ; set partner consumer 1  ;@@lisa: not functioning rn
+
+
   ]
   ]
 
   if kind = "consumers" [
    create-consumers 1 [
-   set shape "person" set size 1 set color white
+
    set alpha alpha-consumers
    set beta precision ( 1 - alpha-consumers ) 3
    set money money-consumers
    set tableware tableware-consumers
    set mrs 0
 
-      setxy random-xcor random-ycor
+
+      ;looks
+      set shape "person"
+      set size 7
+      set color white
+      setxy 10 -10
+      set heading 360 - 90
+
+
+      ;partner
+ ;  set partner merchant 1 ;@@lisa: not functioning rn
   ]
   ]
 end
+
+
+to layout
+  create-buildings 1
+  ask buildings
+  [set shape "building institution" ;make it acropolis
+    set size 13
+    setxy 0 10
+    set color white]
+
+
+
+  ask patches [set pcolor blue]
+  ask patches with [pycor < 13] [set pcolor blue + 1]
+  ask patches with [pycor < 9] [set pcolor blue + 2]
+
+
+  ask patches with [pxcor > -8 and pxcor < 8 and pycor > -14 and pycor < 0]
+  [set pcolor blue]
+
+  ask patch 5 -10
+  [set plabel "Trade mechanics can be"]
+  ask patch 5 -11
+  [set plabel "shown here"]
+
+end
+
+
 
 to set-variables
 ask merchants [
@@ -133,6 +187,7 @@ end
 
 
 
+<<<<<<< HEAD
 
 to trade
   calculate-utility ;currently only used for choosing quantity
@@ -142,6 +197,8 @@ to trade
 ; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
 ;based on equilibrum from red cross parcel
 
+=======
+>>>>>>> 4621e52b322bfadf2642f0cbbe026e566e8a2545
 
 ;;;;;;;----------;;;;;;;;; Defining partner:
 
@@ -761,6 +818,38 @@ Circle -7500403 true true 110 75 80
 Line -7500403 true 150 100 80 30
 Line -7500403 true 150 100 220 30
 
+building institution
+false
+0
+Rectangle -7500403 true true 0 60 300 270
+Rectangle -16777216 true false 130 196 168 256
+Rectangle -16777216 false false 0 255 300 270
+Polygon -7500403 true true 0 60 150 15 300 60
+Polygon -16777216 false false 0 60 150 15 300 60
+Circle -1 true false 135 26 30
+Circle -16777216 false false 135 25 30
+Rectangle -16777216 false false 0 60 300 75
+Rectangle -16777216 false false 218 75 255 90
+Rectangle -16777216 false false 218 240 255 255
+Rectangle -16777216 false false 224 90 249 240
+Rectangle -16777216 false false 45 75 82 90
+Rectangle -16777216 false false 45 240 82 255
+Rectangle -16777216 false false 51 90 76 240
+Rectangle -16777216 false false 90 240 127 255
+Rectangle -16777216 false false 90 75 127 90
+Rectangle -16777216 false false 96 90 121 240
+Rectangle -16777216 false false 179 90 204 240
+Rectangle -16777216 false false 173 75 210 90
+Rectangle -16777216 false false 173 240 210 255
+Rectangle -16777216 false false 269 90 294 240
+Rectangle -16777216 false false 263 75 300 90
+Rectangle -16777216 false false 263 240 300 255
+Rectangle -16777216 false false 0 240 37 255
+Rectangle -16777216 false false 6 90 31 240
+Rectangle -16777216 false false 0 75 37 90
+Line -16777216 false 112 260 184 260
+Line -16777216 false 105 265 196 265
+
 butterfly
 true
 0
@@ -950,6 +1039,17 @@ star
 false
 0
 Polygon -7500403 true true 151 1 185 108 298 108 207 175 242 282 151 216 59 282 94 175 3 108 116 108
+
+tableware
+false
+0
+Circle -7500403 true true 110 5 80
+Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
+Rectangle -7500403 true true 127 79 172 94
+Polygon -7500403 true true 171 109 231 64 261 79 186 139
+Polygon -7500403 true true 105 90 60 150 75 180 135 105
+Circle -1 true false 205 14 76
+Circle -11221820 false false 215 23 56
 
 target
 false
