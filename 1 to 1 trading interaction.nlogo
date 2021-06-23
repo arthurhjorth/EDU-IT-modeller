@@ -74,6 +74,12 @@ to go
     stop
   ]
 
+  ;only consumers earning money - how it affects the dynamics. People will likely be more likely to pay more for a plate
+  ;Tableware production --> price will fall if the relation between tableare prod and money prod
+  ;Add dynamics - earns money, destroys plates,
+
+  ;
+
 end
 
 
@@ -241,7 +247,10 @@ if price-setting = "choose price" [
    let minMRS min [ mrs ] of turtles
    let maxMRS max [ mrs ] of turtles
   set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+
+  output-print ( word "blabla " minMRS )
   ]
+
 
 ;;;;;;;;;----------;;;;;;;;;; Price end
 
@@ -274,7 +283,7 @@ ask merchants [
 ;Making sure only whole numbers are traded.
   ; ((((solution from edgeworth does not give us whole numbers in tableware after trades
   ask turtles with [ offer > 0 ] [
-  let offerUnits ( offer * price ) ;hvorfor floor her når det allerede er gjort tidligere? fjollet!
+  let offerUnits floor ( offer * price ) ;hvorfor floor her når det allerede er gjort tidligere? fjollet!
   set offer offerUnits / price
   ]
 
@@ -326,6 +335,7 @@ ask consumers [
 ask merchants [
      if temp-utility < utility [
        set deal 0
+
       ]
     ]
 
@@ -567,7 +577,7 @@ SLIDER
 alpha-merchants
 alpha-merchants
 0
-0.5
+1
 0.1
 0.1
 1
@@ -581,9 +591,9 @@ SLIDER
 340
 alpha-consumers
 alpha-consumers
-0.5
+0
 1
-0.9
+0.7
 0.1
 1
 NIL
@@ -650,7 +660,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-2
+1
 
 MONITOR
 2
@@ -705,7 +715,7 @@ choose-price
 choose-price
 1
 30
-3.22
+1.0
 0.01
 1
 NIL
@@ -765,6 +775,46 @@ nr-succesful-trades
 17
 1
 11
+
+OUTPUT
+566
+491
+806
+545
+11
+
+SWITCH
+974
+387
+1086
+420
+dynamics?
+dynamics?
+1
+1
+-1000
+
+SWITCH
+914
+435
+1106
+468
+consumers-earn-money?
+consumers-earn-money?
+1
+1
+-1000
+
+SWITCH
+915
+472
+1095
+505
+tableware-production?
+tableware-production?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
