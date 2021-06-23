@@ -1,5 +1,9 @@
 globals [
   price ;
+  deal-tableware
+  deal-money
+  deal
+  succesful-trades
 
 ]
 
@@ -13,9 +17,15 @@ merchants-own [
   money
   tableware
   mrs
+  offer-money
+  offer-tableware
+  offer
+  utility
+  initial-utility
+  temp-tableware
+  temp-money
+  temp-utility
 
-  ;trade
-  partner
  ]
 
 consumers-own [
@@ -24,9 +34,15 @@ consumers-own [
   money
   tableware
   mrs
+  offer-money
+  offer-tableware
+  offer
+  utility
+  initial-utility
+  temp-tableware
+  temp-money
+  temp-utility
 
-  ;trade
-  partner
 ]
 
 
@@ -36,10 +52,12 @@ to setup
 
   populate
   set-variables
-  set-partner ;can be included in set-variables
+  calculate-utility
+  set-initial-utility
+
+
+
 end
-
-
 
 to go
 
@@ -53,12 +71,6 @@ to go
 
 end
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;; FUNCTIONS ;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 to populate ;;run in setup. Create starting population
@@ -74,7 +86,7 @@ to make-ppls [kind]
    create-merchants 1 [
    set shape "person" set size 1 set color white
    set alpha alpha-merchants
-   set beta ( 1 - alpha-merchants )
+   set beta precision ( 1 - alpha-merchants ) 3
    set money money-merchants
    set tableware tableware-merchants
    set mrs 0
@@ -87,7 +99,7 @@ to make-ppls [kind]
    create-consumers 1 [
    set shape "person" set size 1 set color white
    set alpha alpha-consumers
-   set beta ( 1 - alpha-consumers )
+   set beta precision ( 1 - alpha-consumers ) 3
    set money money-consumers
    set tableware tableware-consumers
    set mrs 0
@@ -99,15 +111,15 @@ end
 
 to set-variables
 ask merchants [
-    let nr ( alpha-merchants * money )  / ( ( 1 - alpha-merchants ) * tableware )
+    let nr ( alpha-merchants * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
+
 ]
 
 
 ask consumers [
-
-    let nr ( alpha-consumers * money )  / ( ( 1 - alpha-consumers ) * tableware )
+    let nr ( alpha-consumers * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
 
@@ -121,34 +133,40 @@ end
 
 
 
-to set-partner
-  ;this model has just two agents, so we can just partner them up manually
-
-ask merchant 1
-  [set partner consumer 1]
-
-  ask consumer 1
-  [set partner merchant 1]
-
-end
-
 
 to trade
- ;buyer and seller both find their optimal price point based on preferences:
- ;equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time)
+  calculate-utility ;currently only used for choosing quantity
 
+; buyer and seller both find their optimal price point based on preferences:
 
+; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
 ;based on equilibrum from red cross parcel
-  ;need to define partner
 
 
-    if price-setting = "equilibrium"
- [
-    ask consumers
-   [  set price  precision (
-                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]    ;mangler beta
- ]
+;;;;;;;----------;;;;;;;;; Defining partner:
+
+
+;;;;----------;;;;;;;;; Partner def end
+
+
+;;;;;;;;;-------------;;;;;;;;; Choosing price:
+
+if price-setting = "choose price" [
+   ask turtles [
+     set price choose-price
+    ]
+
+  ]
+
+
+;    if price-setting = "equilibrium"
+; [
+;    ask consumers
+;   [  set price  precision (
+;                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
+;                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]
+; ]
+;
 
 
 
@@ -161,15 +179,165 @@ to trade
   set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
   ]
 
+;;;;;;;;;----------;;;;;;;;;; Price end
 
+
+;;;;;;;;;;-------------;;;;;;;;;; Quantity of trade
+ask consumers [
+    let budget ( tableware * price ) + money
+    let optimal round ( budget * alpha / price )
+    set offer floor ( optimal - tableware ) ;This line is the same as in edgeworth random
+
+    ; let nr-tableware-consumer-wants ( optimal - tableware ) ; how much tableware the consumer wants ideally
+    ;set offer-money min list ( nr-tableware-consumer-wants * price ) ( money - 1 )
+    ;set offer-tableware ( offer-money / price )
+
+  ]
+
+
+ask merchants [
+    let budget ( tableware * price ) + money
+    let optimal ( budget * alpha / price )
+    set offer floor ( tableware - optimal ) ;This line is the same as in edgeworth random
+
+    ;let nr-tableware-supply ( tableware - optimal )
+    ;set offer-tableware min list ( nr-tableware-supply * price ) ( tableware - 1 )
+    ;set offer-money 0
+
+  ]
+
+;Making sure only whole numbers are traded.
+  ; ((((solution from edgeworth does not give us whole numbers in tableware after trades
+  ask turtles with [ offer > 0 ] [
+  let offerUnits floor ( offer * price )
+  set offer offerUnits / price
+  ]
+
+;removing offers below 0
+ask turtles with [ offer < 0 ]
+  [
+    set offer 0
+  ]
+
+;simple way of choosing which quantity
+set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 )
+
+set deal-tableware deal
+set deal-money deal * price
+
+  ;;;;;;;;;;;;;--------------;;;;;;;;;;;; choosing quantity end
+
+
+
+;;;;;;;;;;;;;;;;---------;;;;;;;;;;;; check if we increase utility and engage in trade if yes. Otherwise nothing happens.
+  ;(set deal 0 is to allow us to prompt "trade cancelled" or so)
+
+ask consumers [
+   if deal > 0 [
+     set temp-tableware ( tableware + deal-tableware )
+     set temp-money ( money - deal-money )
+     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
+    ]
+  ]
+
+ask merchants [
+   if deal > 0 [
+     set temp-tableware ( tableware - deal-tableware )
+     set temp-money ( money + deal-money )
+     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
+    ]
+  ]
+
+;if temp-utility is smaller than utility then we set deal = 0. otherwise trade is accepted.
+;This also means that all price offers which does not allow a higher utility for both traders end up in a cancelled trade
+ask consumers [
+    if temp-utility < utility [
+     set deal 0
+    ]
+  ]
+
+ask merchants [
+     if temp-utility < utility [
+       set deal 0
+      ]
+    ]
+
+if deal > 0 [
+     ask consumers [
+       set tableware temp-tableware
+       set money temp-money
+       set succesful-trades succesful-trades + 1
+      ]
+
+     ask merchants [
+       set tableware temp-tableware
+       set money temp-money
+       set succesful-trades succesful-trades + 1
+      ]
+    ]
+
+
+end
+
+to calculate-utility
+
+  ; Cobb-Douglas utility function ;;;copied from red cross parcels model
+  ;As i understand the utility hereby is a measure of the total quantity of tableware and money, modified by the alpha and betas. Meaning that the weight of money+tableware is modified by the alphas + betas.
+  ;in short, an individual utility function dependant on alphas and betas.
+
+ ask turtles  [
+    set utility  precision ( ( tableware ^ alpha ) * ( money ^ beta ) ) 2
+  ]
+end
+
+to set-initial-utility
+  ask turtles [
+   set initial-utility utility
+  ]
 end
 
 
 
 
+to-report nr-succesful-trades
+  report ( succesful-trades / 2 )
+end
+
+to-report nr-tableware-merchants
+  report [ tableware ] of merchants
+end
+
+to-report nr-money-merchants
+  report [ money ] of merchants
+end
+
+to-report nr-tableware-consumers
+  report [ tableware ] of consumers
+end
+
+
+to-report nr-money-consumers
+  report [ money ] of consumers
+end
+
+to-report utility-merchants
+  report [ utility ] of merchants
+end
+
+to-report utility-consumers
+  report [ utility ] of consumers
+end
+
+to-report report-offer-consumers
+  report [ offer ] of consumers
+end
+
+to-report report-offer-merchants
+  report [ offer ] of merchants
+end
+
 to-report report-price
   report price
-
 end
 
 to-report report-mrs-merchants
@@ -178,6 +346,14 @@ end
 
 to-report report-mrs-consumers
   report [ mrs ] of consumers
+end
+
+to-report report-beta-merchants
+  report [ beta ] of merchants
+end
+
+to-report report-beta-consumers
+  report [ beta ] of consumers
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -219,32 +395,32 @@ nr-ppls
 Number
 
 INPUTBOX
-35
-343
-136
-403
+2
+393
+103
+453
 money-merchants
-50.0
+30.0
 1
 0
 Number
 
 INPUTBOX
-315
-345
-417
-405
+278
+394
+380
+454
 money-consumers
-50.0
+70.0
 1
 0
 Number
 
 INPUTBOX
-35
-407
-137
-467
+2
+457
+104
+517
 tableware-merchants
 70.0
 1
@@ -252,12 +428,12 @@ tableware-merchants
 Number
 
 INPUTBOX
-316
-408
-419
-468
+279
+457
+382
+517
 tableware-consumers
-70.0
+30.0
 1
 0
 Number
@@ -315,8 +491,8 @@ SLIDER
 alpha-merchants
 alpha-merchants
 0
-1
-0.2
+0.5
+0.1
 0.1
 1
 NIL
@@ -329,9 +505,9 @@ SLIDER
 340
 alpha-consumers
 alpha-consumers
-0
+0.5
 1
-0.7
+0.9
 0.1
 1
 NIL
@@ -342,7 +518,7 @@ TEXTBOX
 275
 164
 303
-Variables for the moneypref turtle
+Variables for the merchant breed
 11
 0.0
 1
@@ -352,7 +528,7 @@ TEXTBOX
 270
 449
 298
-Variables for the warepref turtle
+Variables for the consumer breed\n
 11
 0.0
 1
@@ -369,10 +545,10 @@ report-price
 11
 
 MONITOR
-909
-81
-1065
-126
+902
+124
+1058
+169
 NIL
 report-mrs-merchants
 17
@@ -380,10 +556,10 @@ report-mrs-merchants
 11
 
 MONITOR
-910
-131
-1069
-176
+904
+72
+1063
+117
 NIL
 report-mrs-consumers
 17
@@ -397,8 +573,122 @@ CHOOSER
 228
 price-setting
 price-setting
-"market-clearing" "equilibrium" "random"
-0
+"market-clearing" "equilibrium" "random" "choose price"
+2
+
+MONITOR
+2
+343
+142
+388
+Beta for merchants
+report-beta-merchants
+17
+1
+11
+
+MONITOR
+280
+344
+421
+389
+Beta for consumers
+report-beta-consumers
+17
+1
+11
+
+MONITOR
+910
+320
+1052
+365
+NIL
+report-offer-merchants
+17
+1
+11
+
+MONITOR
+911
+270
+1054
+315
+NIL
+report-offer-consumers
+17
+1
+11
+
+SLIDER
+11
+136
+183
+169
+choose-price
+choose-price
+1
+30
+2.29
+0.01
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1177
+354
+1324
+399
+NIL
+nr-tableware-merchants
+17
+1
+11
+
+MONITOR
+1176
+398
+1304
+443
+NIL
+nr-money-merchants
+17
+1
+11
+
+MONITOR
+1172
+222
+1320
+267
+NIL
+nr-tableware-consumers
+17
+1
+11
+
+MONITOR
+1172
+270
+1301
+315
+NIL
+nr-money-consumers
+17
+1
+11
+
+MONITOR
+1224
+30
+1391
+75
+NIL
+nr-succesful-trades
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
