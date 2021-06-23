@@ -10,7 +10,7 @@ globals [
 
 breed [merchants merchant]
 breed [consumers consumer]
-breed [buildings building]
+;breed [buildings building]
 
 merchants-own [
   alpha
@@ -202,7 +202,7 @@ to trade
 ;;;;;;;;;-------------;;;;;;;;; Choosing price:
 
 if price-setting = "choose price" [
-   ask turtles [
+    ask turtles [
      set price choose-price
     ]
 
@@ -216,7 +216,7 @@ if price-setting = "choose price" [
 ;                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
 ;                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]    ;mangler beta
 ; ]
-
+;
 
 
 
@@ -245,7 +245,7 @@ ask consumers [
 
 
 ask merchants [
-    let budget ( tableware * price ) + money
+    let budget ( tableware * price ) + money ;@@ check up on why we choose quantity according to this
     let optimal ( budget * alpha / price )
     set offer floor ( tableware - optimal ) ;This line is the same as in edgeworth random
 
@@ -278,7 +278,7 @@ set deal-money deal * price
 
 
 
-;;;;;;;;;;;;;;;;---------;;;;;;;;;;;; check if we increase utility and engage in trade if yes. Otherwise nothing happens.
+;;;;;;;;;;;;;;;;---------;;;;;;;;;;;; check if we increase utility, and engage in trade if yes. Otherwise nothing happens.
   ;(set deal 0 is to allow us to prompt "trade cancelled" or so)
 
 ask consumers [
@@ -334,13 +334,22 @@ to calculate-utility
   ;As i understand the utility hereby is a measure of the total quantity of tableware and money, modified by the alpha and betas. Meaning that the weight of money+tableware is modified by the alphas + betas.
   ;in short, an individual utility function dependant on alphas and betas.
 
- ask turtles  [
+ ask merchants  [
+    set utility  precision ( ( tableware ^ alpha ) * ( money ^ beta ) ) 2
+  ]
+
+
+ ask consumers [
     set utility  precision ( ( tableware ^ alpha ) * ( money ^ beta ) ) 2
   ]
 end
 
 to set-initial-utility
-  ask turtles [
+  ask merchants [
+   set initial-utility utility
+  ]
+
+   ask consumers [
    set initial-utility utility
   ]
 end
@@ -449,7 +458,7 @@ INPUTBOX
 103
 453
 money-merchants
-30.0
+50.0
 1
 0
 Number
@@ -460,7 +469,7 @@ INPUTBOX
 380
 454
 money-consumers
-70.0
+50.0
 1
 0
 Number
@@ -471,7 +480,7 @@ INPUTBOX
 104
 517
 tableware-merchants
-70.0
+50.0
 1
 0
 Number
@@ -482,7 +491,7 @@ INPUTBOX
 382
 517
 tableware-consumers
-30.0
+50.0
 1
 0
 Number
@@ -678,7 +687,7 @@ choose-price
 choose-price
 1
 30
-2.29
+1.55
 0.01
 1
 NIL
@@ -809,6 +818,38 @@ Circle -7500403 true true 110 127 80
 Circle -7500403 true true 110 75 80
 Line -7500403 true 150 100 80 30
 Line -7500403 true 150 100 220 30
+
+building institution
+false
+0
+Rectangle -7500403 true true 0 60 300 270
+Rectangle -16777216 true false 130 196 168 256
+Rectangle -16777216 false false 0 255 300 270
+Polygon -7500403 true true 0 60 150 15 300 60
+Polygon -16777216 false false 0 60 150 15 300 60
+Circle -1 true false 135 26 30
+Circle -16777216 false false 135 25 30
+Rectangle -16777216 false false 0 60 300 75
+Rectangle -16777216 false false 218 75 255 90
+Rectangle -16777216 false false 218 240 255 255
+Rectangle -16777216 false false 224 90 249 240
+Rectangle -16777216 false false 45 75 82 90
+Rectangle -16777216 false false 45 240 82 255
+Rectangle -16777216 false false 51 90 76 240
+Rectangle -16777216 false false 90 240 127 255
+Rectangle -16777216 false false 90 75 127 90
+Rectangle -16777216 false false 96 90 121 240
+Rectangle -16777216 false false 179 90 204 240
+Rectangle -16777216 false false 173 75 210 90
+Rectangle -16777216 false false 173 240 210 255
+Rectangle -16777216 false false 269 90 294 240
+Rectangle -16777216 false false 263 75 300 90
+Rectangle -16777216 false false 263 240 300 255
+Rectangle -16777216 false false 0 240 37 255
+Rectangle -16777216 false false 6 90 31 240
+Rectangle -16777216 false false 0 75 37 90
+Line -16777216 false 112 260 184 260
+Line -16777216 false 105 265 196 265
 
 butterfly
 true
