@@ -26,6 +26,7 @@ merchants-own [
   temp-tableware
   temp-money
   temp-utility
+  partner
 
  ]
 
@@ -43,6 +44,7 @@ consumers-own [
   temp-tableware
   temp-money
   temp-utility
+  partner
 
 ]
 
@@ -181,11 +183,25 @@ ask consumers [
 
 end
 
+to set-partner
 
+  ask consumers [
+   set partner one-of merchants
+  ]
+
+  ask consumers [
+   ask partner [
+      set partner myself
+    ]
+  ]
+
+end
 
 
 to trade
   calculate-utility ;currently only used for choosing quantity
+
+  set-partner
 
 ; buyer and seller both find their optimal price point based on preferences:
 
@@ -209,14 +225,15 @@ if price-setting = "choose price" [
   ]
 
 
-;    if price-setting = "equilibrium"
-; [
-;    ask consumers
-;   [  set price  precision (
-;                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-;                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]    ;mangler beta
-; ]
-;
+
+;;;;;;;;;;;;;;;;;;;;;;;; Equilibrium
+    if price-setting = "equilibrium" [
+    ask consumers [
+      set price  precision (
+                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
+                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]    ;mangler beta
+ ]
+
 
 
 
@@ -458,7 +475,7 @@ INPUTBOX
 103
 453
 money-merchants
-50.0
+20.0
 1
 0
 Number
@@ -469,7 +486,7 @@ INPUTBOX
 380
 454
 money-consumers
-50.0
+30.0
 1
 0
 Number
@@ -480,7 +497,7 @@ INPUTBOX
 104
 517
 tableware-merchants
-50.0
+80.0
 1
 0
 Number
@@ -491,7 +508,7 @@ INPUTBOX
 382
 517
 tableware-consumers
-50.0
+70.0
 1
 0
 Number
@@ -565,7 +582,7 @@ alpha-consumers
 alpha-consumers
 0.5
 1
-0.9
+0.7
 0.1
 1
 NIL
@@ -632,7 +649,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-2
+1
 
 MONITOR
 2
