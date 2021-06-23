@@ -10,7 +10,6 @@ globals [
 
 breed [merchants merchant]
 breed [consumers consumer]
-;breed [buildings building]
 
 merchants-own [
   alpha
@@ -23,10 +22,10 @@ merchants-own [
   offer
   utility
   initial-utility
+  partner
   temp-tableware
   temp-money
   temp-utility
-  partner
 
  ]
 
@@ -41,10 +40,10 @@ consumers-own [
   offer
   utility
   initial-utility
+  partner
   temp-tableware
   temp-money
   temp-utility
-  partner
 
 ]
 
@@ -53,12 +52,13 @@ to setup
   clear-all
   reset-ticks
 
-  ;layout
-
+ ; layout
   populate
   set-variables
+  set-partner
   calculate-utility
   set-initial-utility
+
 
 
 
@@ -102,7 +102,7 @@ to make-ppls [kind]
    set mrs 0
 
    ;looks
-   ;set shape "tableware"
+   set shape "tableware"
    set size 7
    set color blue
    setxy -10 -10
@@ -137,8 +137,8 @@ to make-ppls [kind]
 end
 
 ;to layout
-;  create-buildings 1
-;  ask buildings
+;  create-turtles 1
+;  ask turtles
 ;  [set shape "building institution" ;make it acropolis
 ;    set size 13
 ;    setxy 0 10
@@ -183,8 +183,8 @@ ask consumers [
 
 end
 
-to set-partner
 
+to set-partner
   ask consumers [
    set partner one-of merchants
   ]
@@ -200,8 +200,6 @@ end
 
 to trade
   calculate-utility ;currently only used for choosing quantity
-
-  set-partner
 
 ; buyer and seller both find their optimal price point based on preferences:
 
@@ -225,14 +223,14 @@ if price-setting = "choose price" [
   ]
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;; Equilibrium
     if price-setting = "equilibrium" [
     ask consumers [
       set price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * tableware ] of partner ) )    3 ]    ;mangler beta
+                           ( ( beta * money ) + [ beta  * money ] of partner ) )    3 ]    ;mangler beta
  ]
+
 
 
 
@@ -249,10 +247,19 @@ if price-setting = "choose price" [
 
 
 ;;;;;;;;;;-------------;;;;;;;;;; Quantity of trade
-ask consumers [
-    let budget ( tableware * price ) + money
-    let optimal round ( budget * alpha / price )
-    set offer floor ( optimal - tableware ) ;This line is the same as in edgeworth random
+  ;;;@@lisa: round number of tableware for whole numbers only - not necessary for $$$$ (maybe down to two decimals tho)
+
+  ask consumers [
+    let budget (tableware * price ) + money ;calculating budget based on tableware and price-setting
+    let optimal round (budget * alpha / price) ;optimal number to buy? own? based on preferences
+    set offer precision ( optimal - tableware ) 2 ;considering how many are already owned. rounding price to two decimals
+  ]
+
+
+ask merchants [
+    let budget ( tableware * price ) + money ;@@ check up on why we choose quantity according to this
+    let optimal ( budget * alpha / price )
+    set offer precision ( tableware - optimal ) 2  ;@@ why is this the other way around compared to consumers????? because merchants don't want tableware! e.g. got 50, optimal is 30. 50-30=20. sell 20!
 
     ; let nr-tableware-consumer-wants ( optimal - tableware ) ; how much tableware the consumer wants ideally
     ;set offer-money min list ( nr-tableware-consumer-wants * price ) ( money - 1 )
@@ -260,24 +267,18 @@ ask consumers [
 
   ]
 
-
-ask merchants [
-    let budget ( tableware * price ) + money ;@@ check up on why we choose quantity according to this
-    let optimal ( budget * alpha / price )
-    set offer floor ( tableware - optimal ) ;This line is the same as in edgeworth random
-
     ;let nr-tableware-supply ( tableware - optimal )
     ;set offer-tableware min list ( nr-tableware-supply * price ) ( tableware - 1 )
     ;set offer-money 0
 
-  ]
-
 ;Making sure only whole numbers are traded.
   ; ((((solution from edgeworth does not give us whole numbers in tableware after trades
   ask turtles with [ offer > 0 ] [
-  let offerUnits floor ( offer * price )
+  let offerUnits ( offer * price ) ;hvorfor floor her når det allerede er gjort tidligere? fjollet!
   set offer offerUnits / price
   ]
+
+
 
 ;removing offers below 0
 ask turtles with [ offer < 0 ]
@@ -286,7 +287,7 @@ ask turtles with [ offer < 0 ]
   ]
 
 ;simple way of choosing which quantity
-set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 )
+set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 ) ;offer is the agreed upon price of 1x tableware. deal is now the lowest of the prices
 
 set deal-tableware deal
 set deal-money deal * price
@@ -475,7 +476,7 @@ INPUTBOX
 103
 453
 money-merchants
-20.0
+50.0
 1
 0
 Number
@@ -486,7 +487,7 @@ INPUTBOX
 380
 454
 money-consumers
-30.0
+50.0
 1
 0
 Number
@@ -497,7 +498,7 @@ INPUTBOX
 104
 517
 tableware-merchants
-80.0
+50.0
 1
 0
 Number
@@ -508,7 +509,7 @@ INPUTBOX
 382
 517
 tableware-consumers
-70.0
+50.0
 1
 0
 Number
@@ -582,7 +583,7 @@ alpha-consumers
 alpha-consumers
 0.5
 1
-0.7
+0.9
 0.1
 1
 NIL
@@ -649,7 +650,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-1
+2
 
 MONITOR
 2
@@ -704,7 +705,7 @@ choose-price
 choose-price
 1
 30
-1.55
+3.22
 0.01
 1
 NIL
@@ -1057,6 +1058,17 @@ star
 false
 0
 Polygon -7500403 true true 151 1 185 108 298 108 207 175 242 282 151 216 59 282 94 175 3 108 116 108
+
+tableware
+false
+0
+Circle -7500403 true true 110 5 80
+Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
+Rectangle -7500403 true true 127 79 172 94
+Polygon -7500403 true true 171 109 231 64 261 79 186 139
+Polygon -7500403 true true 105 90 60 150 75 180 135 105
+Circle -1 true false 205 14 76
+Circle -11221820 false false 215 23 56
 
 target
 false
