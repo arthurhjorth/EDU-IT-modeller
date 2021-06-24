@@ -6,6 +6,10 @@ globals [
   sea-patches
   edge-sea-patches
   land-patches
+  house-patches ;for tilfredshed
+  wall-patches
+  mid-wall-patches
+
   drop-width k
   three-d?
 
@@ -32,6 +36,12 @@ globals [
 
   test
   test2
+
+  avg-sea-level
+
+  month-table ;table used for auto-running a month based on data
+  running-month?
+  auto-måned ;saving måned to this in case chooser is changed
 ]
 
 breed [ drops drop] ;for rain animation
@@ -51,27 +61,30 @@ patches-own [
   my-wall-price
 
   missing-neighbors ;only used for edge-sea-patches
+  view-patches ;patch-set for each patch containing all patches to the north of them (and within ? x-patches)
 ]
 
 breed [momentums momentum]
 momentums-own [force nearby-momentums forces-next-turn]
 
 to profile
-  setup                  ;; set up the model
-  profiler:start         ;; start profiling
-  start-rain ;start the rain (with interface settings) before the go to get some water in the system
-  repeat 20 [ go ]       ;; run something you want to measure
-  profiler:stop          ;; stop profiling
-  print profiler:report  ;; view the results
-  profiler:reset         ;; clear the data
+  ;setup                  ; set up the model
+  profiler:start         ; start profiling
+  ;start-rain ;start the rain (with interface settings) before the go to get some water in the system
+  run-month              ;start auto-raining period to get water in the system
+  repeat 50 [ go ]       ; run something you want to measure
+  profiler:stop          ; stop profiling
+  print profiler:report  ; view the results
+  profiler:reset         ; clear the data
 end
 
 to setup
   ca
+  ;setup-house-patches ;used for tilfredshed
   set-terrain-height
-  import-drawing "mf-map-kystfix-alpha55.png" ;draw city map overlay
   setup-variables
   ask patches [recolor]
+  import-drawing "mf-map-kystfix-alpha55.png" ;draw city map overlay
   reset-ticks
 end
 
@@ -86,28 +99,62 @@ to setup-variables
     ;set pcolor white
   ] ;all land-patches automatically have water-level 0
   set raining? false
-  ask patches [set my-wall-height "none"]
+  ask patches [
+    set my-wall-height "none"
+  ]
+  set wall-patches no-patches set mid-wall-patches no-patches
+  set running-month? false
 end
 
 
 to go
-    ;update time
-    let index ticks mod 4
-    set minute item index ["15" "30" "45" "00"]
-    if minute = "00" and ticks > 0 [set hour hour + 1]
-    if hour = 24 [set hour 0]
-    if ticks mod (24 * 4) = 0 [set hour 0] ;here it loops around from 23 to 0
-    if str-time = "0:00" and ticks > 0 [set day day + 1]
+  set wall-patches (patch-set patches with [wall-patch?]) ;definerer her i stedet for reporter
+  set mid-wall-patches wall-patches with [not any? neighbors with [not wall-patch?]] ;her i stedet for reporter
 
+  set avg-sea-level mean [water-level] of sea-patches
+  update-time
 
-    if raining? [rain-animation rainfall] ;maybe rain (depending on button press in interface)
+  ;MAYBE AUTO-RAIN FROM MONTH DATA:
+  if running-month? [ ;if currently auto-running a month of rain:
+    ifelse table:has-key? month-table (word str-day str-time) [ ;if the current date and time matches a time it should auto-rain:
+      ;manual rain:
+      let mm-rain table:get month-table (word str-day str-time)
+      ifelse mm-rain = "stop" [ ;hvis enden er nået
+        ask drops [die]
+        set running-month? false ;end of the auto-running!
+      ]
+      [ ;if not the stopklods, but actual rain:
+        ask patches [ set water-level ( water-level + ( mm-rain / 1000) ) ] ;in meters. all patches increase their water-level based on the rain this tick
+        rain-animation
+      ]
+    ]
+    [ ;if table doesn't have the current date+time:
+      ask drops [die] ;remove rain animation
+    ]
+  ]
 
-    ask land-patches [seepage] ;nedsivning  beregnet for hver patch (definition af land-patch?)
-    ask patches [if water-level > 0 [move-water3]] ;afløb af vand til nabo-patches beregnet for hver patch (sea, land OG wall)
-    ask patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
+  ;MAYBE RAIN MANUALLY IF INTERFACE BUTTON WAS PRESSED:
+  if raining? [rain-animation rainfall]
 
-    tick
-  if any? patches with [water-level < 0] [stop print "OH NO, A PATCH JUST HAD A NEGATIVE WATER LEVEL!"]
+  ask land-patches [seepage] ;nedsivning  beregnet for hver patch (definition af land-patch?)
+  ask patches [if water-level > 0 [move-water3]] ;afløb af vand til nabo-patches beregnet for hver patch (sea, land OG wall)
+  ask patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
+
+  tick
+
+  ;failsafe:
+  if any? patches with [water-level < 0] [print "OH NO, A PATCH JUST HAD A NEGATIVE WATER LEVEL!" stop]
+  if any? land-patches with [max-capacity < 0] [print "oh no, negative capacity!" stop]
+end
+
+to setup-house-patches ;used for tilfredshed
+  import-pcolors "mf-map-kystfix-alpha55.png" ;midlertidigt importeret for at sætte det her
+
+  set house-patches (patch-set patches with [shade-of? pcolor yellow])
+
+  ask house-patches [
+    set view-patches (patch-set patches with [abs ( pxcor - [pxcor] of myself) <= 10  and pycor > [pycor] of myself] ) ;limited 'field of view'
+  ]
 end
 
 to set-terrain-height
@@ -192,6 +239,35 @@ to show-test ;for testing height colors in set-terrain-height
   ;]
 end
 
+to-report patch-type-here
+  ifelse mouse-inside? [
+      if member? patch mouse-xcor mouse-ycor sea-patches [ ;SEA-PATCHES
+        ifelse member? patch mouse-xcor mouse-ycor wall-patches
+          [report (word "Mur (" [my-wall-height] of patch mouse-xcor mouse-ycor " m) i havet")] ;wall
+          [report "Hav"] ;no wall
+      ]
+      if member? patch mouse-xcor mouse-ycor land-patches [ ;LAND-PATCHES
+        ifelse member? patch mouse-xcor mouse-ycor wall-patches
+          [report (word "Mur (" [my-wall-height] of patch mouse-xcor mouse-ycor " m), terrænhøjde " precision [terrain-height] of patch mouse-xcor mouse-ycor 2 " m")] ;wall
+          [report (word "Land, terrænhøjde " precision [terrain-height] of patch mouse-xcor mouse-ycor 2 " m")] ;no wall
+      ]
+
+    ]
+  [
+    report "" ;if mouse not inside
+  ]
+end
+
+to-report wl-here ;water-level
+  ifelse mouse-inside? [
+    report (word precision ([water-level] of patch mouse-xcor mouse-ycor * 1000) 4 " mm") ;@i millimeter
+  ]
+  [
+    report ""
+  ]
+end
+
+
 to-report unique-pcolor-nr ;to check granularity loss through using scale-color to manipulate terrain map
   ;set testing [pcolor] of patches
   ;report length table:keys table:counts testing
@@ -250,7 +326,15 @@ end
 to-report max-capacity ;patch reporter. Mætheds/vand-kapacitet (målt i hvor mange meter vand den kan holde?)
   ;jordtype og højde
   let scaler 5 ;@fix this scale
-  report terrain-height * seepage-m-per-s * scaler ; noget  ;jo hurtigere nedsivning, jo grovere jord, og jo større kapacitet før mæthed...
+
+  ifelse ( (terrain-height - avg-sea-level) * seepage-m-per-s * scaler ) > 0 [
+    report (terrain-height - avg-sea-level) * seepage-m-per-s * scaler ;jo hurtigere nedsivning, jo grovere jord, og jo større kapacitet før mæthed...
+  ]
+  [
+    report 0 ;så den ikke bliver negativ...
+  ]
+
+
   ;@er forholdet rigtigt? skal tallet tweakes? ;@enhed??? i meter???
   ;@LIGE NU ALT FOR LAV!!!
   ;@fix
@@ -268,9 +352,11 @@ end
 to move-water3 ;; all patches goer det her
 
     let distributor-height my-water-height
-    let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [my-water-height < distributor-height] ;også sea-patches! ;e.g [ [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
+    let patch-fall-list [list self (water-distance-to distributor-height)] of neighbors with [my-water-height < distributor-height]
+                     ;e.g [ [(patch 13 2) -0.17] [(patch 15 2) -0.0011] ... ]
 
     if length patch-fall-list != 0 [ ;if anyone's lower:
+
       let fall-list map last patch-fall-list
       let total-fall sum fall-list
       let avg-fall total-fall / ( length fall-list ) ;average fall/difference down to all the neighbors with lower total water levels (negative number!)
@@ -278,11 +364,12 @@ to move-water3 ;; all patches goer det her
       ;TAG HØJDE FOR KANT-SEA-PATCHES, de skal desuden sende vand videre ud i 'intetheden'/til patches ude af systemet:
       if member? self edge-sea-patches [
         let outside-patch list no-patches avg-fall ;@hvor stort skal 'faldet' ud til intetheden være? (nu bare gennemsnittet ned til andre lavere patches)
-        repeat missing-neighbors [set patch-fall-list lput outside-patch patch-fall-list] ;missing-neighbors is the nr of outside neighbors
+        repeat 12 [set patch-fall-list lput outside-patch patch-fall-list] ;missing-neighbors is the nr of outside neighbors ;@nu bare tilfældigt 12 - send en masse videre ud! (tilfører ekstra vand!)
       ]
 
       ;@BEREGN HVOR MEGET VAND DER I ALT SKAL FLYTTES
       let excess-water (abs avg-fall)  ;@FIX OG TWEAK - HVOR MEGET VAND SKAL FLYTTES?
+
       if excess-water > water-level [set excess-water water-level] ;@men hvad med sea-patches tæt på land hvis sea-level er højt?
 
       ;FORDEL VANDET PROPORTIONELT TIL NABO-PATCHES (som ligger lavere)
@@ -291,15 +378,21 @@ to move-water3 ;; all patches goer det her
         pair ->
         let the-patch item 0 pair let the-fall item 1 pair
         let prorated-value (the-fall / total-fall) * excess-water ;let proratedValue (basis / basisTotal) * prorationAmount
-                                                                  ;show (word "fall: " the-fall ", prorated-value: " prorated-value)
         ask the-patch [ set water-level (water-level + prorated-value) ] ;if an outside sea-patch, the-patch is an empty patch-set, and the water just disappears out of the system
         set water-moved (water-moved + abs prorated-value) ;keeping track
       ]
-      ;print (word "water moved: " water-moved) print (word "distributor level before: " water-level)
       set water-level (water-level - water-moved) ;the original patch now lowers its level accordingly
       if water-level < 0 [set water-level 0] ;pga små decimal-forskelle med floats, sikrer her, at water-level aldrig går i minus
                                              ;print (word "and after: " water-level)
     ]
+
+  ;tag højde for WALL-PATCHES OMGIVET AF ANDRE WALL-PATCHES (så vandet ikke bliver liggende ovenpå):
+  if member? self mid-wall-patches and water-level > 0 [
+    if any? neighbors with [not member? self mid-wall-patches] [
+      ask one-of neighbors with [not member? self mid-wall-patches] [ set water-level water-level + [water-level] of myself ] ;just move all water to a non-mid-patch...
+      set water-level 0 ;and call it a day ;)
+    ]
+  ]
 end
 
 
@@ -368,6 +461,7 @@ end
 
 to rainfall ;patch procedure. køres i go if raining? = true (aktiveret med knap i interface via start-rain procedure), fortsætter herefter selv i den bestemte varighed
   ;fra interface: bruger mængde og varighed
+
   ask patches [ ;@ALLE - både sea-, land- og wall-patches
     set water-level ( water-level + ( mm-per-15-min / 1000) ) ;in meters. all patches increase their water-level based on the rain this tick
   ]
@@ -403,7 +497,7 @@ end
 
 to hæv-havet ;forever button in interface, can try to raise the sea level
   ask patches [
-    ifelse (member? self sea-patches) or terrain-height < hav-niveau and any? neighbors with [shade-of? pcolor sky] [
+    ifelse (member? self sea-patches) or terrain-height < hav-stigning and any? neighbors with [shade-of? pcolor sky] [
       set pcolor sky
     ]
     [
@@ -434,15 +528,17 @@ end
 ;---BØLGEBRYDER-STUFF
 
 to build-wall ;forever button in interface
+  set wall-patches (patch-set patches with [wall-patch?])
+
   ifelse can-afford wall-cost [ ;hvis de har råd (wall-cost er reporter)
     if mouse-down? [
       ask patch mouse-xcor mouse-ycor [ ;både land-patches og sea-patches!
           set my-wall-height mur-højde ;fra interface
           set water-level 0 ;@(men hvad hvis hav-niveauet allerede er højere? tag højde for det!)
-          let color-index position my-wall-height [0.5 1 1.5 2 2.5 3]
-          let wall-color item color-index [pink magenta violet orange brown red]
+          let color-index position my-wall-height [0.5 1 1.5 2 2.5 3 3.5 4]
+          let wall-color item color-index [pink magenta violet orange brown red 13 2]
           set my-wall-color wall-color
-          set my-wall-price wall-cost
+          set my-wall-price wall-cost ;reporter - jo højere, jo dyrere
           recolor display
       ]
     ]
@@ -477,9 +573,13 @@ to remove-all-walls ;interface-knap
 end
 
 ;--money stuff:
-to-report wall-patches
-  report (patch-set patches with [wall-patch?])
-end
+;to-report wall-patches
+ ; report (patch-set patches with [wall-patch?])
+;end
+
+;to-report mid-wall-patches ;walls surrounded by other walls
+ ; report wall-patches with [not any? neighbors with [not wall-patch?]]
+;end
 
 to-report money-spent
   report sum [my-wall-price] of wall-patches
@@ -498,7 +598,7 @@ to-report can-afford [price]
 end
 
 to-report wall-cost
-  report 100 ;@skift her, hvad EN wall-patch koster! (og skal det komme an på højden?)
+  report mur-højde * 10 ;@højere mure er dyrere
 end
 
 ;--tilfredshed stuff:
@@ -518,26 +618,47 @@ to recolor ;patch procedure, reflekterer vandspejlets højde
   (ifelse
     wall-patch? [ ;WALL-PATCHES:
       ifelse water-level > 0
-          [set pcolor 104] ;@hvordan vil vi visualisere vand ovenpå?
+          [set pcolor 104] ;vand ovenpå nu bare visualiseret med EN blå farve
           [set pcolor my-wall-color]
     ]
     member? self sea-patches [ ;SEA-PATCHES:
-      set pcolor (scale-color sky water-level 0.8 -0.05) ;@water-level eller my-water-height??? ;@tweak scale-color
+      set pcolor (scale-color sky water-level 12 -1) ;@water-level eller my-water-height??? ;@tweak scale-color, not the same as on land?
     ]
     member? self land-patches [ ;LAND-PATCHES:
      ifelse water-level = 0
         [set pcolor white]
-        [set pcolor scale-color sky water-level 0.8 -0.05] ;@tweak this scale (water-level is in meters)
+        [
+        set pcolor scale-color sky water-level 0.8 -0.05
+      ] ;@tweak this scale (water-level is in meters)
   ])
+
+  ;if pcolor = 90 [set pcolor 92] ;avoid black
 end
 
 
-;INTERFACE REPORTERS:
+;---INTERFACE STUFF:
+
+to update-time ;run in go
+  ;let index ticks mod 4
+  let index position minute ["15" "30" "45" "00"]
+  let new-index (index + 1) mod 4
+  set minute item new-index ["15" "30" "45" "00"]
+  if minute = "00" and ticks > 0 [set hour hour + 1]
+  if hour = 24 [set hour 0]
+  ;if ticks mod (24 * 4) = 0 [set hour 0] ;here it loops around from 23 to 0
+  if str-time = "00:00" and ticks > 0 [set day day + 1]
+end
 
 to-report str-time ;for interface
   let str-hour hour
   if str-hour < 10 [set str-hour (word "0" hour )]
   report (word str-hour ":" minute)
+end
+
+to-report str-day ;always two-digit. Not for interface, but for table-lookup with run-month
+  let day-nr day
+  if day-nr < 10 [set day-nr (word "0" day-nr)] ;e.g. 03 instead of 3
+  report day-nr
 end
 
 to-report seepage-m-per-s ;(jordens hydrauliske ledeevne)
@@ -585,6 +706,17 @@ to-report my-water-height ;patch reporter
   ]
 end
 
+to-report total-wall-height ;wall-patch reporter. WITHOUT water level
+  ifelse terrain-height = "sea"
+  [ ;wall-patches in the sea:
+    report my-wall-height
+  ]
+  [ ;wall-patches on land
+    report my-wall-height + terrain-height
+  ]
+end
+
+
 to-report sea-level
   report hav-niveau ;@bare slider i interface... skal det 'fryses', så det ikke konstant kan ændres?
 end
@@ -603,31 +735,83 @@ to-report terrain-difference-to [input-terrain-height] ;patch reporter. given a 
   ;in meters. negative = the ptach's level is lower than the input number.
 end
 
-;---IMPORT DATA
+;--TILFREDSHED
+to-report utilfredshed ;house-patch reporter
+  ifelse any? view-patches with [member? self wall-patches] [
+    report count view-patches with [member? self wall-patches and total-wall-height > [terrain-height] of myself ]
+  ]
+  [
+    report 0
+  ]
+
+  ;@kører aaaaalt for langsomt...
+end
+
+
+
+;---DATA-IMPORT OG AUTO-KØRSEL
 
 to-report import-month [filename] ;e.g. "Maj2010Båring.csv"
-  let file csv:from-file filename ;this gives us ONE long list of single-item lists (each list containing one string)
+  let file csv:from-file (word filename ".csv") ;this gives us ONE long list of single-item lists (each list containing one string)
   let nice-file map [i -> csv:from-row reduce word i] file ;a full list of lists (every sheets row is an item)
                                                                   ;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
                                                                   ;'csv:from-row' makes each item a netlogo spaced list instead of a comma separated string
   report nice-file
-
-
-  ;@MAKE TABLE!!! (already in setup? or only when the month is called on?)
-
+  ;result: [["02-05-2021 07:00" 0.4 4] ["02-05-2021 08:00" 0.1 1] ["02-05-2021 09:00" 0.2 2] ... ]
+  ;data fra: https://www.dmi.dk/friedata/observationer/
 end
 
+to run-month
+  set month-table table:make ;initialize empty table
+  let data import-month periode ;import month data from csv. måned is the interface chooser
+  set auto-måned periode ;in case they change the chooser while running
+
+  ;create table
+  foreach data [ ;each entry is in the form ["02-05-2021 07:00" 0.4 4] ;dato, nedbør per time (i mm), nedbørsminutter
+    x ->
+    let full-date item 0 x
+
+    let the-day (word item 0 full-date item 1 full-date) ;e.g. "02"
+    let the-time data-time full-date ;e.g. "07:00"
+    let day-and-time (word the-day the-time) ;e.g. "0207:00" - this is the key
+    let the-rain item 1 x ;e.g. 0.4
+    ;ignorerer nedbørsminutter, bruger kun antal mm
+
+    table:put month-table day-and-time the-rain ;table, key, value
+  ]
+
+  ;byg en 'stopklods' ind i tabellen kvarteret efter det sidste regn-entry:
+  let last-date item 0 (last data)
+  let the-day (word item 0 last-date item 1 last-date) ;e.g. "29"
+  let the-time data-time last-date ;e.g. "07:00"
+  let stop-hour but-last but-last the-time ;e.g. "07:"
+  let stop-time (word stop-hour "15") ;e.g. "07:15", a quarter past the last rain hour
+  let stop-day-and-time (word the-day stop-time) ;e.g. "2907:15"
+  table:put month-table stop-day-and-time "stop" ;indbygget stopklods (tjekkes i go)
+
+  ;reset time to "the first of the month":
+  set day read-from-string (item 1 (item 0 first data)) ;the first date it rains (only works for dates 01 to 09, reports the second digit!)
+  set hour 0 set minute "00"
+  set running-month? true ;now go will auto-rain by matching current time to month-table
+end
 
 to-report data-time [input]
-  let time input
-  repeat 11 [set time but-first time] ;now only "07:00" left, or "13:00"
-  report time
+  let tidspunkt input
+  repeat 11 [set tidspunkt but-first tidspunkt] ;now only "07:00" left, or "13:00"
+  report tidspunkt
   ;then check if this matches str-time
 end
 
-to-report data-day
-  ;
+to-report auto-interface
+  ifelse running-month? [
+    let auto-mængde precision (sum map [i -> item 1 i] import-month auto-måned) 2 ;total rainfall for the auto-running period
+    report (word "KØRER NU: " auto-måned ". I alt faldt " auto-mængde " mm regn i denne periode.")
+  ]
+  [
+    report "Vælg en periode og tryk på knappen for at køre perioden med automatisk nedbør."
+  ]
 end
+
 
 
 ;GAMLE TING FRA BØLGEMODELLEN:
@@ -667,13 +851,13 @@ to old-make-wave
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-270
+280
 10
-1048
-414
+1078
+424
 -1
 -1
-4.0741
+4.18
 1
 10
 1
@@ -694,10 +878,10 @@ ticks
 30.0
 
 BUTTON
-270
-425
-380
-471
+30
+60
+230
+100
 START/STOP
 go\n
 T
@@ -713,7 +897,7 @@ NIL
 BUTTON
 30
 15
-247
+230
 55
 OPSÆT / NULSTIL SIMULATIONEN
 setup\n
@@ -728,20 +912,20 @@ NIL
 1
 
 CHOOSER
-50
-415
-210
-460
+10
+420
+110
+465
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-2
+3
 
 BUTTON
-520
-530
-675
-565
+395
+540
+550
+575
 Start nedbør
 start-rain
 NIL
@@ -755,25 +939,25 @@ NIL
 1
 
 SLIDER
-40
-330
-215
-363
+10
+505
+260
+538
 hav-niveau
 hav-niveau
 0
 12
-7.0
+0.0
 .25
 1
 m
 HORIZONTAL
 
 MONITOR
-1050
-55
-1105
-100
+665
+15
+720
+60
 Tid
 str-time
 17
@@ -781,10 +965,10 @@ str-time
 11
 
 MONITOR
-50
+115
+420
+260
 465
-210
-510
 Jordens nedsivningsevne
 nedsivningsevne-interface
 17
@@ -792,40 +976,40 @@ nedsivningsevne-interface
 11
 
 SLIDER
-425
-450
-675
-483
+300
+460
+550
+493
 mm-per-15-min
 mm-per-15-min
 0
 15
-8.0
-1
+4.5
+.5
 1
 mm
 HORIZONTAL
 
 SLIDER
-425
-490
-675
-523
+300
+500
+550
+533
 nedbør-varighed
 nedbør-varighed
 15
 180
-105.0
+90.0
 15
 1
 minutter
 HORIZONTAL
 
 MONITOR
-1050
-10
-1105
-55
+610
+15
+665
+60
 Dag
 day
 17
@@ -834,9 +1018,9 @@ day
 
 BUTTON
 115
-140
+270
 260
-195
+325
 BYG EN HØJVANDSMUR
 build-wall
 T
@@ -850,11 +1034,11 @@ NIL
 1
 
 BUTTON
-1345
-260
-1440
-300
-NIL
+1105
+75
+1185
+165
+Inspicér
 show-test
 T
 1
@@ -866,22 +1050,11 @@ NIL
 NIL
 1
 
-MONITOR
-1200
-400
-1280
-445
-NIL
-colortest
-17
-1
-11
-
 BUTTON
 95
-550
-165
-583
+150
+175
+183
 Vis højdekort
 clear-drawing\nimport-drawing \"mf-heightline-ref-alpha55.png\"
 NIL
@@ -895,10 +1068,10 @@ NIL
 1
 
 BUTTON
-170
-550
-240
-583
+180
+150
+260
+183
 Skjul kort
 clear-drawing
 NIL
@@ -911,22 +1084,11 @@ NIL
 NIL
 1
 
-MONITOR
-1280
-400
-1447
-445
-NIL
-unique-pcolor-nr
-17
-1
-11
-
 BUTTON
-20
-550
+10
+150
 90
-583
+183
 Vis bykort
 clear-drawing\nimport-drawing \"mf-map-kystfix-alpha55.png\"
 NIL
@@ -939,80 +1101,26 @@ NIL
 NIL
 1
 
-TEXTBOX
-1085
-360
-1235
-378
-klimaatlas.dk
-15
-0.0
-1
-
 SLIDER
 115
-100
+230
 260
-133
+263
 mur-højde
 mur-højde
 0.5
-3
+4
 3.0
 0.5
 1
 m
 HORIZONTAL
 
-MONITOR
-1200
-260
-1340
-305
-NIL
-terrainheighttest
-17
-1
-11
-
-MONITOR
-1200
-305
-1340
-350
-NIL
-capacitytest
-17
-1
-11
-
-MONITOR
-1200
-350
-1340
-395
-NIL
-satietytest
-17
-1
-11
-
-MONITOR
-1340
-350
-1495
-395
-NIL
-satietypercenttest
-17
-1
-11
-
 BUTTON
 190
-200
+330
 260
-250
+380
 Fjern alle
 remove-all-walls
 NIL
@@ -1026,10 +1134,10 @@ NIL
 1
 
 PLOT
-1115
-10
-1465
+1105
 195
+1455
+385
 Gns. vandspejl på land
 tid
 vandspejl (m)
@@ -1044,11 +1152,11 @@ PENS
 "default" 1.0 0 -13345367 true "" "plot mean [water-level] of land-patches"
 
 BUTTON
-40
-295
-132
-328
-NIL
+1320
+500
+1485
+533
+Vis oversvømmelse
 hæv-havet
 T
 1
@@ -1061,32 +1169,21 @@ NIL
 1
 
 SWITCH
-425
-530
-515
-563
+300
+540
+390
+573
 vis-regn?
 vis-regn?
 0
 1
 -1000
 
-MONITOR
-1340
-305
-1495
-350
-NIL
-waterleveltest
-17
-1
-11
-
 BUTTON
 115
-200
+330
 185
-250
+380
 Viskelæder
 erase-wall
 T
@@ -1099,52 +1196,22 @@ NIL
 NIL
 1
 
-TEXTBOX
-1075
-280
-1185
-335
-højvandsmur tynd streg + ikke vand ovenpå?
-11
-13.0
-1
-
-TEXTBOX
-1075
-225
-1225
-266
-stormflod har effekt\nbølger begrænset højde (30cm), ikke så afgørende
-11
-0.0
-1
-
-TEXTBOX
-20
-365
-260
-391
-lav integreret hæv havet + højvandsmure kombi
-11
-13.0
-1
-
 INPUTBOX
 10
-100
+230
 110
-160
+290
 Budget
-1.0E7
+10000.0
 1
 0
 Number
 
 MONITOR
 10
-160
+290
 110
-205
+335
 Beløb brugt
 money-spent
 17
@@ -1153,32 +1220,21 @@ money-spent
 
 MONITOR
 10
-205
+335
 110
-250
+380
 Beløb tilbage
 money-left
 17
 1
 11
 
-MONITOR
-1340
-510
-1435
-555
-NIL
-happiness
-17
-1
-11
-
 BUTTON
-140
-295
-215
-328
-NIL
+10
+540
+260
+573
+Sæt hav-niveau
 hæv-havet2
 NIL
 1
@@ -1192,51 +1248,101 @@ NIL
 
 TEXTBOX
 80
-70
-210
-90
+200
+240
+220
 Højvandsmure
 17
 0.0
 1
 
 TEXTBOX
-520
-425
-575
-446
+395
+435
+490
+456
 Nedbør
 17
 0.0
 1
 
 TEXTBOX
-85
-525
-185
-546
+90
+125
+220
+146
 Visualisering
 17
 0.0
 1
 
 TEXTBOX
-955
-505
-1105
-531
+685
+570
+835
+596
 https://www.dmi.dk/vejrarkiv/normaler-danmark/
 11
 12.0
 1
 
-BUTTON
+TEXTBOX
+100
+395
+200
+416
+Jordtype
+17
+0.0
+1
+
+TEXTBOX
+65
+480
+240
+501
+Havets vandstand
+17
+0.0
+1
+
+TEXTBOX
+1135
+445
+1290
+495
+(Indbyggernes tilfredshed?)
+17
+0.0
+1
+
+TEXTBOX
+695
+435
+940
+456
+Kør automatisk nedbørs-periode
+17
+0.0
+1
+
+CHOOSER
+585
+515
 905
-465
-1130
-498
-NIL
-show import-month \"maj2021Båring.csv\"
+560
+periode
+periode
+"Maj 2010" "Maj 2021" "2. - 8. maj 2021"
+2
+
+BUTTON
+910
+515
+1075
+560
+Afspil periode
+run-month
 NIL
 1
 T
@@ -1247,55 +1353,103 @@ NIL
 NIL
 1
 
-TEXTBOX
-95
-390
-170
-411
-Jordtype
-17
-0.0
-1
-
-TEXTBOX
-65
-265
-215
-286
-Havets vandstand
-17
-0.0
-1
-
-TEXTBOX
-1340
-465
-1450
-506
-(Indbyggernes tilfredshed)
-17
-0.0
-1
-
-TEXTBOX
-750
-430
-945
-455
-(Auto-kør typisk måned)
-17
-0.0
-1
-
-CHOOSER
-750
+MONITOR
+585
 460
-888
-505
-måned
-måned
-"Maj 2010" "Maj 2021"
+1075
+509
+NIL
+auto-interface
+17
+1
+12
+
+TEXTBOX
+850
+565
+1105
+585
+Maksimal 5-døgns-nedbør 1981-2010: 55.23 mm
+11
+14.0
+1
+
+SLIDER
+1320
+465
+1485
+498
+hav-stigning
+hav-stigning
 0
+12
+0.0
+0.5
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+1105
+40
+1425
+76
+Tryk på knappen og hold musen over kortet for at tjekke terrænhøjde og vandspejl forskellige steder.
+13
+0.0
+1
+
+MONITOR
+1190
+75
+1410
+120
+ Type & højde
+patch-type-here
+17
+1
+11
+
+MONITOR
+1190
+120
+1410
+165
+Vandspejl
+wl-here
+17
+1
+11
+
+TEXTBOX
+1205
+15
+1355
+36
+(Tjek forhold)
+17
+0.0
+1
+
+TEXTBOX
+1315
+430
+1520
+460
+(behold denne animation separat fra, når modellen kører?)
+13
+13.0
+1
+
+TEXTBOX
+1120
+495
+1270
+550
+(utilfreds-reporter kører aaaalt for langsomt...)
+11
+13.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
