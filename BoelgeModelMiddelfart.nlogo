@@ -495,19 +495,35 @@ to rain-animation ;run in go if it's raining
   ]
 end
 
-to hæv-havet ;forever button in interface, can try to raise the sea level
+to oversvøm ;forever button in interface, can try to raise the sea level (tidligere hæv-havet) ...
+  ;@bare animation, disconnected fra den dynamiske model... kun farver, ikke egentlig forandring i water-level! (der har vi hæv-havet i stedet)
   ask patches [
-    ifelse (member? self sea-patches) or terrain-height < hav-stigning and any? neighbors with [shade-of? pcolor sky] [
-      set pcolor sky
+    ifelse member? self wall-patches [
+      ifelse (my-wall-height + terrain-height) < hav-stigning and any? neighbors with [shade-of? pcolor sky] [
+        set pcolor 102 ;dark blue for oversvømmede wall-patches
+      ]
+      [
+        set pcolor my-wall-color ;wall-patches not underwater
+      ]
     ]
-    [
-      set pcolor white ;if landpatch and not underwater
+      [
+        ifelse member? self sea-patches [ ;sea-patches
+          set pcolor sky
+        ]
+        [ ;land-patches:
+          ifelse terrain-height < hav-stigning and count (neighbors with [shade-of? pcolor sky]) > 1 [ ;>1 for at undgå, at det sniger sig 'over mure' gennem hjørne-naboer hvis ikke helt lukket
+            set pcolor sky
+          ]
+          [
+            set pcolor white ;if landpatch and not underwater
+          ]
+        ]
+      ]
     ]
-  ]
   display
 end
 
-to hæv-havet2
+to hæv-havet
   ask sea-patches  [
    set water-level hav-niveau
   ]
@@ -913,9 +929,9 @@ NIL
 
 CHOOSER
 10
-420
+415
 110
-465
+460
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
@@ -923,9 +939,9 @@ Jordtype
 
 BUTTON
 395
-540
+535
 550
-575
+570
 Start nedbør
 start-rain
 NIL
@@ -940,14 +956,14 @@ NIL
 
 SLIDER
 10
-505
+500
 260
-538
+533
 hav-niveau
 hav-niveau
 0
 12
-0.0
+1.0
 .25
 1
 m
@@ -966,9 +982,9 @@ str-time
 
 MONITOR
 115
-420
+415
 260
-465
+460
 Jordens nedsivningsevne
 nedsivningsevne-interface
 17
@@ -977,14 +993,14 @@ nedsivningsevne-interface
 
 SLIDER
 300
-460
+455
 550
-493
+488
 mm-per-15-min
 mm-per-15-min
 0
 15
-4.5
+6.5
 .5
 1
 mm
@@ -992,9 +1008,9 @@ HORIZONTAL
 
 SLIDER
 300
-500
+495
 550
-533
+528
 nedbør-varighed
 nedbør-varighed
 15
@@ -1110,7 +1126,7 @@ mur-højde
 mur-højde
 0.5
 4
-3.0
+2.0
 0.5
 1
 m
@@ -1135,9 +1151,9 @@ NIL
 
 PLOT
 1105
-195
+180
 1455
-385
+370
 Gns. vandspejl på land
 tid
 vandspejl (m)
@@ -1152,12 +1168,12 @@ PENS
 "default" 1.0 0 -13345367 true "" "plot mean [water-level] of land-patches"
 
 BUTTON
-1320
-500
-1485
-533
+1290
+520
+1455
+553
 Vis oversvømmelse
-hæv-havet
+oversvøm
 T
 1
 T
@@ -1170,9 +1186,9 @@ NIL
 
 SWITCH
 300
-540
+535
 390
-573
+568
 vis-regn?
 vis-regn?
 0
@@ -1231,11 +1247,11 @@ money-left
 
 BUTTON
 10
-540
+535
 260
-573
+568
 Sæt hav-niveau
-hæv-havet2
+hæv-havet
 NIL
 1
 T
@@ -1258,9 +1274,9 @@ Højvandsmure
 
 TEXTBOX
 395
-435
+430
 490
-456
+451
 Nedbør
 17
 0.0
@@ -1277,10 +1293,10 @@ Visualisering
 1
 
 TEXTBOX
-685
-570
-835
-596
+590
+555
+850
+581
 https://www.dmi.dk/vejrarkiv/normaler-danmark/
 11
 12.0
@@ -1288,9 +1304,9 @@ https://www.dmi.dk/vejrarkiv/normaler-danmark/
 
 TEXTBOX
 100
-395
+390
 200
-416
+411
 Jordtype
 17
 0.0
@@ -1298,19 +1314,19 @@ Jordtype
 
 TEXTBOX
 65
-480
+475
 240
-501
+496
 Havets vandstand
 17
 0.0
 1
 
 TEXTBOX
-1135
-445
-1290
-495
+1115
+425
+1270
+475
 (Indbyggernes tilfredshed?)
 17
 0.0
@@ -1318,9 +1334,9 @@ TEXTBOX
 
 TEXTBOX
 695
-435
+430
 940
-456
+451
 Kør automatisk nedbørs-periode
 17
 0.0
@@ -1328,9 +1344,9 @@ Kør automatisk nedbørs-periode
 
 CHOOSER
 585
-515
+510
 905
-560
+555
 periode
 periode
 "Maj 2010" "Maj 2021" "2. - 8. maj 2021"
@@ -1338,9 +1354,9 @@ periode
 
 BUTTON
 910
-515
+510
 1075
-560
+555
 Afspil periode
 run-month
 NIL
@@ -1355,9 +1371,9 @@ NIL
 
 MONITOR
 585
-460
+455
 1075
-509
+504
 NIL
 auto-interface
 17
@@ -1366,19 +1382,19 @@ auto-interface
 
 TEXTBOX
 850
-565
+555
 1105
-585
+575
 Maksimal 5-døgns-nedbør 1981-2010: 55.23 mm
 11
 14.0
 1
 
 SLIDER
-1320
-465
-1485
-498
+1290
+485
+1455
+518
 hav-stigning
 hav-stigning
 0
@@ -1432,20 +1448,20 @@ TEXTBOX
 1
 
 TEXTBOX
-1315
-430
-1520
-460
-(behold denne animation separat fra, når modellen kører?)
+1285
+401
+1515
+491
+(KØR EFTER SETUP, UDEN MODELLEN KØRER)\nbehold denne animation separat fra, når modellen kører?) (virker med wall-patches nu)
 13
 13.0
 1
 
 TEXTBOX
-1120
-495
-1270
-550
+1100
+475
+1250
+530
 (utilfreds-reporter kører aaaalt for langsomt...)
 11
 13.0
