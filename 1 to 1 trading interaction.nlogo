@@ -66,6 +66,7 @@ to go
   trade
 
   produce-tableware
+  break-tableware
   earn-money
 
   tick
@@ -350,23 +351,28 @@ end
 
 
 to produce-tableware
-
-  if tableware-production?
- [
-ask merchants [
+  if tableware-production? [
+    ask merchants [
     set tableware (tableware + tableware-produced-per-tick)
   ]
   ]
 end
 
+to break-tableware
+  if tableware-breakage? [
+    ask consumers [
+    set tableware ( tableware - tableware-broken-per-tick-consumers )
+  ]
+  ]
+
+end
 
 to earn-money
-if consumers-earn-money?
-  [
+if consumers-earn-money? [
     ask consumers [
-      set money (money + salary-daily )
+    set money (money + salary-daily )
     ]
-  ]
+    ]
 end
 
 
@@ -580,7 +586,7 @@ INPUTBOX
 448
 70
 stop-after-x-tick
-10.0
+40.0
 1
 0
 Number
@@ -856,7 +862,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-5.0
+6.0
 1
 1
 NIL
@@ -945,6 +951,21 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
+
+SLIDER
+195
+540
+464
+573
+tableware-broken-per-tick-consumers
+tableware-broken-per-tick-consumers
+0
+20
+3.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
