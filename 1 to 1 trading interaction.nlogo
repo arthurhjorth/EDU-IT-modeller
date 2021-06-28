@@ -58,17 +58,16 @@ to setup
   set-partner
   calculate-utility
   set-initial-utility
-
-
-
-
 end
+
 
 to go
 
-  tick
-
   trade
+
+  produce-tableware
+
+  tick
 
   if ticks = stop-after-x-tick [
     stop
@@ -349,6 +348,16 @@ if deal > 0 [
 end
 
 
+to produce-tableware
+
+  if tableware-production?
+ [
+ask merchants [
+    set tableware (tableware + tableware-produced-per-tick)
+  ]
+  ]
+end
+
 
 to calculate-utility
 
@@ -388,7 +397,7 @@ to-report nr-tableware-merchants
 end
 
 to-report nr-money-merchants
-  report item 0 [ money ] of merchants
+  report precision ( item 0 [ money ] of merchants ) 2 ;simply rounding to 2 decimals
 end
 
 to-report nr-tableware-consumers
@@ -397,7 +406,7 @@ end
 
 
 to-report nr-money-consumers
-  report item 0 [ money ] of consumers
+  report precision ( item 0 [ money ] of consumers ) 2
 end
 
 to-report utility-merchants
@@ -559,7 +568,7 @@ INPUTBOX
 413
 136
 stop-after-x-tick
-8.0
+10.0
 1
 0
 Number
@@ -588,7 +597,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.6
+0.7
 0.1
 1
 NIL
@@ -733,7 +742,7 @@ MONITOR
 1412
 443
 NIL
-precision ( nr-money-merchants ) 2
+nr-money-merchants
 17
 1
 11
@@ -755,7 +764,7 @@ MONITOR
 1412
 315
 nr-money-consumers
-precision ( nr-money-consumers ) 2
+nr-money-consumers
 17
 1
 11
@@ -796,26 +805,26 @@ SWITCH
 468
 consumers-earn-money?
 consumers-earn-money?
-1
-1
--1000
-
-SWITCH
-915
-472
-1095
-505
-tableware-production?
-tableware-production?
-1
+0
 1
 -1000
 
 SWITCH
-921
-523
-1106
-556
+912
+471
+1092
+504
+tableware-production?
+tableware-production?
+0
+1
+-1000
+
+SWITCH
+912
+510
+1097
+543
 tableware-breakage?
 tableware-breakage?
 1
@@ -843,6 +852,32 @@ money-merchants
 17
 1
 11
+
+MONITOR
+1333
+466
+1436
+511
+total tableware
+nr-tableware-consumers + nr-tableware-merchants
+17
+1
+11
+
+SLIDER
+1096
+472
+1331
+505
+tableware-produced-per-tick
+tableware-produced-per-tick
+0
+20
+5.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
