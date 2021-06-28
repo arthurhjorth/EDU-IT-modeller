@@ -460,9 +460,9 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 462
-17
+10
 899
-455
+448
 -1
 -1
 13.0
@@ -486,10 +486,10 @@ ticks
 30.0
 
 INPUTBOX
-21
-22
-176
-82
+3
+50
+158
+110
 nr-ppls
 2.0
 1
@@ -497,10 +497,10 @@ nr-ppls
 Number
 
 INPUTBOX
-2
-393
-103
-453
+183
+217
+284
+277
 money-merchants
 50.0
 1
@@ -508,10 +508,10 @@ money-merchants
 Number
 
 INPUTBOX
-278
-394
-380
-454
+322
+214
+424
+274
 money-consumers
 50.0
 1
@@ -519,10 +519,10 @@ money-consumers
 Number
 
 INPUTBOX
-2
-457
-104
-517
+183
+281
+285
+341
 tableware-merchants
 50.0
 1
@@ -530,10 +530,10 @@ tableware-merchants
 Number
 
 INPUTBOX
-279
-457
-382
-517
+323
+277
+426
+337
 tableware-consumers
 50.0
 1
@@ -541,10 +541,10 @@ tableware-consumers
 Number
 
 BUTTON
-264
-40
-327
-73
+6
+10
+69
+43
 NIL
 setup
 NIL
@@ -558,10 +558,10 @@ NIL
 1
 
 BUTTON
-330
-40
-393
-73
+72
+10
+135
+43
 NIL
 go
 T
@@ -575,10 +575,10 @@ NIL
 1
 
 INPUTBOX
-258
-76
-413
-136
+293
+10
+448
+70
 stop-after-x-tick
 10.0
 1
@@ -586,10 +586,10 @@ stop-after-x-tick
 Number
 
 SLIDER
-0
-306
-172
-339
+181
+130
+309
+163
 alpha-merchants
 alpha-merchants
 0
@@ -601,10 +601,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-280
-307
-452
-340
+324
+127
+451
+160
 alpha-consumers
 alpha-consumers
 0
@@ -616,30 +616,30 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-14
-275
-164
-303
+187
+99
+315
+127
 Variables for the merchant breed
 11
 0.0
 1
 
 TEXTBOX
-299
-270
+326
+93
 449
-298
+121
 Variables for the consumer breed\n
 11
 0.0
 1
 
 MONITOR
-913
-22
-992
-67
+1087
+10
+1166
+55
 NIL
 report-price
 17
@@ -647,10 +647,10 @@ report-price
 11
 
 MONITOR
-902
-124
-1058
-169
+1092
+100
+1248
+145
 NIL
 report-mrs-merchants
 17
@@ -658,10 +658,10 @@ report-mrs-merchants
 11
 
 MONITOR
-904
-72
-1063
-117
+911
+98
+1064
+143
 NIL
 report-mrs-consumers
 17
@@ -669,20 +669,20 @@ report-mrs-consumers
 11
 
 CHOOSER
-26
-183
-174
-228
+8
+116
+156
+161
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
 2
 
 MONITOR
-2
-343
-142
-388
+183
+167
+312
+212
 Beta for merchants
 report-beta-merchants
 17
@@ -690,10 +690,10 @@ report-beta-merchants
 11
 
 MONITOR
-280
-344
-421
-389
+324
+164
+450
+209
 Beta for consumers
 report-beta-consumers
 17
@@ -701,10 +701,10 @@ report-beta-consumers
 11
 
 MONITOR
-910
-320
-1052
-365
+1101
+190
+1243
+235
 NIL
 report-offer-merchants
 17
@@ -712,10 +712,10 @@ report-offer-merchants
 11
 
 MONITOR
-911
-270
-1054
-315
+909
+188
+1052
+233
 NIL
 report-offer-consumers
 17
@@ -723,10 +723,10 @@ report-offer-consumers
 11
 
 SLIDER
-11
-136
-183
-169
+2
+163
+155
+196
 choose-price
 choose-price
 1
@@ -738,10 +738,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1172
-316
-1319
-361
+1094
+268
+1241
+313
 NIL
 nr-tableware-merchants
 17
@@ -749,10 +749,10 @@ nr-tableware-merchants
 11
 
 MONITOR
-1171
-360
-1407
-405
+1093
+312
+1242
+357
 NIL
 nr-money-merchants
 17
@@ -760,10 +760,10 @@ nr-money-merchants
 11
 
 MONITOR
-1172
-222
-1320
-267
+909
+269
+1057
+314
 NIL
 nr-tableware-consumers
 17
@@ -771,10 +771,10 @@ nr-tableware-consumers
 11
 
 MONITOR
-1172
-270
-1412
-315
+909
+317
+1058
+362
 nr-money-consumers
 nr-money-consumers
 17
@@ -782,39 +782,32 @@ nr-money-consumers
 11
 
 MONITOR
-1224
-30
-1391
-75
+737
+452
+862
+497
 NIL
 nr-succesful-trades
 17
 1
 11
 
-OUTPUT
-566
-491
-806
-545
-11
-
 SWITCH
-974
-387
-1086
-420
+40
+422
+152
+455
 dynamics?
 dynamics?
-1
+0
 1
 -1000
 
 SWITCH
-914
-435
-1106
-468
+6
+465
+198
+498
 consumers-earn-money?
 consumers-earn-money?
 0
@@ -822,10 +815,10 @@ consumers-earn-money?
 -1000
 
 SWITCH
-912
-471
-1092
-504
+4
+501
+184
+534
 tableware-production?
 tableware-production?
 0
@@ -833,10 +826,10 @@ tableware-production?
 -1000
 
 SWITCH
-912
-510
-1097
-543
+4
+540
+189
+573
 tableware-breakage?
 tableware-breakage?
 0
@@ -844,32 +837,10 @@ tableware-breakage?
 -1000
 
 MONITOR
-1186
-148
-1305
-193
-NIL
-alpha-merchants
-17
-1
-11
-
-MONITOR
-1183
-103
-1310
-148
-NIL
-money-merchants
-17
-1
-11
-
-MONITOR
-1333
-466
-1436
-511
+425
+496
+528
+541
 total tableware
 nr-tableware-consumers + nr-tableware-merchants
 17
@@ -877,10 +848,10 @@ nr-tableware-consumers + nr-tableware-merchants
 11
 
 SLIDER
-1096
-472
-1331
-505
+188
+502
+423
+535
 tableware-produced-per-tick
 tableware-produced-per-tick
 0
@@ -892,10 +863,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-1109
-434
-1281
-467
+201
+464
+373
+497
 salary-daily
 salary-daily
 0
@@ -907,15 +878,73 @@ NIL
 HORIZONTAL
 
 MONITOR
-1286
-422
-1375
+378
+452
 467
+497
 total-money
 nr-money-merchants + nr-money-consumers
 17
 1
 11
+
+TEXTBOX
+1023
+246
+1173
+264
+Current holdings
+11
+0.0
+1
+
+TEXTBOX
+1015
+156
+1135
+184
+Most recent offer (quantity to buy/ sell)
+11
+0.0
+1
+
+TEXTBOX
+1021
+66
+1171
+94
+Current marginal rate of substitution (MRS)
+11
+0.0
+1
+
+TEXTBOX
+909
+10
+1073
+38
+Most recent price of tableware
+11
+0.0
+1
+
+PLOT
+946
+410
+1146
+560
+price/tableware
+Ticks/ time
+price per item
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?
