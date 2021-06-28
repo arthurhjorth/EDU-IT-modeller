@@ -66,6 +66,7 @@ to go
   trade
 
   produce-tableware
+  earn-money
 
   tick
 
@@ -357,6 +358,17 @@ ask merchants [
   ]
   ]
 end
+
+
+to earn-money
+if consumers-earn-money?
+  [
+    ask consumers [
+      set money (money + salary-daily )
+    ]
+  ]
+end
+
 
 
 to calculate-utility
@@ -726,10 +738,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1177
-354
-1324
-399
+1172
+316
+1319
+361
 NIL
 nr-tableware-merchants
 17
@@ -737,10 +749,10 @@ nr-tableware-merchants
 11
 
 MONITOR
-1176
-398
-1412
-443
+1171
+360
+1407
+405
 NIL
 nr-money-merchants
 17
@@ -827,7 +839,7 @@ SWITCH
 543
 tableware-breakage?
 tableware-breakage?
-1
+0
 1
 -1000
 
@@ -878,6 +890,32 @@ tableware-produced-per-tick
 1
 NIL
 HORIZONTAL
+
+SLIDER
+1109
+434
+1281
+467
+salary-daily
+salary-daily
+0
+20
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1286
+422
+1375
+467
+total-money
+nr-money-merchants + nr-money-consumers
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
