@@ -52,7 +52,7 @@ to setup
   clear-all
   reset-ticks
 
- ; layout
+  layout
   populate
   set-variables
   set-partner
@@ -114,8 +114,6 @@ to make-ppls [kind]
    setxy -10 -10
    set heading 90
 
-      ;partner
-  ; set partner consumer 1  ;@@lisa: not functioning rn
 
   ]
   ]
@@ -135,37 +133,34 @@ to make-ppls [kind]
       setxy 10 -10
       set heading 360 - 90
 
-
-      ;partner
- ;  set partner merchant 1 ;@@lisa: not functioning rn
   ]
   ]
 end
 
-;to layout
+to layout
 ;  create-turtles 1
 ;  ask turtles
 ;  [set shape "building institution" ;make it acropolis
 ;    set size 13
 ;    setxy 0 10
 ;    set color white]
-;
-;
-;
-;  ask patches [set pcolor blue]
-;  ask patches with [pycor < 13] [set pcolor blue + 1]
-;  ask patches with [pycor < 9] [set pcolor blue + 2]
-;
-;
-;  ask patches with [pxcor > -8 and pxcor < 8 and pycor > -14 and pycor < 0]
-;  [set pcolor blue]
-;
-;  ask patch 5 -10
-;  [set plabel "Trade mechanics can be"]
-;  ask patch 5 -11
-;  [set plabel "shown here"]
-;
-;end
+
+
+
+  ask patches [set pcolor blue]
+  ask patches with [pycor < 13] [set pcolor blue + 1]
+  ask patches with [pycor < 9] [set pcolor blue + 2]
+
+
+  ask patches with [pxcor > -8 and pxcor < 8 and pycor > -14 and pycor < 0]
+  [set pcolor blue]
+
+  ask patch 5 -10
+  [set plabel "Trade mechanics can be"]
+  ask patch 5 -11
+  [set plabel "shown here"]
+
+end
 
 to set-variables
 ask merchants [
@@ -207,18 +202,6 @@ end
 to trade
   calculate-utility ;currently only used for choosing quantity
 
-; buyer and seller both find their optimal price point based on preferences:
-
-; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
-;based on equilibrum from red cross parcel
-
-
-;;;;;;;----------;;;;;;;;; Defining partner:
-
-
-;;;;----------;;;;;;;;; Partner def end
-
-
 ;;;;;;;;;-------------;;;;;;;;; Choosing price:
 
 if price-setting = "choose price" [
@@ -230,11 +213,14 @@ if price-setting = "choose price" [
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; Equilibrium
+  ; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
+;based on equilibrum from red cross parcel
+
     if price-setting = "equilibrium" [
     ask consumers [
       set price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * money ] of partner ) )    3 ]    ;mangler beta
+                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]    ;mangler beta
  ]
 
 
@@ -246,7 +232,8 @@ if price-setting = "choose price" [
   [
    let minMRS min [ mrs ] of turtles
    let maxMRS max [ mrs ] of turtles
-  set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+
 
   output-print ( word "blabla " minMRS )
   ]
@@ -255,13 +242,15 @@ if price-setting = "choose price" [
 ;;;;;;;;;----------;;;;;;;;;; Price end
 
 
+
+
 ;;;;;;;;;;-------------;;;;;;;;;; Quantity of trade
   ;;;@@lisa: round number of tableware for whole numbers only - not necessary for $$$$ (maybe down to two decimals tho)
 
   ask consumers [
-    let budget (tableware * price ) + money ;calculating budget based on tableware and price-setting
-    let optimal round (budget * alpha / price) ;optimal number to buy? own? based on preferences
-    set offer precision ( optimal - tableware ) 2 ;considering how many are already owned. rounding price to two decimals
+    let budget (tableware * price ) + money ;calculating budget based on tableware owned and price-setting and current holding of money
+    let optimal round (budget * alpha / price) ;optimal number of tableware to HOLD given the current price
+    set offer precision ( optimal - tableware ) 2 ;offer to buy the number of tableware optimal with current holding subtracted
   ]
 
 
@@ -282,9 +271,11 @@ ask merchants [
 
 ;Making sure only whole numbers are traded.
   ; ((((solution from edgeworth does not give us whole numbers in tableware after trades
+
   ask turtles with [ offer > 0 ] [
-  let offerUnits floor ( offer * price ) ;hvorfor floor her når det allerede er gjort tidligere? fjollet!
-  set offer offerUnits / price
+  set offer floor ( offer ) ;only whole number of tableware is traded
+  ;let offerUnits floor ( offer * price ) ;why multiply just to divide again?
+  ;set offer offerUnits / price
   ]
 
 
@@ -296,10 +287,11 @@ ask turtles with [ offer < 0 ]
   ]
 
 ;simple way of choosing which quantity
-set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 ) ;offer is the agreed upon price of 1x tableware. deal is now the lowest of the prices
+set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 ) ;the number to trade is decided by the agent who wants to trade the fewest
 
 set deal-tableware deal
-set deal-money deal * price
+set deal-money deal * price ;total price of purchase (for the quantity decided upon)
+
 
   ;;;;;;;;;;;;;--------------;;;;;;;;;;;; choosing quantity end
 
@@ -356,6 +348,8 @@ if deal > 0 [
 
 end
 
+
+
 to calculate-utility
 
   ; Cobb-Douglas utility function ;;;copied from red cross parcels model
@@ -390,20 +384,20 @@ to-report nr-succesful-trades
 end
 
 to-report nr-tableware-merchants
-  report [ tableware ] of merchants
+  report item 0 [ tableware ] of merchants
 end
 
 to-report nr-money-merchants
-  report [ money ] of merchants
+  report item 0 [ money ] of merchants
 end
 
 to-report nr-tableware-consumers
-  report [ tableware ] of consumers
+  report item 0 [ tableware ] of consumers
 end
 
 
 to-report nr-money-consumers
-  report [ money ] of consumers
+  report item 0 [ money ] of consumers
 end
 
 to-report utility-merchants
@@ -415,11 +409,12 @@ to-report utility-consumers
 end
 
 to-report report-offer-consumers
-  report [ offer ] of consumers
+  ;report [ offer ] of consumers
+  report item 0 [offer] of consumers ;this way we get the item on the list, not the list itself. still a question: why is it a list in the first place?
 end
 
 to-report report-offer-merchants
-  report [ offer ] of merchants
+  report item 0 [ offer ] of merchants
 end
 
 to-report report-price
@@ -427,19 +422,19 @@ to-report report-price
 end
 
 to-report report-mrs-merchants
-  report [ mrs ] of merchants
+  report item 0 [ mrs ] of merchants
 end
 
 to-report report-mrs-consumers
-  report [ mrs ] of consumers
+  report item 0 [ mrs ] of consumers
 end
 
 to-report report-beta-merchants
-  report [ beta ] of merchants
+  report item 0 [ beta ] of merchants
 end
 
 to-report report-beta-consumers
-  report [ beta ] of consumers
+  report item 0 [ beta ] of consumers
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -592,8 +587,8 @@ SLIDER
 alpha-consumers
 alpha-consumers
 0
-1
-0.7
+0.9
+0.6
 0.1
 1
 NIL
@@ -660,7 +655,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-1
+2
 
 MONITOR
 2
@@ -735,10 +730,10 @@ nr-tableware-merchants
 MONITOR
 1176
 398
-1304
+1412
 443
 NIL
-nr-money-merchants
+precision ( nr-money-merchants ) 2
 17
 1
 11
@@ -757,10 +752,10 @@ nr-tableware-consumers
 MONITOR
 1172
 270
-1301
+1412
 315
-NIL
 nr-money-consumers
+precision ( nr-money-consumers ) 2
 17
 1
 11
@@ -815,6 +810,39 @@ tableware-production?
 1
 1
 -1000
+
+SWITCH
+921
+523
+1106
+556
+tableware-breakage?
+tableware-breakage?
+1
+1
+-1000
+
+MONITOR
+1186
+148
+1305
+193
+NIL
+alpha-merchants
+17
+1
+11
+
+MONITOR
+1183
+103
+1310
+148
+NIL
+money-merchants
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
