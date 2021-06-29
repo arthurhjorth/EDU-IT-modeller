@@ -4,6 +4,7 @@ globals [
   deal-money
   deal
   succesful-trades
+  price-list
 
 ]
 
@@ -54,10 +55,11 @@ to setup
 
   layout
   populate
-  set-variables
+  update-mrs
   set-partner
   calculate-utility
   set-initial-utility
+  create-price-list
 end
 
 
@@ -68,6 +70,8 @@ to go
   produce-tableware
   break-tableware
   earn-money
+  update-price-list
+  update-mrs
 
   tick
 
@@ -163,7 +167,7 @@ to layout
 
 end
 
-to set-variables
+to update-mrs
 ask merchants [
     let nr ( alpha-merchants * money )  / ( beta * tableware )
     let rounded precision nr 3
@@ -358,6 +362,16 @@ if deal > 0 [
     ]
 
 
+end
+
+
+to create-price-list
+  set price-list []
+end
+
+
+to update-price-list
+  set price-list fput price price-list
 end
 
 
@@ -626,7 +640,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.7
+0.9
 0.1
 1
 NIL
@@ -854,10 +868,10 @@ tableware-breakage?
 -1000
 
 MONITOR
-425
-496
-528
-541
+1242
+266
+1345
+311
 total tableware
 nr-tableware-consumers + nr-tableware-merchants
 17
@@ -895,11 +909,11 @@ NIL
 HORIZONTAL
 
 MONITOR
-378
-452
-467
-497
-total-money
+1243
+311
+1332
+356
+total money
 nr-money-merchants + nr-money-consumers
 17
 1
@@ -956,12 +970,13 @@ price per item
 0.0
 10.0
 0.0
-10.0
+3.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 2 -16777216 true "" "plot price"
+"pen-1" 1.0 0 -7500403 true "" "plot ( ( sum price-list ) / ( length price-list ) )"
 
 SLIDER
 195
