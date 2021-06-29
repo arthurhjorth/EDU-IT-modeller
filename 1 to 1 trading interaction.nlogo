@@ -255,7 +255,7 @@ if price-setting = "choose price" [
   ]
 
 
-ask merchants [
+  ask merchants [
     let budget ( tableware * price ) + money ;@@ check up on why we choose quantity according to this
     let optimal ( budget * alpha / price )
     set offer precision ( tableware - optimal ) 2  ;@@ why is this the other way around compared to consumers????? because merchants don't want tableware! e.g. got 50, optimal is 30. 50-30=20. sell 20!
@@ -838,7 +838,7 @@ SWITCH
 573
 tableware-breakage?
 tableware-breakage?
-0
+1
 1
 -1000
 
