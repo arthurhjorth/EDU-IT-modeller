@@ -79,6 +79,7 @@ to go
   if ticks = stop-after-x-tick [
     stop
   ]
+wait running-speed ;just to make the output better readable
 
   ;only consumers earning money - how it affects the dynamics. People will likely be more likely to pay more for a plate
   ;Tableware production --> price will fall if the relation between tableare prod and money prod
@@ -143,6 +144,7 @@ to make-ppls [kind]
   ]
 end
 
+
 to layout
 ;  create-turtles 1
 ;  ask turtles
@@ -167,6 +169,7 @@ to layout
   [set plabel "shown here"]
 
 end
+
 
 to update-mrs
 ask merchants [
@@ -211,10 +214,10 @@ set price-temporary 0.1
 repeat 200 [
 
 
-
   ]
 
 end
+
 
 
 to trade
@@ -230,7 +233,7 @@ if price-setting = "choose price" [
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; Equilibrium
-  ; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
+ ; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
 ;based on equilibrum from red cross parcel
 
     if price-setting = "equilibrium" [
@@ -254,8 +257,6 @@ if price-setting = "choose price" [
    let maxMRS max [ mrs ] of turtles
     set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
-
-  output-print ( word "blabla " minMRS )
 
      output-print ( word "Consumer MRS " maxMRS ". "
     word "Merchant MRS " minMRS ". "
@@ -581,10 +582,10 @@ nr-ppls
 Number
 
 INPUTBOX
-183
-217
-284
-277
+219
+216
+320
+276
 money-merchants
 50.0
 1
@@ -592,10 +593,10 @@ money-merchants
 Number
 
 INPUTBOX
-322
-214
-424
-274
+358
+213
+460
+273
 money-consumers
 50.0
 1
@@ -603,10 +604,10 @@ money-consumers
 Number
 
 INPUTBOX
-183
-281
-285
-341
+219
+280
+321
+340
 tableware-merchants
 50.0
 1
@@ -614,10 +615,10 @@ tableware-merchants
 Number
 
 INPUTBOX
-323
-277
-426
-337
+359
+276
+462
+336
 tableware-consumers
 50.0
 1
@@ -670,9 +671,9 @@ stop-after-x-tick
 Number
 
 SLIDER
-181
+193
 130
-309
+321
 163
 alpha-merchants
 alpha-merchants
@@ -685,9 +686,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-324
+336
 127
-451
+463
 160
 alpha-consumers
 alpha-consumers
@@ -700,9 +701,9 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-187
+199
 99
-315
+327
 127
 Variables for the merchant breed
 11
@@ -710,9 +711,9 @@ Variables for the merchant breed
 1
 
 TEXTBOX
-326
+338
 93
-449
+461
 121
 Variables for the consumer breed\n
 11
@@ -754,18 +755,18 @@ report-mrs-consumers
 
 CHOOSER
 8
-116
+143
 156
-161
+188
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
 2
 
 MONITOR
-183
+195
 167
-312
+324
 212
 Beta for merchants
 report-beta-merchants
@@ -774,9 +775,9 @@ report-beta-merchants
 11
 
 MONITOR
-324
+336
 164
-450
+462
 209
 Beta for consumers
 report-beta-consumers
@@ -808,9 +809,9 @@ report-offer-consumers
 
 SLIDER
 2
-163
+190
 155
-196
+223
 choose-price
 choose-price
 1
@@ -1073,6 +1074,32 @@ OUTPUT
 900
 97
 9
+
+SWITCH
+0
+228
+214
+261
+compare-all-price-settings?
+compare-all-price-settings?
+1
+1
+-1000
+
+SLIDER
+547
+551
+719
+584
+running-speed
+running-speed
+0
+2
+0.8
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
