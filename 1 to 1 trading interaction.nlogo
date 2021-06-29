@@ -489,6 +489,13 @@ end
 to-report report-beta-consumers
   report item 0 [ beta ] of consumers
 end
+
+
+to-report mean-price
+  if length price-list > 0 [
+report ( ( sum price-list ) / ( length price-list ) )
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 462
@@ -842,7 +849,7 @@ SWITCH
 498
 consumers-earn-money?
 consumers-earn-money?
-0
+1
 1
 -1000
 
@@ -853,7 +860,7 @@ SWITCH
 534
 tableware-production?
 tableware-production?
-0
+1
 1
 -1000
 
@@ -931,20 +938,20 @@ Current holdings
 1
 
 TEXTBOX
-1015
-156
-1135
-184
+964
+170
+1184
+198
 Most recent offer (quantity to buy/ sell)
 11
 0.0
 1
 
 TEXTBOX
-1021
-66
-1171
-94
+960
+80
+1196
+108
 Current marginal rate of substitution (MRS)
 11
 0.0
@@ -976,8 +983,8 @@ true
 false
 "" ""
 PENS
-"default" 1.0 2 -16777216 true "" "plot price"
-"pen-1" 1.0 0 -7500403 true "" "plot ( ( sum price-list ) / ( length price-list ) )"
+"default" 1.0 0 -9276814 true "" "plot price"
+"pen-1" 1.0 0 -5298144 true "" "plot mean-price"
 
 SLIDER
 195
@@ -1002,7 +1009,18 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
+
+MONITOR
+1179
+492
+1329
+537
+mean price/ tableware
+mean-price
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
