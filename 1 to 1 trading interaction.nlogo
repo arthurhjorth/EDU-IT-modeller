@@ -1,5 +1,6 @@
 globals [
   price ;
+  price-temporary
   deal-tableware
   deal-money
   deal
@@ -199,6 +200,18 @@ to set-partner
    ask partner [
       set partner myself
     ]
+  ]
+
+end
+
+to calculate-market-clearing-price
+
+set price-temporary 0.1
+
+repeat 200 [
+
+
+
   ]
 
 end
@@ -838,7 +851,7 @@ SWITCH
 455
 dynamics?
 dynamics?
-0
+1
 1
 -1000
 
@@ -1009,7 +1022,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 1179
