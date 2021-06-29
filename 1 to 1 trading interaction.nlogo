@@ -251,9 +251,7 @@ if price-setting = "choose price" [
 ;;;;;;;;;;-------------;;;;;;;;;; Quantity of trade
   ;;;@@lisa: round number of tableware for whole numbers only - not necessary for $$$$ (maybe down to two decimals tho)
 
-if quantity-options = "" [
-
-
+if quantity-options = "standard" [
 
   ask consumers [
     let budget (tableware * price ) + money ;calculating budget based on tableware owned and price-setting and current holding of money
@@ -273,6 +271,7 @@ if quantity-options = "" [
 
   ]
 
+  ]
     ;let nr-tableware-supply ( tableware - optimal )
     ;set offer-tableware min list ( nr-tableware-supply * price ) ( tableware - 1 )
     ;set offer-money 0
@@ -280,6 +279,8 @@ if quantity-options = "" [
 ;Making sure only whole numbers are traded.
   ; ((((solution from edgeworth does not give us whole numbers in tableware after trades
 
+
+if quantity-options = "standard" [
   ask turtles with [ offer > 0 ] [
   set offer floor ( offer ) ;only whole number of tableware is traded
   ;let offerUnits floor ( offer * price ) ;why multiply just to divide again?
@@ -296,10 +297,10 @@ ask turtles with [ offer < 0 ]
 
 ;simple way of choosing which quantity
 set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 ) ;the number to trade is decided by the agent who wants to trade the fewest
+  ] ; quantity options standard end
 
 
-
-if quantity-options = "one tableware" [
+if quantity-options = "one tableware at a time" [
   ask turtles [
      set deal 1
     ]
@@ -992,6 +993,16 @@ tableware-broken-per-tick-consumers
 1
 NIL
 HORIZONTAL
+
+CHOOSER
+4
+367
+184
+412
+quantity-options
+quantity-options
+"standard" "one tableware at a time"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
