@@ -209,7 +209,6 @@ if price-setting = "choose price" [
     ask turtles [
      set price choose-price
     ]
-
   ]
 
 
@@ -247,6 +246,10 @@ if price-setting = "choose price" [
 
 ;;;;;;;;;;-------------;;;;;;;;;; Quantity of trade
   ;;;@@lisa: round number of tableware for whole numbers only - not necessary for $$$$ (maybe down to two decimals tho)
+
+if quantity-options = "" [
+
+
 
   ask consumers [
     let budget (tableware * price ) + money ;calculating budget based on tableware owned and price-setting and current holding of money
@@ -290,9 +293,17 @@ ask turtles with [ offer < 0 ]
 ;simple way of choosing which quantity
 set deal min list ( [ offer ] of turtle 0 ) ( [ offer ] of turtle 1 ) ;the number to trade is decided by the agent who wants to trade the fewest
 
+
+
+if quantity-options = "one tableware" [
+  ask turtles [
+     set deal 1
+    ]
+  ]
+
+;variables used for all quantity options
 set deal-tableware deal
 set deal-money deal * price ;total price of purchase (for the quantity decided upon)
-
 
   ;;;;;;;;;;;;;--------------;;;;;;;;;;;; choosing quantity end
 
