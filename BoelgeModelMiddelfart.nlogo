@@ -42,6 +42,8 @@ globals [
   month-table ;table used for auto-running a month based on data
   running-month?
   auto-måned ;saving måned to this in case chooser is changed
+
+  samlet-utilfredshed ;utilfredshed
 ]
 
 breed [ drops drop] ;for rain animation
@@ -61,18 +63,18 @@ patches-own [
   my-wall-price
 
   missing-neighbors ;only used for edge-sea-patches
-  view-patches ;patch-set for each patch containing all patches to the north of them (and within ? x-patches)
+  view-patches ;patch-set for each house-patch containing all patches to the north of them (and within ? x-patches)
 ]
 
 breed [momentums momentum]
 momentums-own [force nearby-momentums forces-next-turn]
 
 to profile
-  ;setup                  ; set up the model
+  setup                  ; set up the model
   profiler:start         ; start profiling
   ;start-rain ;start the rain (with interface settings) before the go to get some water in the system
   run-month              ;start auto-raining period to get water in the system
-  repeat 50 [ go ]       ; run something you want to measure
+  repeat 100 [ go ]       ; run something you want to measure
   profiler:stop          ; stop profiling
   print profiler:report  ; view the results
   profiler:reset         ; clear the data
@@ -80,7 +82,7 @@ end
 
 to setup
   ca
-  ;setup-house-patches ;used for tilfredshed
+  setup-house-patches ;used for tilfredshed
   set-terrain-height
   setup-variables
   ask patches [recolor]
@@ -238,6 +240,8 @@ to show-test ;for testing height colors in set-terrain-height
 
   ;]
 end
+
+
 
 to-report patch-type-here
   ifelse mouse-inside? [
@@ -565,6 +569,8 @@ to build-wall ;forever button in interface
       ;@instead of sound, maybe just do message, or do nothing
     ]
   ]
+
+  if not mouse-inside? [update-utilfredshed] ;opdaterer først, når de er færdige med at tegne
 end
 
 to erase-wall ;viskelæder
@@ -574,9 +580,12 @@ to erase-wall ;viskelæder
         set water-level 0
         set my-wall-height "none"
         recolor display
+        set wall-patches other wall-patches ;removes self from the patch-set
       ]
     ]
   ]
+
+  if not mouse-inside? [update-utilfredshed]
 end
 
 to remove-all-walls ;interface-knap
@@ -586,6 +595,8 @@ to remove-all-walls ;interface-knap
     set my-wall-height "none"
     recolor display
   ]
+  set samlet-utilfredshed 0
+  set wall-patches no-patches
 end
 
 ;--money stuff:
@@ -752,15 +763,17 @@ to-report terrain-difference-to [input-terrain-height] ;patch reporter. given a 
 end
 
 ;--TILFREDSHED
+to update-utilfredshed ;only updated when a wall is built or removed
+  set samlet-utilfredshed sum [utilfredshed] of house-patches
+end
+
 to-report utilfredshed ;house-patch reporter
-  ifelse any? view-patches with [member? self wall-patches] [
+  ifelse member? self house-patches and any? view-patches with [member? self wall-patches] [
     report count view-patches with [member? self wall-patches and total-wall-height > [terrain-height] of myself ]
   ]
   [
     report 0
   ]
-
-  ;@kører aaaaalt for langsomt...
 end
 
 
@@ -963,7 +976,7 @@ hav-niveau
 hav-niveau
 0
 12
-1.0
+2.25
 .25
 1
 m
@@ -1050,23 +1063,6 @@ NIL
 1
 
 BUTTON
-1105
-75
-1185
-165
-Inspicér
-show-test
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
 95
 150
 175
@@ -1126,7 +1122,7 @@ mur-højde
 mur-højde
 0.5
 4
-2.0
+4.0
 0.5
 1
 m
@@ -1168,10 +1164,10 @@ PENS
 "default" 1.0 0 -13345367 true "" "plot mean [water-level] of land-patches"
 
 BUTTON
-1290
-520
-1455
-553
+1330
+535
+1495
+568
 Vis oversvømmelse
 oversvøm
 T
@@ -1323,11 +1319,11 @@ Havets vandstand
 1
 
 TEXTBOX
-1115
-425
-1270
-475
-(Indbyggernes tilfredshed?)
+1125
+405
+1230
+455
+Indbyggernes utilfredshed
 17
 0.0
 1
@@ -1391,10 +1387,10 @@ Maksimal 5-døgns-nedbør 1981-2010: 55.23 mm
 1
 
 SLIDER
-1290
-485
-1455
-518
+1330
+500
+1495
+533
 hav-stigning
 hav-stigning
 0
@@ -1407,19 +1403,19 @@ HORIZONTAL
 
 TEXTBOX
 1105
-40
-1425
-76
-Tryk på knappen og hold musen over kortet for at tjekke terrænhøjde og vandspejl forskellige steder.
+35
+1385
+71
+Hold musen over kortet for at tjekke terrænhøjde og vandspejl forskellige steder.
 13
 0.0
 1
 
 MONITOR
-1190
-75
-1410
-120
+1105
+70
+1360
+115
  Type & højde
 patch-type-here
 17
@@ -1427,10 +1423,10 @@ patch-type-here
 11
 
 MONITOR
-1190
-120
-1410
-165
+1105
+115
+1360
+160
 Vandspejl
 wl-here
 17
@@ -1438,33 +1434,44 @@ wl-here
 11
 
 TEXTBOX
-1205
-15
-1355
-36
-(Tjek forhold)
+1165
+10
+1315
+31
+Tjek forhold
 17
 0.0
 1
 
 TEXTBOX
-1285
-401
-1515
-491
+1305
+400
+1495
+495
 (KØR EFTER SETUP, UDEN MODELLEN KØRER)\nbehold denne animation separat fra, når modellen kører?) (virker med wall-patches nu)
 13
 13.0
 1
 
-TEXTBOX
-1100
-475
-1250
-530
-(utilfreds-reporter kører aaaalt for langsomt...)
+MONITOR
+1120
+455
+1237
+500
+NIL
+samlet-utilfredshed
+17
+1
 11
-13.0
+
+TEXTBOX
+1120
+505
+1270
+530
+Opdateres, når musen holdes uden for kortet.
+11
+0.0
 1
 
 @#$#@#$#@
