@@ -723,10 +723,10 @@ Variables for the consumer breed\n
 MONITOR
 1087
 10
-1166
+1250
 55
 NIL
-report-price
+precision report-price 2
 17
 1
 11
@@ -1063,7 +1063,7 @@ MONITOR
 1329
 537
 mean price/ tableware
-mean-price
+precision mean-price 2
 17
 1
 11
