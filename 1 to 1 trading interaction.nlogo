@@ -237,11 +237,14 @@ if price-setting = "choose price" [
     ask consumers [
       set price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]    ;mangler beta
- ]
+                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
 
 
 
+   output-print (word "Consumer optimal price"  ". "
+      word "Merchant optimal price"  ". "
+      word "Average price-point of the two" price ". " )
+    ]
 
 
 
@@ -253,7 +256,12 @@ if price-setting = "choose price" [
 
 
   output-print ( word "blabla " minMRS )
+
+     output-print ( word "Consumer MRS " maxMRS ". "
+    word "Merchant MRS " minMRS ". "
+    word "Random price in between: " precision price 2)
   ]
+
 
 
 ;;;;;;;;;----------;;;;;;;;;; Price end
@@ -477,6 +485,7 @@ end
 to-report report-offer-consumers
   ;report [ offer ] of consumers
   report item 0 [offer] of consumers ;this way we get the item on the list, not the list itself. still a question: why is it a list in the first place?
+;@@lisa: needs to be adjusted for 1x tableware trades
 end
 
 to-report report-offer-merchants
@@ -509,12 +518,35 @@ to-report mean-price
 report ( ( sum price-list ) / ( length price-list ) )
   ]
 end
+
+
+;to-report merchant-optimal-price
+;;  report
+;;
+;;  precision
+;;  ( [ alpha * tableware ] of merchant 1 /
+;;  [beta * money] of merchant 1 )
+;;  2
+;
+;
+
+;to-report consumer-optimal-price
+;
+;  report
+;
+;  precision
+;  ( [ alpha * tableware ] of consumer 1 /
+;  [beta * money] of consumer 1 )
+;  2
+;
+;
+;end
 @#$#@#$#@
 GRAPHICS-WINDOW
-462
-10
-899
-448
+465
+97
+902
+535
 -1
 -1
 13.0
@@ -834,10 +866,10 @@ nr-money-consumers
 11
 
 MONITOR
-737
-452
-862
-497
+740
+539
+865
+584
 NIL
 nr-succesful-trades
 17
@@ -1034,6 +1066,13 @@ mean-price
 17
 1
 11
+
+OUTPUT
+463
+10
+900
+97
+9
 
 @#$#@#$#@
 ## WHAT IS IT?
