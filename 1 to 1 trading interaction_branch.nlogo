@@ -104,14 +104,56 @@ end
 
 
 to populate ;;run in setup. Create starting population
-  repeat (nr-ppls / 2) [ make-ppls "merchants"]
-  repeat (nr-ppls / 2) [ make-ppls "consumers"]
+
+
+ if price-setting = "market-clearing"
+  [
+  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
+  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
+  ]
+
+
+  if price-setting = "equilibrium"
+  [
+  repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
+  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
+  ]
+
+
+  if price-setting = "random"
+  [
+  repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
+  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  ]
+
+
+  if price-setting = "double whopper"
+  [
+  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
+  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
+   repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
+  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
+   repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
+  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  ]
+
+
+
+ask turtles
+  [set size 5]
+
+  ask merchants
+  [set shape "tableware"
+  set heading 90]
+
+  ask consumers
+  [set shape "person"
+  set heading 270]
 
 end
 
 
-to make-ppls [kind]
-
+to make-market-ppls [kind]
   if kind = "merchants" [
    create-merchants 1 [
    set alpha alpha-merchants
@@ -119,14 +161,8 @@ to make-ppls [kind]
    set money money-merchants
    set tableware tableware-merchants
    set mrs 0
-
-   ;looks
-   set shape "tableware"
-   set size 13
-   set color blue
-   setxy -10 -7
-   set heading 90
-
+   set color green + 2
+   setxy -10 8.5
 
   ]
   ]
@@ -138,17 +174,70 @@ to make-ppls [kind]
    set money money-consumers
    set tableware tableware-consumers
    set mrs 0
+      set color yellow + 2
+      setxy 10 8.5
 
-         ;looks
-      set shape "person"
-      set size 13
-      set color white
-      setxy 10 -7
-      set heading 360 - 90
+  ]
+  ]
+
+end
+
+to make-equilibrium-ppls [kind]
+
+   if kind = "merchants" [
+   create-merchants 1 [
+   set alpha alpha-merchants
+   set beta precision ( 1 - alpha-merchants ) 3
+   set money money-merchants
+   set tableware tableware-merchants
+   set mrs 0
+   set color green + 0.7
+   setxy -10 -2.5
+
+  ]
+  ]
+
+  if kind = "consumers" [
+   create-consumers 1 [
+   set alpha alpha-consumers
+   set beta precision ( 1 - alpha-consumers ) 3
+   set money money-consumers
+   set tableware tableware-consumers
+   set mrs 0
+      set color yellow + 0.7
+      setxy 10 -2.5
 
   ]
   ]
 end
+
+to make-random-ppls [kind]
+  if kind = "merchants" [
+   create-merchants 1 [
+   set alpha alpha-merchants
+   set beta precision ( 1 - alpha-merchants ) 3
+   set money money-merchants
+   set tableware tableware-merchants
+   set mrs 0
+   set color green - 0.3
+   setxy -10 -12.5
+
+  ]
+  ]
+
+  if kind = "consumers" [
+   create-consumers 1 [
+   set alpha alpha-consumers
+   set beta precision ( 1 - alpha-consumers ) 3
+   set money money-consumers
+   set tableware tableware-consumers
+   set mrs 0
+      set color yellow - 0.3
+      setxy 10 -12.5
+  ]
+  ]
+end
+
 
 
 to layout
@@ -161,18 +250,33 @@ to layout
 
 
 
-  ask patches [set pcolor blue]
-  ask patches with [pycor < 13] [set pcolor blue + 1]
-  ask patches with [pycor < 9] [set pcolor blue + 2]
+ ; ask patches [set pcolor blue]
+ ; ask patches with [pycor < 13] [set pcolor blue + 1]
+ ; ask patches with [pycor < 9] [set pcolor blue + 2]
 
 
 ;  ask patches with [pxcor > -8 and pxcor < 8 and pycor > -14 and pycor < 0]
 ;  [set pcolor blue]
+ask patch 3 5
+[set plabel "Market clearing"]
 
-;  ask patch 5 -10
-;  [set plabel "Trade mechanics can be"]
-;  ask patch 5 -11
-;  [set plabel "shown here"]
+
+ask patch 2 -6
+[set plabel "Equilibrium"]
+
+
+  ask patch 1 -16
+[set plabel "Random"]
+
+  ask patches [set pcolor blue ]
+  ask patches with [pycor > 4 ] [set pcolor blue + 1]
+  ask patches with [pycor = 5 ] [set pcolor blue + 0.5]
+  ask patches with [pycor < -6 ] [set pcolor blue - 1 ]
+  ask patches with [pycor = -6] [set pcolor blue - 1.5 ]
+  ask patches with [pycor = -16] [set pcolor blue - 2.5 ]
+
+
+
 
 end
 
@@ -413,6 +517,12 @@ if price-setting = "choose price" [
   decide-quantity
   ]
 
+
+  if price-setting = "double whopper" [
+    set-equilibrium-price
+    set-random-price
+    decide-quantity
+  ] ;@@lisa: missing in quantity. needs to be divided again
 end
 
 
@@ -457,6 +567,7 @@ set price random-price
 
 If price-setting = "manual-trade" [
 set price choose-price]
+
 
 ;similarly for market clearing:
 ;If price-setting = "market-clearing" [
@@ -750,17 +861,6 @@ ticks
 30.0
 
 INPUTBOX
-3
-50
-158
-110
-nr-ppls
-2.0
-1
-0
-Number
-
-INPUTBOX
 219
 216
 320
@@ -858,7 +958,7 @@ alpha-merchants
 alpha-merchants
 0
 1
-0.1
+0.2
 0.1
 1
 NIL
@@ -912,9 +1012,9 @@ precision report-price 2
 
 MONITOR
 1092
-84
+78
 1248
-129
+123
 NIL
 report-mrs-merchants
 17
@@ -923,9 +1023,9 @@ report-mrs-merchants
 
 MONITOR
 911
-82
+76
 1064
-127
+121
 NIL
 report-mrs-consumers
 17
@@ -935,12 +1035,12 @@ report-mrs-consumers
 CHOOSER
 8
 143
-156
+157
 188
 price-setting
 price-setting
-"market-clearing" "equilibrium" "random" "choose price"
-1
+"market-clearing" "equilibrium" "random" "choose price" "double whopper"
+4
 
 MONITOR
 195
@@ -966,9 +1066,9 @@ report-beta-consumers
 
 MONITOR
 1101
-159
+153
 1243
-204
+198
 NIL
 report-offer-merchants
 17
@@ -977,9 +1077,9 @@ report-offer-merchants
 
 MONITOR
 909
-157
+151
 1052
-202
+196
 NIL
 report-offer-consumers
 17
@@ -1002,10 +1102,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1093
-227
-1240
-272
+908
+267
+1055
+312
 NIL
 nr-tableware-merchants
 17
@@ -1013,10 +1113,10 @@ nr-tableware-merchants
 11
 
 MONITOR
-1092
-271
-1241
-316
+1091
+270
+1240
+315
 NIL
 nr-money-merchants
 17
@@ -1025,9 +1125,9 @@ nr-money-merchants
 
 MONITOR
 908
-228
+222
 1056
-273
+267
 NIL
 nr-tableware-consumers
 17
@@ -1035,10 +1135,10 @@ nr-tableware-consumers
 11
 
 MONITOR
-908
-276
-1057
-321
+1092
+225
+1241
+270
 nr-money-consumers
 nr-money-consumers
 17
@@ -1101,10 +1201,10 @@ tableware-breakage?
 -1000
 
 MONITOR
-1241
-225
-1344
-270
+927
+312
+1030
+357
 total tableware
 nr-tableware-consumers + nr-tableware-merchants
 17
@@ -1142,10 +1242,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1242
-270
-1331
+1123
 315
+1212
+360
 total money
 round ( nr-money-merchants + nr-money-consumers )
 17
@@ -1154,9 +1254,9 @@ round ( nr-money-merchants + nr-money-consumers )
 
 TEXTBOX
 1022
-205
+204
 1172
-223
+222
 Current holdings
 11
 0.0
@@ -1164,9 +1264,9 @@ Current holdings
 
 TEXTBOX
 964
-139
+133
 1184
-167
+161
 Most recent offer (quantity to buy/ sell)
 11
 0.0
@@ -1174,9 +1274,9 @@ Most recent offer (quantity to buy/ sell)
 
 TEXTBOX
 960
-64
+58
 1196
-92
+86
 Current marginal rate of substitution (MRS)
 11
 0.0
@@ -1193,23 +1293,25 @@ Most recent price of tableware
 1
 
 PLOT
-905
-327
-1340
-557
+893
+361
+1328
+591
 price/tableware
 Ticks/ time
 price per item
 0.0
 10.0
 0.0
-3.0
+2.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -9276814 true "" "plot price"
-"pen-1" 1.0 0 -5298144 true "" "plot mean-price"
+"price" 1.0 0 -9276814 true "" "plot price"
+"mean" 1.0 0 -5298144 true "" "plot mean-price"
+"equilibrium" 1.0 2 -14454117 true "" "if equilibrium-price > 0 [\nplot equilibrium-price ]"
+"random" 1.0 0 -13840069 true "" "if random-price > 0 [\nplot random-price]"
 
 SLIDER
 195
@@ -1237,10 +1339,10 @@ quantity-options
 1
 
 MONITOR
-936
-562
-1086
-607
+935
+591
+1085
+636
 mean price/ tableware
 precision mean-price 2
 17
@@ -1281,14 +1383,25 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1097
-570
-1247
-598
+1096
+599
+1246
+627
 monitor only prices from succesful trades
 11
 0.0
 1
+
+INPUTBOX
+4
+48
+153
+108
+nr-ppl
+2.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
