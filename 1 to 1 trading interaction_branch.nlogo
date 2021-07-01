@@ -127,7 +127,7 @@ to populate ;;run in setup. Create starting population
   ]
 
 
-  if price-setting = "double whopper"
+  if compare-all-price-settings?
   [
   repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
   repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
@@ -518,11 +518,12 @@ if price-setting = "choose price" [
   ]
 
 
-  if price-setting = "double whopper" [
+  if compare-all-price-settings? [
     set-equilibrium-price
     set-random-price
     decide-quantity
   ] ;@@lisa: missing in quantity. needs to be divided again
+
 end
 
 
@@ -775,12 +776,21 @@ end
 
 to-report report-offer-consumers
   ;report [ offer ] of consumers
-  report item 0 [offer] of consumers ;this way we get the item on the list, not the list itself. still a question: why is it a list in the first place?
+
+  let quantity-offer ( item 0 [offer] of consumers )
+ ifelse quantity-offer > 0
+  [report quantity-offer]
+  [report "not interested in buying"]  ;only positive quantities are reported; if not, there is no chance of trading
+  ; should the quantity value be added even when negative?
+
 ;@@lisa: needs to be adjusted for 1x tableware trades
 end
 
 to-report report-offer-merchants
-  report item 0 [ offer ] of merchants
+  let quantity-offer item 0 [ offer ] of merchants
+  ifelse quantity-offer > 0
+  [report quantity-offer]
+  [report "not interested in selling"]
 end
 
 to-report report-price
@@ -1039,8 +1049,8 @@ CHOOSER
 188
 price-setting
 price-setting
-"market-clearing" "equilibrium" "random" "choose price" "double whopper"
-4
+"market-clearing" "equilibrium" "random" "choose price"
+2
 
 MONITOR
 195
@@ -1076,10 +1086,10 @@ report-offer-merchants
 11
 
 MONITOR
-909
-151
-1052
-196
+897
+153
+1093
+198
 NIL
 report-offer-consumers
 17
@@ -1196,7 +1206,7 @@ SWITCH
 573
 tableware-breakage?
 tableware-breakage?
-1
+0
 1
 -1000
 
@@ -1322,7 +1332,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 20
-1.0
+6.0
 1
 1
 NIL
@@ -1363,7 +1373,7 @@ SWITCH
 261
 compare-all-price-settings?
 compare-all-price-settings?
-1
+0
 1
 -1000
 
