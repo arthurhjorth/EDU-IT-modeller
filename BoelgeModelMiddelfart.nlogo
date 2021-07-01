@@ -47,6 +47,9 @@ globals [
 ]
 
 breed [ drops drop] ;for rain animation
+breed [ views view ] ;for rain animation
+
+views-own [my-house-patches my-patches]
 
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
 
@@ -83,6 +86,7 @@ end
 to setup
   ca
   setup-house-patches ;used for tilfredshed
+  setup-view-patches
   set-terrain-height
   setup-variables
   ask patches [recolor]
@@ -149,14 +153,35 @@ to go
   if any? land-patches with [max-capacity < 0] [print "oh no, negative capacity!" stop]
 end
 
+to setup-view-patches
+  create-views 10 [
+    set my-house-patches (patch-set)
+    set my-patches (patch-set)
+  ]
+  foreach range count views [ n ->
+    let the-view one-of views with [not any? my-patches]
+
+    ask the-view [
+      let min-x -94 + n * 19
+      let max-x -94 + ((n + 1) * 19)
+      set my-patches patches with [pxcor >= min-x and pxcor < max-x ]
+      ask my-patches [set pcolor green]
+      set my-house-patches my-patches with [member? self house-patches ]
+      let the-patches my-patches
+      ask my-house-patches [set view-patches the-patches with [pycor > [pycor] of myself]]
+    ]
+  ]
+
+end
+
 to setup-house-patches ;used for tilfredshed
   import-pcolors "mf-map-kystfix-alpha55.png" ;midlertidigt importeret for at sætte det her
 
   set house-patches (patch-set patches with [shade-of? pcolor yellow])
 
-  ask house-patches [
-    set view-patches (patch-set patches with [abs ( pxcor - [pxcor] of myself) <= 10  and pycor > [pycor] of myself] ) ;limited 'field of view'
-  ]
+;  ask house-patches [
+;    set view-patches (patch-set patches with [abs ( pxcor - [pxcor] of myself) <= 10  and pycor > [pycor] of myself] ) ;limited 'field of view'
+;  ]
 end
 
 to set-terrain-height
@@ -1823,7 +1848,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
