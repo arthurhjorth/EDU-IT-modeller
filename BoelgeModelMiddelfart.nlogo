@@ -34,14 +34,14 @@ globals [
   ticks-rained
   nedbør-varighed-i-ticks
 
-  test
-  test2
-
   avg-sea-level
 
   month-table ;table used for auto-running a month based on data
   running-month?
   auto-måned ;saving måned to this in case chooser is changed
+  %-valgt ;saving %-ekstra-regn from interface
+  total-auto-mængde
+  ticks-at-start ;for plot
 
   samlet-utilfredshed ;utilfredshed
 ]
@@ -122,12 +122,15 @@ to go
 
   ;MAYBE AUTO-RAIN FROM MONTH DATA:
   if running-month? [ ;if currently auto-running a month of rain:
+    update-plot ;@FIGURE OUT EXACTLY WHERE TO UPDATE THE PLOT!
+
     ifelse table:has-key? month-table (word str-day str-time) [ ;if the current date and time matches a time it should auto-rain:
       ;manual rain:
       let mm-rain table:get month-table (word str-day str-time)
-      ifelse mm-rain = "stop" [ ;hvis enden er nået
+      ifelse mm-rain = "stop" [ ;hvis enden er nået:
         ask drops [die]
         set running-month? false ;end of the auto-running!
+        stop
       ]
       [ ;if not the stopklods, but actual rain:
         ask patches [ set water-level ( water-level + ( mm-rain / 1000) ) ] ;in meters. all patches increase their water-level based on the rain this tick
@@ -153,8 +156,19 @@ to go
   if any? land-patches with [max-capacity < 0] [print "oh no, negative capacity!" stop]
 end
 
-to setup-view-patches
+to setup-house-patches ;used for tilfredshed, run in setup
+  import-pcolors "mf-map-kystfix-alpha55.png" ;midlertidigt importeret for at sætte det her
+
+  set house-patches (patch-set patches with [shade-of? pcolor yellow])
+
+;  ask house-patches [
+;    set view-patches (patch-set patches with [abs ( pxcor - [pxcor] of myself) <= 10  and pycor > [pycor] of myself] ) ;limited 'field of view'
+;  ]
+end
+
+to setup-view-patches ;used for tilfredshed, run in setup
   create-views 10 [
+    hide-turtle
     set my-house-patches (patch-set)
     set my-patches (patch-set)
   ]
@@ -172,16 +186,6 @@ to setup-view-patches
     ]
   ]
 
-end
-
-to setup-house-patches ;used for tilfredshed
-  import-pcolors "mf-map-kystfix-alpha55.png" ;midlertidigt importeret for at sætte det her
-
-  set house-patches (patch-set patches with [shade-of? pcolor yellow])
-
-;  ask house-patches [
-;    set view-patches (patch-set patches with [abs ( pxcor - [pxcor] of myself) <= 10  and pycor > [pycor] of myself] ) ;limited 'field of view'
-;  ]
 end
 
 to set-terrain-height
@@ -528,7 +532,7 @@ to oversvøm ;forever button in interface, can try to raise the sea level (tidli
   ;@bare animation, disconnected fra den dynamiske model... kun farver, ikke egentlig forandring i water-level! (der har vi hæv-havet i stedet)
   ask patches [
     ifelse member? self wall-patches [
-      ifelse (my-wall-height + terrain-height) < hav-stigning and any? neighbors with [shade-of? pcolor sky] [
+      ifelse (my-wall-height + terrain-height) < hav-stigning and any? neighbors with [shade-of? pcolor sky or pcolor = 102] [
         set pcolor 102 ;dark blue for oversvømmede wall-patches
       ]
       [
@@ -816,9 +820,11 @@ to-report import-month [filename] ;e.g. "Maj2010Båring.csv"
 end
 
 to run-month
+  ask patches [set water-level 0]
   set month-table table:make ;initialize empty table
   let data import-month periode ;import month data from csv. måned is the interface chooser
   set auto-måned periode ;in case they change the chooser while running
+  set %-valgt %-ekstra-regn ;saving the variable
 
   ;create table
   foreach data [ ;each entry is in the form ["02-05-2021 07:00" 0.4 4] ;dato, nedbør per time (i mm), nedbørsminutter
@@ -828,11 +834,13 @@ to run-month
     let the-day (word item 0 full-date item 1 full-date) ;e.g. "02"
     let the-time data-time full-date ;e.g. "07:00"
     let day-and-time (word the-day the-time) ;e.g. "0207:00" - this is the key
-    let the-rain item 1 x ;e.g. 0.4
+    let the-rain (item 1 x) * ( 1 + (%-valgt / 100) ) ;e.g. 0.4 * 1.15
     ;ignorerer nedbørsminutter, bruger kun antal mm
 
     table:put month-table day-and-time the-rain ;table, key, value
   ]
+
+  ;set total-auto-mængde
 
   ;byg en 'stopklods' ind i tabellen kvarteret efter det sidste regn-entry:
   let last-date item 0 (last data)
@@ -846,6 +854,9 @@ to run-month
   ;reset time to "the first of the month":
   set day read-from-string (item 1 (item 0 first data)) ;the first date it rains (only works for dates 01 to 09, reports the second digit!)
   set hour 0 set minute "00"
+
+  set ticks-at-start ticks ;when the auto-sim began (for update-plot)
+  setup-plot-pen
   set running-month? true ;now go will auto-rain by matching current time to month-table
 end
 
@@ -858,13 +869,33 @@ end
 
 to-report auto-interface
   ifelse running-month? [
-    let auto-mængde precision (sum map [i -> item 1 i] import-month auto-måned) 2 ;total rainfall for the auto-running period
-    report (word "KØRER NU: " auto-måned ". I alt faldt " auto-mængde " mm regn i denne periode.")
+    let auto-mængde precision (sum map [i -> item 1 i * ( 1 + (%-valgt / 100) )] import-month auto-måned) 2 ;total rainfall for the auto-running period
+    report (word "KØRER NU: " auto-måned ". I alt " auto-mængde " mm nedbør (inkl. " %-valgt " % ekstra).")
   ]
   [
     report "Vælg en periode og tryk på knappen for at køre perioden med automatisk nedbør."
   ]
 end
+
+
+;---PLOT
+to setup-plot-pen ;run in run-month
+  set-current-plot "Gennemsnitligt vandspejl på land"
+
+  create-temporary-plot-pen (word periode " " %-valgt " %")
+  set-plot-pen-color one-of [red green blue black orange pink] ;@fix
+end
+
+to update-plot
+  set-current-plot-pen (word periode " " %-valgt " %")
+
+  plotxy ticks-since-start (mean [water-level] of land-patches)
+end
+
+to-report ticks-since-start
+  report ticks - ticks-at-start
+end
+
 
 
 
@@ -934,7 +965,7 @@ ticks
 BUTTON
 30
 60
-230
+235
 100
 START/STOP
 go\n
@@ -951,7 +982,7 @@ NIL
 BUTTON
 30
 15
-230
+235
 55
 OPSÆT / NULSTIL SIMULATIONEN
 setup\n
@@ -976,7 +1007,7 @@ Jordtype
 3
 
 BUTTON
-395
+410
 535
 550
 570
@@ -1147,7 +1178,7 @@ mur-højde
 mur-højde
 0.5
 4
-4.0
+2.0
 0.5
 1
 m
@@ -1171,11 +1202,11 @@ NIL
 1
 
 PLOT
-1105
+1085
 180
-1455
-370
-Gns. vandspejl på land
+1495
+410
+Gennemsnitligt vandspejl på land
 tid
 vandspejl (m)
 0.0
@@ -1183,16 +1214,15 @@ vandspejl (m)
 0.0
 1.0E-6
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -13345367 true "" "plot mean [water-level] of land-patches"
 
 BUTTON
-1330
-535
-1495
-568
+1305
+515
+1470
+548
 Vis oversvømmelse
 oversvøm
 T
@@ -1208,7 +1238,7 @@ NIL
 SWITCH
 300
 535
-390
+405
 568
 vis-regn?
 vis-regn?
@@ -1314,16 +1344,6 @@ Visualisering
 1
 
 TEXTBOX
-590
-555
-850
-581
-https://www.dmi.dk/vejrarkiv/normaler-danmark/
-11
-12.0
-1
-
-TEXTBOX
 100
 390
 200
@@ -1344,10 +1364,10 @@ Havets vandstand
 1
 
 TEXTBOX
-1125
-405
-1230
-455
+1115
+445
+1260
+495
 Indbyggernes utilfredshed
 17
 0.0
@@ -1356,7 +1376,7 @@ Indbyggernes utilfredshed
 TEXTBOX
 695
 430
-940
+1015
 451
 Kør automatisk nedbørs-periode
 17
@@ -1364,9 +1384,9 @@ Kør automatisk nedbørs-periode
 1
 
 CHOOSER
-585
+575
 510
-905
+870
 555
 periode
 periode
@@ -1374,11 +1394,11 @@ periode
 2
 
 BUTTON
-910
-510
+575
+560
 1075
-555
-Afspil periode
+596
+Afspil periode (og fjern alt vand fra systemet først)
 run-month
 NIL
 1
@@ -1391,7 +1411,7 @@ NIL
 1
 
 MONITOR
-585
+575
 455
 1075
 504
@@ -1401,21 +1421,11 @@ auto-interface
 1
 12
 
-TEXTBOX
-850
-555
-1105
-575
-Maksimal 5-døgns-nedbør 1981-2010: 55.23 mm
-11
-14.0
-1
-
 SLIDER
-1330
-500
-1495
-533
+1305
+550
+1470
+583
 hav-stigning
 hav-stigning
 0
@@ -1429,7 +1439,7 @@ HORIZONTAL
 TEXTBOX
 1105
 35
-1385
+1390
 71
 Hold musen over kortet for at tjekke terrænhøjde og vandspejl forskellige steder.
 13
@@ -1461,7 +1471,7 @@ wl-here
 TEXTBOX
 1165
 10
-1315
+1340
 31
 Tjek forhold
 17
@@ -1470,34 +1480,59 @@ Tjek forhold
 
 TEXTBOX
 1305
-400
+465
 1495
-495
-(KØR EFTER SETUP, UDEN MODELLEN KØRER)\nbehold denne animation separat fra, når modellen kører?) (virker med wall-patches nu)
-13
-13.0
+510
+Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
+12
+0.0
 1
 
 MONITOR
-1120
-455
-1237
-500
-NIL
+1115
+495
+1240
+540
+Samlet utilfredshed
 samlet-utilfredshed
 17
 1
 11
 
 TEXTBOX
-1120
-505
-1270
-530
+1115
+545
+1265
+570
 Opdateres, når musen holdes uden for kortet.
 11
 0.0
 1
+
+TEXTBOX
+1325
+440
+1475
+461
+Oversvømmelse
+17
+0.0
+1
+
+SLIDER
+875
+520
+1075
+553
+%-ekstra-regn
+%-ekstra-regn
+0
+100
+0.0
+5
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1848,7 +1883,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
