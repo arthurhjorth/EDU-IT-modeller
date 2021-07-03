@@ -993,7 +993,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.6
+0.4
 0.1
 1
 NIL
@@ -1060,7 +1060,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-0
+1
 
 MONITOR
 195
@@ -1396,7 +1396,7 @@ running-speed
 running-speed
 0
 2
-0.7
+0.2
 0.1
 1
 NIL
