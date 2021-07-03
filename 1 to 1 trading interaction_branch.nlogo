@@ -108,33 +108,33 @@ to populate ;;run in setup. Create starting population
 
  if price-setting = "market-clearing"
   [
-  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
+  repeat (1) [ make-market-ppls "merchants"]
+  repeat (1) [ make-market-ppls "consumers"]
   ]
 
 
   if price-setting = "equilibrium"
   [
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
+  repeat (1) [ make-equilibrium-ppls "merchants"]
+  repeat (1) [ make-equilibrium-ppls "consumers"]
   ]
 
 
   if price-setting = "random"
   [
-  repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  repeat (1) [ make-random-ppls "merchants"]
+  repeat (1) [ make-random-ppls "consumers"]
   ]
 
 
   if compare-all-price-settings?
   [
-  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
-   repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
-   repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  repeat (1) [ make-market-ppls "merchants"]
+  repeat (1) [ make-market-ppls "consumers"]
+   repeat (1) [ make-equilibrium-ppls "merchants"]
+  repeat (1) [ make-equilibrium-ppls "consumers"]
+   repeat (1) [ make-random-ppls "merchants"]
+  repeat (1) [ make-random-ppls "consumers"]
   ]
 
 
@@ -232,7 +232,7 @@ to make-random-ppls [kind]
    set money money-consumers
    set tableware tableware-consumers
    set mrs 0
-      set color yellow - 0.3
+      set color yellow - 0.6
       setxy 10 -12.5
   ]
   ]
@@ -331,7 +331,7 @@ end
 
 
 
-to trade
+to trade ;not currently in use
   calculate-utility ;currently only used for choosing quantity
 
 ;;;;;;;;;-------------;;;;;;;;; Choosing price:
@@ -505,24 +505,30 @@ to trade2
 if price-setting = "equilibrium" [
     set-equilibrium-price
     decide-quantity
+    trade-and-update-holdings   ; ----  done separately from decide-function!
   ]
 
 
   if price-setting = "random" [
     set-random-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
 if price-setting = "choose price" [
   decide-quantity
+    trade-and-update-holdings
   ]
 
+
+  ;@@lisa: differing by price-setting is not so great for an all-in-one model. Needed: distinguish between the different agents.
+  ;; idea: price-setting included in agent-setup? or unique IDs for the turtles. or refering within their spaces.
 
   if compare-all-price-settings? [
     set-equilibrium-price
     set-random-price
     decide-quantity
-  ] ;@@lisa: missing in quantity. needs to be divided again
+  ] ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 
 end
 
@@ -655,7 +661,10 @@ ask merchants [
 
       ]
     ]
+end
 
+
+to trade-and-update-holdings
 if deal > 0 [
      ask consumers [
        set tableware temp-tableware
@@ -1050,7 +1059,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-2
+1
 
 MONITOR
 195
@@ -1206,7 +1215,7 @@ SWITCH
 573
 tableware-breakage?
 tableware-breakage?
-0
+1
 1
 -1000
 
@@ -1230,7 +1239,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-6.0
+1.0
 1
 1
 NIL
@@ -1245,7 +1254,7 @@ salary-daily
 salary-daily
 0
 20
-10.0
+20.0
 1
 1
 NIL
@@ -1332,7 +1341,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 20
-6.0
+2.0
 1
 1
 NIL
@@ -1385,9 +1394,9 @@ SLIDER
 running-speed
 running-speed
 0
-2
-0.2
-0.1
+1
+0.25
+0.05
 1
 NIL
 HORIZONTAL
@@ -1402,16 +1411,15 @@ monitor only prices from succesful trades
 0.0
 1
 
-INPUTBOX
-4
-48
-153
-108
-nr-ppl
-2.0
+TEXTBOX
+11
+264
+161
+292
+all agents are using one mode right now
+11
+0.0
 1
-0
-Number
 
 @#$#@#$#@
 ## WHAT IS IT?
