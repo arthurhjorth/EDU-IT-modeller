@@ -42,6 +42,7 @@ globals [
   %-valgt ;saving %-ekstra-regn from interface
   total-auto-mængde
   ticks-at-start ;for plot
+  colors-left ;so plot line colors don't repeat
 
   samlet-utilfredshed ;utilfredshed
 ]
@@ -110,6 +111,7 @@ to setup-variables
   ]
   set wall-patches no-patches set mid-wall-patches no-patches
   set running-month? false
+  set colors-left [105 65 15 44 134 25 34 4 125 115 black black black black black black] ;used for plot pens
 end
 
 
@@ -119,6 +121,8 @@ to go
 
   set avg-sea-level mean [water-level] of sea-patches
   update-time
+
+  if not running-month? [update-plot]
 
   ;MAYBE AUTO-RAIN FROM MONTH DATA:
   if running-month? [ ;if currently auto-running a month of rain:
@@ -822,7 +826,7 @@ end
 to run-month
   ask patches [set water-level 0]
   set month-table table:make ;initialize empty table
-  let data import-month periode ;import month data from csv. måned is the interface chooser
+  let data import-month periode ;import month data from csv. periode is the interface chooser
   set auto-måned periode ;in case they change the chooser while running
   set %-valgt %-ekstra-regn ;saving the variable
 
@@ -834,10 +838,10 @@ to run-month
     let the-day (word item 0 full-date item 1 full-date) ;e.g. "02"
     let the-time data-time full-date ;e.g. "07:00"
     let day-and-time (word the-day the-time) ;e.g. "0207:00" - this is the key
-    let the-rain (item 1 x) * ( 1 + (%-valgt / 100) ) ;e.g. 0.4 * 1.15
+    let the-rain (item 1 x) * ( 1 + (%-valgt / 100) ) ;e.g. 0.4 * 1.15 ;tilføjer scaler
     ;ignorerer nedbørsminutter, bruger kun antal mm
 
-    table:put month-table day-and-time the-rain ;table, key, value
+    if the-rain != 0 [ table:put month-table day-and-time the-rain ] ;table, key, value ;only keeping the times it actually rained
   ]
 
   ;set total-auto-mængde
@@ -879,17 +883,25 @@ end
 
 
 ;---PLOT
-to setup-plot-pen ;run in run-month
+to setup-plot-pen ;run in run-month (so new line starts plotting every time it's run)
   set-current-plot "Gennemsnitligt vandspejl på land"
 
   create-temporary-plot-pen (word periode " " %-valgt " %")
-  set-plot-pen-color one-of [red green blue black orange pink] ;@fix
+  set-plot-pen-color first colors-left
+  set colors-left but-first colors-left
 end
 
-to update-plot
-  set-current-plot-pen (word periode " " %-valgt " %")
+to update-plot ;run in go
+  ifelse running-month? [
+    set-current-plot-pen (word periode " " %-valgt " %")
+    plotxy ticks-since-start (mean [water-level] of land-patches)
+  ]
+  [ ;if not auto-running month:
+    create-temporary-plot-pen "Vandspejl" ;if it already exists, it just sets it as the current one
+    plotxy ticks (mean [water-level] of land-patches)
+  ]
 
-  plotxy ticks-since-start (mean [water-level] of land-patches)
+
 end
 
 to-report ticks-since-start
@@ -1004,7 +1016,7 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-3
+4
 
 BUTTON
 410
@@ -1354,11 +1366,11 @@ Jordtype
 1
 
 TEXTBOX
-65
+40
 475
-240
-496
-Havets vandstand
+290
+493
+Hav-vandstand/stormflod
 17
 0.0
 1
@@ -1391,7 +1403,7 @@ CHOOSER
 periode
 periode
 "Maj 2010" "Maj 2021" "2. - 8. maj 2021"
-2
+0
 
 BUTTON
 575
@@ -1491,7 +1503,7 @@ Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
 MONITOR
 1115
 495
-1240
+1255
 540
 Samlet utilfredshed
 samlet-utilfredshed
@@ -1528,7 +1540,7 @@ SLIDER
 %-ekstra-regn
 0
 100
-0.0
+45.0
 5
 1
 %
