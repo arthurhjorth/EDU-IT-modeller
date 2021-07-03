@@ -1,6 +1,6 @@
 globals [
   price
-  market-price
+  market-clearing-price
   equilibrium-price
   random-price
   price-temporary
@@ -9,7 +9,7 @@ globals [
   deal
   succesful-trades
   price-list
-  market-price-list
+  market-clearing-price-list
   equilibrium-price-list
   random-price-list
 
@@ -317,19 +317,6 @@ to set-partner
 
 end
 
-to calculate-market-clearing-price
-
-set price-temporary 0.1
-
-repeat 200 [
-
-
-  ]
-
-end
-
-
-
 
 to trade
   calculate-utility ;currently only used for choosing quantity
@@ -502,7 +489,13 @@ end
 ; price-setting in seperate functions for the purpose of the all-in-one condition
 
 to trade2
-if price-setting = "equilibrium" [
+
+  if price-setting = "market-clearing" [
+    set-market-clearing-price
+    decide-quantity
+  ]
+
+  if price-setting = "equilibrium" [
     set-equilibrium-price
     decide-quantity
   ]
@@ -521,12 +514,29 @@ if price-setting = "choose price" [
   if compare-all-price-settings? [
     set-equilibrium-price
     set-random-price
+    set-market-clearing-price
     decide-quantity
   ] ;@@lisa: missing in quantity. needs to be divided again
 
 end
 
 
+to set-market-clearing-price
+
+set price-temporary 0.1
+
+repeat 200 [
+
+
+  ]
+
+set market-clearing-price precision 0.1 2
+
+set market-clearing-price-list fput market-clearing-price market-clearing-price-list
+
+;set market-clearing-price AND market-clearing-price-list
+
+end
 
 to set-equilibrium-price
 
@@ -677,7 +687,7 @@ End
 
 to create-price-lists
   set price-list []
-  set market-price-list []
+  set market-clearing-price-list []
   set equilibrium-price-list []
   set random-price-list []
 end
@@ -983,7 +993,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.4
+0.6
 0.1
 1
 NIL
@@ -1050,7 +1060,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-2
+0
 
 MONITOR
 195
@@ -1386,7 +1396,7 @@ running-speed
 running-speed
 0
 2
-0.2
+0.7
 0.1
 1
 NIL
