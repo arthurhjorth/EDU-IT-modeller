@@ -108,33 +108,33 @@ to populate ;;run in setup. Create starting population
 
  if price-setting = "market-clearing"
   [
-  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
+  repeat 1 [ make-market-ppls "merchants"]
+  repeat 1 [ make-market-ppls "consumers"]
   ]
 
 
   if price-setting = "equilibrium"
   [
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
+  repeat 1 [ make-equilibrium-ppls "merchants"]
+  repeat 1 [ make-equilibrium-ppls "consumers"]
   ]
 
 
   if price-setting = "random"
   [
-  repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  repeat 1 [ make-random-ppls "merchants"]
+  repeat 1 [ make-random-ppls "consumers"]
   ]
 
 
   if compare-all-price-settings?
   [
-  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
-   repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
-   repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  repeat 1 [ make-market-ppls "merchants"]
+  repeat 1 [ make-market-ppls "consumers"]
+   repeat 1 [ make-equilibrium-ppls "merchants"]
+  repeat 1 [ make-equilibrium-ppls "consumers"]
+   repeat 1 [ make-random-ppls "merchants"]
+  repeat 1 [ make-random-ppls "consumers"]
   ]
 
 
@@ -493,21 +493,25 @@ to trade2
   if price-setting = "market-clearing" [
     set-market-clearing-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
   if price-setting = "equilibrium" [
     set-equilibrium-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
 
   if price-setting = "random" [
     set-random-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
 if price-setting = "choose price" [
   decide-quantity
+    trade-and-update-holdings
   ]
 
 
@@ -516,7 +520,8 @@ if price-setting = "choose price" [
     set-random-price
     set-market-clearing-price
     decide-quantity
-  ] ;@@lisa: missing in quantity. needs to be divided again
+    trade-and-update-holdings
+  ] ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 
 end
 
@@ -665,6 +670,10 @@ ask merchants [
 
       ]
     ]
+
+end
+
+to trade-and-update-holdings
 
 if deal > 0 [
      ask consumers [
@@ -1060,7 +1069,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-1
+0
 
 MONITOR
 195
@@ -1411,17 +1420,6 @@ monitor only prices from succesful trades
 11
 0.0
 1
-
-INPUTBOX
-4
-48
-153
-108
-nr-ppl
-2.0
-1
-0
-Number
 
 @#$#@#$#@
 ## WHAT IS IT?
