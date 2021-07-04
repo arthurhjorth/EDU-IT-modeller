@@ -34,7 +34,11 @@ merchants-own [
   temp-tableware
   temp-money
   temp-utility
-
+  ;for market-clearing
+  temp-budget
+  optimal-tableware
+  supply
+  demand
  ]
 
 consumers-own [
@@ -52,6 +56,11 @@ consumers-own [
   temp-tableware
   temp-money
   temp-utility
+  ;for market clearing
+  temp-budget
+  optimal-tableware
+  supply
+  demand
 
 ]
 
@@ -526,6 +535,16 @@ to set-market-clearing-price
 set price-temporary 0.1
 
 repeat 200 [
+    ask turtles [
+      set temp-budget ( tableware * price-temporary ) + money
+      set  optimal-tableware round ( temp-budget * alpha / price-temporary )
+      ;if optimalChocs < 1  [ set optimalChocs 1 ]
+
+    ]
+
+
+
+    set price-temporary price-temporary + 0.1
 
 
   ]
