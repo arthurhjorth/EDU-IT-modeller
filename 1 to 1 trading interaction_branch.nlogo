@@ -117,33 +117,33 @@ to populate ;;run in setup. Create starting population
 
  if price-setting = "market-clearing"
   [
-  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
+  repeat 1 [ make-market-ppls "merchants"]
+  repeat 1 [ make-market-ppls "consumers"]
   ]
 
 
   if price-setting = "equilibrium"
   [
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
+  repeat 1 [ make-equilibrium-ppls "merchants"]
+  repeat 1 [ make-equilibrium-ppls "consumers"]
   ]
 
 
   if price-setting = "random"
   [
-  repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  repeat 1 [ make-random-ppls "merchants"]
+  repeat 1 [ make-random-ppls "consumers"]
   ]
 
 
   if compare-all-price-settings?
   [
-  repeat (nr-ppl / 2) [ make-market-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-market-ppls "consumers"]
-   repeat (nr-ppl / 2) [ make-equilibrium-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-equilibrium-ppls "consumers"]
-   repeat (nr-ppl / 2) [ make-random-ppls "merchants"]
-  repeat (nr-ppl / 2) [ make-random-ppls "consumers"]
+  repeat 1 [ make-market-ppls "merchants"]
+  repeat 1 [ make-market-ppls "consumers"]
+   repeat 1 [ make-equilibrium-ppls "merchants"]
+  repeat 1 [ make-equilibrium-ppls "consumers"]
+   repeat 1 [ make-random-ppls "merchants"]
+  repeat 1 [ make-random-ppls "consumers"]
   ]
 
 
@@ -502,21 +502,25 @@ to trade2
   if price-setting = "market-clearing" [
     set-market-clearing-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
   if price-setting = "equilibrium" [
     set-equilibrium-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
 
   if price-setting = "random" [
     set-random-price
     decide-quantity
+    trade-and-update-holdings
   ]
 
 if price-setting = "choose price" [
   decide-quantity
+    trade-and-update-holdings
   ]
 
 
@@ -525,7 +529,8 @@ if price-setting = "choose price" [
     set-random-price
     set-market-clearing-price
     decide-quantity
-  ] ;@@lisa: missing in quantity. needs to be divided again
+    trade-and-update-holdings
+  ] ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 
 end
 
@@ -684,6 +689,10 @@ ask merchants [
 
       ]
     ]
+
+end
+
+to trade-and-update-holdings
 
 if deal > 0 [
      ask consumers [
@@ -844,6 +853,28 @@ end
 
 
 to-report mean-price
+  if length price-list > 0 [
+report ( ( sum price-list ) / ( length price-list ) )
+  ]
+end
+
+to-report mean-market-clearing-price ;@@lisa: still missing to count succesful only + amount
+  set price-list market-clearing-price-list
+  if length price-list > 0 [
+report ( ( sum price-list ) / ( length price-list ) )
+  ]
+end
+
+
+to-report mean-equilibrium-price
+  set price-list equilibrium-price-list
+  if length price-list > 0 [
+report ( ( sum price-list ) / ( length price-list ) )
+  ]
+end
+
+to-report mean-random-price
+  set price-list random-price-list
   if length price-list > 0 [
 report ( ( sum price-list ) / ( length price-list ) )
   ]
@@ -1079,7 +1110,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-1
+2
 
 MONITOR
 195
@@ -1235,7 +1266,7 @@ SWITCH
 573
 tableware-breakage?
 tableware-breakage?
-0
+1
 1
 -1000
 
@@ -1378,12 +1409,12 @@ quantity-options
 1
 
 MONITOR
-935
-591
-1085
-636
-mean price/ tableware
-precision mean-price 2
+892
+625
+1042
+670
+Market Clearing
+precision mean-market-clearing-price 2
 17
 1
 11
@@ -1402,7 +1433,7 @@ SWITCH
 261
 compare-all-price-settings?
 compare-all-price-settings?
-0
+1
 1
 -1000
 
@@ -1422,25 +1453,56 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1096
-599
-1246
-627
-monitor only prices from succesful trades
+896
+670
+1266
+698
+missing: monitor only prices from succesful trades
 11
 0.0
 1
 
-INPUTBOX
-4
-48
-153
-108
-nr-ppl
-2.0
+TEXTBOX
+30
+271
+180
+299
+all agents are using one mode for now
+11
+0.0
 1
-0
-Number
+
+TEXTBOX
+896
+594
+1323
+622
+                               Average price of tableware per succesful trade\nMarket clearing                                    Equilibrium                                           Random
+11
+0.0
+1
+
+MONITOR
+1076
+622
+1159
+667
+Equilibrium
+precision mean-equilibrium-price 2
+17
+1
+11
+
+MONITOR
+1265
+622
+1329
+667
+Random
+precision mean-random-price 2
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
