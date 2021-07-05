@@ -370,7 +370,7 @@ to-report max-capacity ;patch reporter. Mætheds/vand-kapacitet (målt i hvor ma
   let scaler 2 ;@fix this scale
   let capacity-multiplier (terrain-height - avg-sea-level * 2 ) / terrain-height
 
-  let final-max-capacity (terrain-height * seepage-m-per-s ) * capacity-multiplier * 100
+  let final-max-capacity (terrain-height * seepage-m-per-s ) * capacity-multiplier * 500
 
   report ifelse-value (final-max-capacity > 0) [final-max-capacity] [0]
 ;
@@ -906,7 +906,7 @@ end
 
 to update-plot ;run in go
   ifelse running-month? [
-    set-current-plot-pen (word periode " " %-valgt " %")
+    set-current-plot-pen (word periode " " %-valgt " % og havvandstand " hav-niveau)
     plotxy ticks-since-start (mean [water-level] of land-patches)
   ]
   [ ;if not auto-running month:
@@ -1049,15 +1049,15 @@ NIL
 1
 
 SLIDER
-10
-500
-260
-533
+1500
+205
+1750
+238
 hav-niveau
 hav-niveau
 0
 12
-2.25
+1.5
 .25
 1
 m
@@ -1227,10 +1227,10 @@ NIL
 1
 
 PLOT
-1085
-180
-1736
-410
+1500
+240
+2151
+470
 Gennemsnitligt vandstand på land
 tid
 vandspejl (m)
@@ -1322,10 +1322,10 @@ money-left
 11
 
 BUTTON
-10
-535
-260
-568
+5
+570
+255
+603
 Sæt hav-niveau
 hæv-havet
 NIL
@@ -1389,40 +1389,40 @@ Hav-vandstand/stormflod
 1
 
 TEXTBOX
-1115
-445
-1260
-495
+595
+440
+740
+490
 Indbyggernes utilfredshed
 17
 0.0
 1
 
 TEXTBOX
-695
-430
-1015
-451
+1620
+35
+1940
+56
 Kør automatisk nedbørs-periode
 17
 0.0
 1
 
 CHOOSER
-575
-510
-870
-555
+1500
+115
+1795
+160
 periode
 periode
 "Maj 2010" "Maj 2021" "2. - 8. maj 2021"
 2
 
 BUTTON
-575
-560
-1075
-596
+1500
+165
+2000
+201
 Afspil periode (og fjern alt vand fra systemet først)
 run-month
 NIL
@@ -1436,10 +1436,10 @@ NIL
 1
 
 MONITOR
-575
-455
-1075
-504
+1500
+60
+2000
+109
 NIL
 auto-interface
 17
@@ -1455,7 +1455,7 @@ hav-stigning
 hav-stigning
 0
 12
-0.0
+10.0
 0.5
 1
 NIL
@@ -1514,10 +1514,10 @@ Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
 1
 
 MONITOR
-1115
-495
-1255
-540
+595
+490
+735
+535
 Samlet utilfredshed
 samlet-utilfredshed
 17
@@ -1525,10 +1525,10 @@ samlet-utilfredshed
 11
 
 TEXTBOX
-1115
-545
-1265
-570
+595
+540
+745
+565
 Opdateres, når musen holdes uden for kortet.
 11
 0.0
@@ -1545,15 +1545,15 @@ Oversvømmelse
 1
 
 SLIDER
-875
-520
-1075
-553
+1800
+125
+2000
+158
 %-ekstra-regn
 %-ekstra-regn
 0
 100
-50.0
+20.0
 5
 1
 %
@@ -1908,7 +1908,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
