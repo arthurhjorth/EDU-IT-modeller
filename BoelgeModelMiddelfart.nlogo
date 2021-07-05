@@ -40,6 +40,8 @@ globals [
   running-month?
   auto-måned ;saving måned to this in case chooser is changed
   %-valgt ;saving %-ekstra-regn from interface
+  hav-niveau-valgt
+  periode-valgt
   total-auto-mængde
   ticks-at-start ;for plot
   colors-left ;so plot line colors don't repeat
@@ -841,7 +843,11 @@ to run-month
   set month-table table:make ;initialize empty table
   let data import-month periode ;import month data from csv. periode is the interface chooser
   set auto-måned periode ;in case they change the chooser while running
-  set %-valgt %-ekstra-regn ;saving the variable
+
+  ;saving the variables so any interface changes doesn't confuse the plot pen name:
+  set %-valgt %-ekstra-regn
+  set hav-niveau-valgt hav-niveau
+  set periode-valgt periode
 
   ;create table
   foreach data [ ;each entry is in the form ["02-05-2021 07:00" 0.4 4] ;dato, nedbør per time (i mm), nedbørsminutter
@@ -899,14 +905,15 @@ end
 to setup-plot-pen ;run in run-month (so new line starts plotting every time it's run)
   set-current-plot "Gennemsnitligt vandstand på land"
 
-  create-temporary-plot-pen (word periode " " %-valgt " % og havvandstand " hav-niveau)
+  create-temporary-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
   set-plot-pen-color first colors-left
   set colors-left but-first colors-left
 end
 
 to update-plot ;run in go
   ifelse running-month? [
-    set-current-plot-pen (word periode " " %-valgt " % og havvandstand " hav-niveau)
+    set-current-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
+    if ticks-since-start = 0 [plot-pen-up plotxy 0 0 plot-pen-down] ;undgår grim linje tilbage gennem plottet, hvis den samme pen restartes
     plotxy ticks-since-start (mean [water-level] of land-patches)
   ]
   [ ;if not auto-running month:
@@ -1049,15 +1056,15 @@ NIL
 1
 
 SLIDER
-1500
-205
-1750
-238
+1145
+340
+1395
+373
 hav-niveau
 hav-niveau
 0
 12
-1.5
+0.0
 .25
 1
 m
@@ -1227,10 +1234,10 @@ NIL
 1
 
 PLOT
-1500
-240
-2151
-470
+1145
+375
+1796
+605
 Gennemsnitligt vandstand på land
 tid
 vandspejl (m)
@@ -1244,9 +1251,9 @@ true
 PENS
 
 BUTTON
-1305
+945
 515
-1470
+1110
 548
 Vis oversvømmelse
 oversvøm
@@ -1399,30 +1406,30 @@ Indbyggernes utilfredshed
 1
 
 TEXTBOX
-1620
-35
-1940
-56
+1265
+170
+1585
+191
 Kør automatisk nedbørs-periode
 17
 0.0
 1
 
 CHOOSER
-1500
-115
-1795
-160
+1145
+250
+1440
+295
 periode
 periode
 "Maj 2010" "Maj 2021" "2. - 8. maj 2021"
 2
 
 BUTTON
-1500
-165
-2000
-201
+1145
+300
+1645
+336
 Afspil periode (og fjern alt vand fra systemet først)
 run-month
 NIL
@@ -1436,10 +1443,10 @@ NIL
 1
 
 MONITOR
-1500
-60
-2000
-109
+1145
+195
+1645
+244
 NIL
 auto-interface
 17
@@ -1447,9 +1454,9 @@ auto-interface
 12
 
 SLIDER
-1305
+945
 550
-1470
+1110
 583
 hav-stigning
 hav-stigning
@@ -1504,9 +1511,9 @@ Tjek forhold
 1
 
 TEXTBOX
-1305
+945
 465
-1495
+1135
 510
 Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
 12
@@ -1535,9 +1542,9 @@ Opdateres, når musen holdes uden for kortet.
 1
 
 TEXTBOX
-1325
+965
 440
-1475
+1115
 461
 Oversvømmelse
 17
@@ -1545,10 +1552,10 @@ Oversvømmelse
 1
 
 SLIDER
-1800
-125
-2000
-158
+1445
+260
+1645
+293
 %-ekstra-regn
 %-ekstra-regn
 0
