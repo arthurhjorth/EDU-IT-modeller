@@ -55,6 +55,9 @@ views-own [my-house-patches my-patches]
 turtles-own [xpos ypos zpos delta-z neighbor-turtles]
 
 patches-own [
+
+  water-table
+
   depth base-height current-momentum next-momentum ;old wave stuff
 
   terrain-height ;baseret på kort fra DKs højdemodel
@@ -86,12 +89,12 @@ end
 
 to setup
   ca
+  import-drawing "mf-map-kystfix-alpha55.png" ;draw city map overlay
   setup-house-patches ;used for tilfredshed
   setup-view-patches
   set-terrain-height
   setup-variables
   ask patches [recolor]
-  import-drawing "mf-map-kystfix-alpha55.png" ;draw city map overlay
   reset-ticks
 end
 
@@ -120,6 +123,8 @@ to go
   set mid-wall-patches wall-patches with [not any? neighbors with [not wall-patch?]] ;her i stedet for reporter
 
   set avg-sea-level mean [water-level] of sea-patches
+  ask land-patches [set water-table avg-sea-level]
+
   update-time
 
   if not running-month? [update-plot]
@@ -362,14 +367,21 @@ end
 
 to-report max-capacity ;patch reporter. Mætheds/vand-kapacitet (målt i hvor mange meter vand den kan holde?)
   ;jordtype og højde
-  let scaler 5 ;@fix this scale
+  let scaler 2 ;@fix this scale
+  let capacity-multiplier (terrain-height - avg-sea-level * 2 ) / terrain-height
 
-  ifelse ( (terrain-height - avg-sea-level) * seepage-m-per-s * scaler ) > 0 [
-    report (terrain-height - avg-sea-level) * seepage-m-per-s * scaler ;jo hurtigere nedsivning, jo grovere jord, og jo større kapacitet før mæthed...
-  ]
-  [
-    report 0 ;så den ikke bliver negativ...
-  ]
+  let final-max-capacity (terrain-height * seepage-m-per-s ) * capacity-multiplier * 100
+
+  report ifelse-value (final-max-capacity > 0) [final-max-capacity] [0]
+;
+;
+;
+;  ifelse ( (terrain-height - avg-sea-level * 1.4) * seepage-m-per-s * scaler ) > 0 [
+;    report (terrain-height - avg-sea-level) * seepage-m-per-s * scaler ;jo hurtigere nedsivning, jo grovere jord, og jo større kapacitet før mæthed...
+;  ]
+;  [
+;    report 0 ;så den ikke bliver negativ...
+;  ]
 
 
   ;@er forholdet rigtigt? skal tallet tweakes? ;@enhed??? i meter???
@@ -825,6 +837,7 @@ end
 
 to run-month
   ask patches [set water-level 0]
+  hæv-havet
   set month-table table:make ;initialize empty table
   let data import-month periode ;import month data from csv. periode is the interface chooser
   set auto-måned periode ;in case they change the chooser while running
@@ -884,9 +897,9 @@ end
 
 ;---PLOT
 to setup-plot-pen ;run in run-month (so new line starts plotting every time it's run)
-  set-current-plot "Gennemsnitligt vandspejl på land"
+  set-current-plot "Gennemsnitligt vandstand på land"
 
-  create-temporary-plot-pen (word periode " " %-valgt " %")
+  create-temporary-plot-pen (word periode " " %-valgt " % og havvandstand " hav-niveau)
   set-plot-pen-color first colors-left
   set colors-left but-first colors-left
 end
@@ -897,7 +910,7 @@ to update-plot ;run in go
     plotxy ticks-since-start (mean [water-level] of land-patches)
   ]
   [ ;if not auto-running month:
-    create-temporary-plot-pen "Vandspejl" ;if it already exists, it just sets it as the current one
+    create-temporary-plot-pen "Vandstand" ;if it already exists, it just sets it as the current one
     plotxy ticks (mean [water-level] of land-patches)
   ]
 
@@ -1081,7 +1094,7 @@ mm-per-15-min
 mm-per-15-min
 0
 15
-6.5
+4.5
 .5
 1
 mm
@@ -1216,9 +1229,9 @@ NIL
 PLOT
 1085
 180
-1495
+1736
 410
-Gennemsnitligt vandspejl på land
+Gennemsnitligt vandstand på land
 tid
 vandspejl (m)
 0.0
@@ -1403,7 +1416,7 @@ CHOOSER
 periode
 periode
 "Maj 2010" "Maj 2021" "2. - 8. maj 2021"
-0
+2
 
 BUTTON
 575
@@ -1474,7 +1487,7 @@ MONITOR
 115
 1360
 160
-Vandspejl
+Vandstand
 wl-here
 17
 1
@@ -1540,7 +1553,7 @@ SLIDER
 %-ekstra-regn
 0
 100
-45.0
+50.0
 5
 1
 %
@@ -1895,7 +1908,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
