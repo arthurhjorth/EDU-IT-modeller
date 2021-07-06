@@ -292,6 +292,7 @@ end
 
 to update-mrs
 ask merchants [
+    if tableware = 0 [set mrs "no tableware left" stop]
     let nr ( alpha-merchants * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
@@ -300,6 +301,7 @@ ask merchants [
 
 
 ask consumers [
+    if tableware = 0 [set mrs "no tableware left" stop]
     let nr ( alpha-consumers * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
@@ -1093,10 +1095,10 @@ Variables for the consumer breed\n
 1
 
 MONITOR
-1082
-10
-1132
-55
+564
+447
+614
+492
 price
 precision report-price 2
 17
@@ -1104,10 +1106,10 @@ precision report-price 2
 11
 
 MONITOR
-1087
-78
-1243
-123
+1440
+23
+1596
+68
 NIL
 report-mrs-merchants
 17
@@ -1115,10 +1117,10 @@ report-mrs-merchants
 11
 
 MONITOR
-911
-76
-1064
-121
+1264
+21
+1417
+66
 NIL
 report-mrs-consumers
 17
@@ -1158,10 +1160,10 @@ report-beta-consumers
 11
 
 MONITOR
-1096
-153
-1238
-198
+1103
+22
+1245
+67
 NIL
 report-offer-merchants
 17
@@ -1169,10 +1171,10 @@ report-offer-merchants
 11
 
 MONITOR
-897
-153
-1093
-198
+904
+22
+1100
+67
 NIL
 report-offer-consumers
 17
@@ -1195,10 +1197,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1266
-252
-1404
-297
+952
+150
+1090
+195
 merchant-tableware
 nr-tableware-merchants
 17
@@ -1206,10 +1208,10 @@ nr-tableware-merchants
 11
 
 MONITOR
-1386
-252
-1506
-297
+1072
+150
+1192
+195
 merchant-money
 nr-money-merchants
 17
@@ -1217,21 +1219,21 @@ nr-money-merchants
 11
 
 MONITOR
-1266
-206
-1387
-251
+952
+104
+1073
+149
 consumer-tableware
-nr-tableware-consumers
+round ( nr-tableware-consumers )
 17
 1
 11
 
 MONITOR
-1386
-207
-1506
-252
+1073
+104
+1193
+149
 consumer-money
 nr-money-consumers
 17
@@ -1239,10 +1241,10 @@ nr-money-consumers
 11
 
 MONITOR
-722
-452
-847
-497
+768
+450
+890
+495
 NIL
 nr-succesful-trades
 17
@@ -1294,12 +1296,12 @@ tableware-breakage?
 -1000
 
 MONITOR
-1283
-298
-1389
-343
+969
+196
+1075
+241
 total-tableware
-total-tableware
+round ( total-tableware )
 17
 1
 11
@@ -1313,7 +1315,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-6.0
+1.0
 1
 1
 NIL
@@ -1335,10 +1337,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1389
-298
-1478
-343
+1075
+196
+1164
+241
 total-money
 round ( total-money )
 17
@@ -1346,50 +1348,50 @@ round ( total-money )
 11
 
 TEXTBOX
-1329
-154
-1479
-172
-Current holdings
+1021
+72
+1171
+90
+CURRENT HOLDINGS
 11
 0.0
 1
 
 TEXTBOX
-959
-133
-1179
-161
+966
+10
+1186
+38
 Most recent offer (quantity to buy/ sell)
 11
 0.0
 1
 
 TEXTBOX
-955
-58
-1191
-86
+1312
+10
+1548
+38
 Current marginal rate of substitution (MRS)
 11
 0.0
 1
 
 TEXTBOX
-909
-10
-1073
-38
+459
+454
+553
+482
 Most recent price of tableware
 11
 0.0
 1
 
 PLOT
-900
-443
-1286
-654
+898
+405
+1284
+616
 price/tableware
 Ticks/ time
 price per item
@@ -1408,14 +1410,14 @@ PENS
 SLIDER
 195
 540
-464
+425
 573
 tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
-20
-2.0
-1
+10
+0.2
+0.1
 1
 NIL
 HORIZONTAL
@@ -1431,10 +1433,10 @@ quantity-options
 1
 
 MONITOR
-892
-625
-1042
-670
+890
+651
+1040
+696
 Market Clearing
 precision mean-market-clearing-price 2
 17
@@ -1442,8 +1444,8 @@ precision mean-market-clearing-price 2
 11
 
 OUTPUT
-450
-495
+496
+505
 886
 625
 9
@@ -1460,10 +1462,10 @@ compare-all-price-settings?
 -1000
 
 SLIDER
-535
-450
-707
-483
+627
+451
+751
+484
 running-speed
 running-speed
 0
@@ -1475,10 +1477,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-896
-670
-1266
-698
+894
+696
+1264
+724
 missing: monitor only prices from succesful trades
 11
 0.0
@@ -1495,20 +1497,20 @@ all agents are using one mode for now
 1
 
 TEXTBOX
-896
-594
-1323
-622
+894
+620
+1321
+648
                                Average price of tableware per succesful trade\nMarket clearing                                    Equilibrium                                           Random
 11
 0.0
 1
 
 MONITOR
-1076
-622
-1159
-667
+1074
+648
+1157
+693
 Equilibrium
 precision mean-equilibrium-price 2
 17
@@ -1516,10 +1518,10 @@ precision mean-equilibrium-price 2
 11
 
 MONITOR
-1265
-622
-1329
-667
+1263
+648
+1327
+693
 Random
 precision mean-random-price 2
 17
@@ -1527,11 +1529,11 @@ precision mean-random-price 2
 11
 
 PLOT
-894
-198
-1264
-358
-Holdings
+899
+243
+1269
+403
+Current holdings
 NIL
 NIL
 0.0
@@ -1550,11 +1552,21 @@ PENS
 "merchants money" 1.0 0 -1184463 true "" "plot nr-money-merchants"
 
 TEXTBOX
-1283
-189
-1339
-207
-tableware
+969
+87
+1025
+105
+Tableware
+11
+0.0
+1
+
+TEXTBOX
+1107
+86
+1180
+104
+Money
 11
 0.0
 1
