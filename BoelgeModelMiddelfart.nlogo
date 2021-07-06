@@ -46,7 +46,8 @@ globals [
   ticks-at-start ;for plot
   colors-left ;so plot line colors don't repeat
 
-  samlet-utilfredshed ;utilfredshed
+  samlet-utilfredshed
+  samlet-wall-utilfredshed ;utilfredshed
 ]
 
 breed [ drops drop] ;for rain animation
@@ -200,7 +201,6 @@ to setup-view-patches ;used for tilfredshed, run in setup
 end
 
 to set-terrain-height
-  ;import-pcolors "mf-terrain.png"
   import-pcolors "mf-terrain-grayscale.png"
   ask patches with [pcolor = white] [set pcolor sky] ;the sea
   ask patches with [pcolor = 89.9] [set pcolor 9.8] ;the extreme values, only a few patches
@@ -311,20 +311,10 @@ to-report wl-here ;water-level
   ]
 end
 
-
 to-report unique-pcolor-nr ;to check granularity loss through using scale-color to manipulate terrain map
   ;set testing [pcolor] of patches
   ;report length table:keys table:counts testing
   report "commented out"
-end
-
-
-to import-map
-  ;import-pcolors "middelfart3.png"
-  ;import-pcolors "mf-map-simple.png"
-  import-pcolors "mf-map-contrast.png"
-  ;import-pcolors "mf-terrain.png"
-
 end
 
 to color-correct-map
@@ -617,7 +607,7 @@ to build-wall ;forever button in interface
     ]
   ]
 
-  if not mouse-inside? [update-utilfredshed] ;opdaterer først, når de er færdige med at tegne
+  if not mouse-inside? [update-wall-utilfredshed] ;opdaterer først, når de er færdige med at tegne
 end
 
 to erase-wall ;viskelæder
@@ -632,7 +622,7 @@ to erase-wall ;viskelæder
     ]
   ]
 
-  if not mouse-inside? [update-utilfredshed]
+  if not mouse-inside? [update-wall-utilfredshed]
 end
 
 to remove-all-walls ;interface-knap
@@ -642,18 +632,17 @@ to remove-all-walls ;interface-knap
     set my-wall-height "none"
     recolor display
   ]
-  set samlet-utilfredshed 0
+  set samlet-wall-utilfredshed 0
   set wall-patches no-patches
 end
 
-;--money stuff:
-;to-report wall-patches
- ; report (patch-set patches with [wall-patch?])
-;end
+;--MONEY STUFF:
 
-;to-report mid-wall-patches ;walls surrounded by other walls
- ; report wall-patches with [not any? neighbors with [not wall-patch?]]
-;end
+to get-more-money ;button in interface
+  ;
+
+
+end
 
 to-report money-spent
   report sum [my-wall-price] of wall-patches
@@ -675,15 +664,42 @@ to-report wall-cost
   report mur-højde * 10 ;@højere mure er dyrere
 end
 
-;--tilfredshed stuff:
-to-report happiness
-  report 0 ; @how to measure it?
+;--UTILFREDSHED stuff:
+to update-wall-utilfredshed ;only updated when a wall is built or removed (to optimise)
+  set samlet-wall-utilfredshed sum [wall-utilfredshed] of house-patches
 end
 
+to-report wall-utilfredshed ;house-patch reporter
+  ifelse any? view-patches with [member? self wall-patches] [
+      report ( count view-patches with [member? self wall-patches and total-wall-height > [terrain-height] of myself ] ) / 10 ;@change divisor?
+    ]
+  [
+    report 0
+  ]
+end
 
+to-report extra-utilfredshed ;house-patch reporter
+  ifelse member? self house-patches [
 
-;---
-;VISUALS:
+    let water-utilfredshed 0
+    if water-level > 0.5 [set water-utilfredshed 1] ;@tweak
+
+    let tax-utilfredshed 0
+    ;@add utilfredshed hvis man opkræver flere penge!
+
+    report wall-utilfredshed + water-utilfredshed + tax-utilfredshed ;samlet utilfredshed for denne house-patch
+    ;@procentvis eller noget i stedet for bare additive?
+  ]
+  [ ;if not house-patch:
+    report 0
+  ]
+end
+
+to update-samlet-utilfredshed ;monitor in interface ;@FIX!!!
+  set samlet-utilfredshed round (samlet-wall-utilfredshed + sum [extra-utilfredshed] of house-patches)
+end
+
+;---VISUALS:
 
 to recolor ;patch procedure, reflekterer vandspejlets højde
   ;@SKAL DE FARVES EFTER DEN TOTALE HØJDE? (terræn + water-level eller sea-level + water-level) - eller bare vandspejlet???
@@ -808,21 +824,6 @@ to-report terrain-difference-to [input-terrain-height] ;patch reporter. given a 
   report terrain-height - input-terrain-height
   ;in meters. negative = the ptach's level is lower than the input number.
 end
-
-;--TILFREDSHED
-to update-utilfredshed ;only updated when a wall is built or removed
-  set samlet-utilfredshed sum [utilfredshed] of house-patches
-end
-
-to-report utilfredshed ;house-patch reporter
-  ifelse member? self house-patches and any? view-patches with [member? self wall-patches] [
-    report count view-patches with [member? self wall-patches and total-wall-height > [terrain-height] of myself ]
-  ]
-  [
-    report 0
-  ]
-end
-
 
 
 ;---DATA-IMPORT OG AUTO-KØRSEL
@@ -996,9 +997,9 @@ ticks
 
 BUTTON
 30
-60
-235
-100
+55
+240
+95
 START/STOP
 go\n
 T
@@ -1013,9 +1014,9 @@ NIL
 
 BUTTON
 30
-15
-235
-55
+10
+240
+50
 OPSÆT / NULSTIL SIMULATIONEN
 setup\n
 NIL
@@ -1030,9 +1031,9 @@ NIL
 
 CHOOSER
 10
-415
+455
 110
-460
+500
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
@@ -1057,9 +1058,9 @@ NIL
 
 SLIDER
 1145
-340
+300
 1395
-373
+333
 hav-niveau
 hav-niveau
 0
@@ -1083,9 +1084,9 @@ str-time
 
 MONITOR
 115
-415
+455
 260
-460
+500
 Jordens nedsivningsevne
 nedsivningsevne-interface
 17
@@ -1135,9 +1136,9 @@ day
 
 BUTTON
 115
-270
+250
 260
-325
+305
 BYG EN HØJVANDSMUR
 build-wall
 T
@@ -1152,9 +1153,9 @@ NIL
 
 BUTTON
 95
-150
-175
-183
+130
+185
+163
 Vis højdekort
 clear-drawing\nimport-drawing \"mf-heightline-ref-alpha55.png\"
 NIL
@@ -1168,10 +1169,10 @@ NIL
 1
 
 BUTTON
-180
-150
-260
-183
+190
+130
+270
+163
 Skjul kort
 clear-drawing
 NIL
@@ -1186,9 +1187,9 @@ NIL
 
 BUTTON
 10
-150
+130
 90
-183
+163
 Vis bykort
 clear-drawing\nimport-drawing \"mf-map-kystfix-alpha55.png\"
 NIL
@@ -1203,14 +1204,14 @@ NIL
 
 SLIDER
 115
-230
+210
 260
-263
+243
 mur-højde
 mur-højde
 0.5
 4
-2.0
+4.0
 0.5
 1
 m
@@ -1218,9 +1219,9 @@ HORIZONTAL
 
 BUTTON
 190
-330
+310
 260
-380
+360
 Fjern alle
 remove-all-walls
 NIL
@@ -1280,9 +1281,9 @@ vis-regn?
 
 BUTTON
 115
-330
+310
 185
-380
+360
 Viskelæder
 erase-wall
 T
@@ -1297,9 +1298,9 @@ NIL
 
 INPUTBOX
 10
-230
+210
 110
-290
+270
 Budget
 10000.0
 1
@@ -1308,9 +1309,9 @@ Number
 
 MONITOR
 10
-290
+270
 110
-335
+315
 Beløb brugt
 money-spent
 17
@@ -1319,9 +1320,9 @@ money-spent
 
 MONITOR
 10
-335
+315
 110
-380
+360
 Beløb tilbage
 money-left
 17
@@ -1347,9 +1348,9 @@ NIL
 
 TEXTBOX
 80
-200
+180
 240
-220
+200
 Højvandsmure
 17
 0.0
@@ -1367,9 +1368,9 @@ Nedbør
 
 TEXTBOX
 90
-125
+105
 220
-146
+126
 Visualisering
 17
 0.0
@@ -1377,9 +1378,9 @@ Visualisering
 
 TEXTBOX
 100
-390
+430
 200
-411
+451
 Jordtype
 17
 0.0
@@ -1387,9 +1388,9 @@ Jordtype
 
 TEXTBOX
 40
-475
+510
 290
-493
+528
 Hav-vandstand/stormflod
 17
 0.0
@@ -1427,9 +1428,9 @@ periode
 
 BUTTON
 1145
-300
+335
 1645
-336
+371
 Afspil periode (og fjern alt vand fra systemet først)
 run-month
 NIL
@@ -1473,7 +1474,7 @@ TEXTBOX
 35
 1390
 71
-Hold musen over kortet for at tjekke terrænhøjde og vandspejl forskellige steder.
+Hold musen over kortet for at tjekke terrænhøjde og vandstand forskellige steder.
 13
 0.0
 1
@@ -1534,7 +1535,7 @@ samlet-utilfredshed
 TEXTBOX
 595
 540
-745
+825
 565
 Opdateres, når musen holdes uden for kortet.
 11
@@ -1565,6 +1566,55 @@ SLIDER
 1
 %
 HORIZONTAL
+
+SLIDER
+5
+535
+255
+568
+hav-niveau
+hav-niveau
+0
+12
+0.0
+.25
+1
+m
+HORIZONTAL
+
+BUTTON
+65
+368
+200
+413
+(HÆV SKATTEN!)
+get-more-money
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+740
+490
+815
+535
+Opdatér
+update-samlet-utilfredshed
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
