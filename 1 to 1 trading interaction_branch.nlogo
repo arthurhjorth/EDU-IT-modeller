@@ -651,8 +651,12 @@ if quantity-options = "one tableware at a time" [
   ]
 
 ;variables used for all quantity options
-set deal-tableware deal
+ask turtles [
+  ifelse deal - tableware <= 0
+  [set deal-tableware deal]
+  [set deal-tableware tableware] ;they can never trade more than they have (we don't want negative holdings)
 set deal-money deal * price ;total price of purchase (for the quantity decided upon)
+  ]
 
 
 
@@ -727,6 +731,7 @@ to update-price-list
 end
 
 
+
 to produce-tableware
   if tableware-production? [
     ask merchants [
@@ -735,14 +740,20 @@ to produce-tableware
   ]
 end
 
+
+
 to break-tableware
   if tableware-breakage? [
     ask consumers [
-    set tableware ( tableware - tableware-broken-per-tick-consumers )
+      ifelse tableware - tableware-broken-per-tick-consumers >= 0
+      [    set tableware ( tableware - tableware-broken-per-tick-consumers ) ] ;we don't want negative holdings of tableware
+      [ set tableware (tableware - tableware ) ]
   ]
   ]
 
 end
+
+
 
 to earn-money
 if consumers-earn-money? [
@@ -881,6 +892,18 @@ report ( ( sum price-list ) / ( length price-list ) )
 end
 
 
+to-report total-money
+report ( nr-money-merchants + nr-money-consumers )
+end
+
+
+to-report total-tableware
+report ( nr-tableware-consumers + nr-tableware-merchants )
+end
+
+
+
+
 ;to-report merchant-optimal-price
 ;;  report
 ;;
@@ -904,10 +927,10 @@ end
 ;end
 @#$#@#$#@
 GRAPHICS-WINDOW
-458
-107
-895
-545
+460
+10
+897
+448
 -1
 -1
 13.0
@@ -1070,9 +1093,9 @@ Variables for the consumer breed\n
 1
 
 MONITOR
-1087
+1082
 10
-1250
+1132
 55
 price
 precision report-price 2
@@ -1081,9 +1104,9 @@ precision report-price 2
 11
 
 MONITOR
-1092
+1087
 78
-1248
+1243
 123
 NIL
 report-mrs-merchants
@@ -1135,9 +1158,9 @@ report-beta-consumers
 11
 
 MONITOR
-1101
+1096
 153
-1243
+1238
 198
 NIL
 report-offer-merchants
@@ -1172,54 +1195,54 @@ NIL
 HORIZONTAL
 
 MONITOR
-908
-267
-1055
-312
-NIL
+1266
+252
+1404
+297
+merchant-tableware
 nr-tableware-merchants
 17
 1
 11
 
 MONITOR
-1091
-270
-1240
-315
-NIL
+1386
+252
+1506
+297
+merchant-money
 nr-money-merchants
 17
 1
 11
 
 MONITOR
-908
-222
-1056
-267
-NIL
+1266
+206
+1387
+251
+consumer-tableware
 nr-tableware-consumers
 17
 1
 11
 
 MONITOR
-1092
-225
-1241
-270
-nr-money-consumers
+1386
+207
+1506
+252
+consumer-money
 nr-money-consumers
 17
 1
 11
 
 MONITOR
-726
-547
-851
-592
+722
+452
+847
+497
 NIL
 nr-succesful-trades
 17
@@ -1266,17 +1289,17 @@ SWITCH
 573
 tableware-breakage?
 tableware-breakage?
-1
+0
 1
 -1000
 
 MONITOR
-927
-312
-1030
-357
-total tableware
-nr-tableware-consumers + nr-tableware-merchants
+1283
+298
+1389
+343
+total-tableware
+total-tableware
 17
 1
 11
@@ -1312,30 +1335,30 @@ NIL
 HORIZONTAL
 
 MONITOR
-1123
-315
-1212
-360
-total money
-round ( nr-money-merchants + nr-money-consumers )
+1389
+298
+1478
+343
+total-money
+round ( total-money )
 17
 1
 11
 
 TEXTBOX
-1022
-204
-1172
-222
+1329
+154
+1479
+172
 Current holdings
 11
 0.0
 1
 
 TEXTBOX
-964
+959
 133
-1184
+1179
 161
 Most recent offer (quantity to buy/ sell)
 11
@@ -1343,9 +1366,9 @@ Most recent offer (quantity to buy/ sell)
 1
 
 TEXTBOX
-960
+955
 58
-1196
+1191
 86
 Current marginal rate of substitution (MRS)
 11
@@ -1363,10 +1386,10 @@ Most recent price of tableware
 1
 
 PLOT
-893
-361
-1328
-591
+900
+443
+1286
+654
 price/tableware
 Ticks/ time
 price per item
@@ -1378,7 +1401,6 @@ true
 true
 "" ""
 PENS
-"price" 1.0 0 -9276814 true "" "plot price"
 "mean" 1.0 0 -5298144 true "" "plot mean-price"
 "equilibrium" 1.0 2 -14454117 true "" "if equilibrium-price > 0 [\nplot equilibrium-price ]"
 "random" 1.0 0 -13840069 true "" "if random-price > 0 [\nplot random-price]"
@@ -1392,7 +1414,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 20
-6.0
+2.0
 1
 1
 NIL
@@ -1420,10 +1442,10 @@ precision mean-market-clearing-price 2
 11
 
 OUTPUT
-460
-10
-896
-140
+450
+495
+886
+625
 9
 
 SWITCH
@@ -1438,14 +1460,14 @@ compare-all-price-settings?
 -1000
 
 SLIDER
-533
-559
-705
-592
+535
+450
+707
+483
 running-speed
 running-speed
 0
-2
+1
 0.2
 0.1
 1
@@ -1503,6 +1525,39 @@ precision mean-random-price 2
 17
 1
 11
+
+PLOT
+894
+198
+1264
+358
+Holdings
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"total tableware" 1.0 0 -16777216 true "" "plot total-tableware"
+"total money" 1.0 0 -7500403 true "" "plot total-money"
+"consumers tableware" 1.0 0 -2674135 true "" "plot nr-tableware-consumers"
+"merchants tableware" 1.0 0 -955883 true "" "plot nr-tableware-merchants"
+"consumers money" 1.0 0 -6459832 true "" "plot nr-money-consumers"
+"merchants money" 1.0 0 -1184463 true "" "plot nr-money-merchants"
+
+TEXTBOX
+1283
+189
+1339
+207
+tableware
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
