@@ -290,18 +290,19 @@ ask patch 2 -6
 end
 
 
-to update-mrs
+to update-mrs ;@@lisa: skal fikses når tableware = 0
 ask merchants [
     if tableware = 0 [set mrs "no tableware left" stop]
     let nr ( alpha-merchants * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
-
-]
+  ]
 
 
 ask consumers [
-    if tableware = 0 [set mrs "no tableware left" stop]
+   ; if tableware = 0 [set mrs "no tableware left" stop] ;@@lisa: ikke færdig løsning! En mulighed er at sætte en place-holder table-ware = 1
+    if tableware = 0 [set mrs ( alpha-consumers * money ) / ( beta * 1 ) stop ] ;not rounded
+
     let nr ( alpha-consumers * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
@@ -564,6 +565,7 @@ set market-clearing-price-list fput market-clearing-price market-clearing-price-
 
 end
 
+
 to set-equilibrium-price
 
     ask consumers [
@@ -592,7 +594,7 @@ End
 
 
 
-To decide-quantity
+To decide-quantity ;der skal lige fikses noget her. det er problem med non-number
 
 If price-setting = "equilibrium" [
 set price equilibrium-price
@@ -730,6 +732,8 @@ end
 ;update inside price-setting function instead
 to update-price-list
   set price-list fput price price-list
+  if price-setting = "random"
+  [set price-list random-price-list]
 end
 
 
@@ -825,11 +829,18 @@ to-report utility-consumers
   report [ utility ] of consumers
 end
 
-to-report report-offer-consumers
-  ;report [ offer ] of consumers
 
+
+to-report willing-to-trade?
+report ( item 0 [offer] of consumers ) > 0 ;reports true if offer is more than 0
+end
+
+
+to-report report-offer-consumers
   let quantity-offer ( item 0 [offer] of consumers )
- ifelse quantity-offer > 0
+
+
+ ifelse willing-to-trade?
   [report quantity-offer]
   [report "not interested in buying"]  ;only positive quantities are reported; if not, there is no chance of trading
   ; should the quantity value be added even when negative?
@@ -839,7 +850,9 @@ end
 
 to-report report-offer-merchants
   let quantity-offer item 0 [ offer ] of merchants
-  ifelse quantity-offer > 0
+
+
+  ifelse willing-to-trade?
   [report quantity-offer]
   [report "not interested in selling"]
 end
@@ -902,6 +915,8 @@ end
 to-report total-tableware
 report ( nr-tableware-consumers + nr-tableware-merchants )
 end
+
+
 
 
 
@@ -1053,7 +1068,7 @@ alpha-merchants
 alpha-merchants
 0
 1
-0.2
+0.1
 0.1
 1
 NIL
@@ -1068,7 +1083,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.4
+0.9
 0.1
 1
 NIL
@@ -1106,10 +1121,10 @@ precision report-price 2
 11
 
 MONITOR
-1440
-23
-1596
-68
+1418
+24
+1574
+69
 NIL
 report-mrs-merchants
 17
@@ -1118,9 +1133,9 @@ report-mrs-merchants
 
 MONITOR
 1264
-21
+23
 1417
-66
+68
 NIL
 report-mrs-consumers
 17
@@ -1161,9 +1176,9 @@ report-beta-consumers
 
 MONITOR
 1103
-22
+25
 1245
-67
+70
 NIL
 report-offer-merchants
 17
@@ -1172,9 +1187,9 @@ report-offer-merchants
 
 MONITOR
 904
-22
+25
 1100
-67
+70
 NIL
 report-offer-consumers
 17
@@ -1202,7 +1217,7 @@ MONITOR
 1090
 195
 merchant-tableware
-nr-tableware-merchants
+round ( nr-tableware-merchants )
 17
 1
 11
@@ -1269,7 +1284,7 @@ SWITCH
 498
 consumers-earn-money?
 consumers-earn-money?
-1
+0
 1
 -1000
 
@@ -1280,7 +1295,7 @@ SWITCH
 534
 tableware-production?
 tableware-production?
-1
+0
 1
 -1000
 
@@ -1316,7 +1331,7 @@ tableware-produced-per-tick
 0
 20
 1.0
-1
+0.1
 1
 NIL
 HORIZONTAL
@@ -1330,7 +1345,7 @@ salary-daily
 salary-daily
 0
 20
-10.0
+1.0
 1
 1
 NIL
@@ -1349,9 +1364,9 @@ round ( total-money )
 
 TEXTBOX
 1021
-72
+73
 1171
-90
+91
 CURRENT HOLDINGS
 11
 0.0
@@ -1359,18 +1374,18 @@ CURRENT HOLDINGS
 
 TEXTBOX
 966
-10
+13
 1186
-38
+41
 Most recent offer (quantity to buy/ sell)
 11
 0.0
 1
 
 TEXTBOX
-1312
+1305
 10
-1548
+1541
 38
 Current marginal rate of substitution (MRS)
 11
@@ -1416,7 +1431,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 10
-0.2
+1.0
 0.1
 1
 NIL
@@ -1430,7 +1445,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 890
@@ -1553,9 +1568,9 @@ PENS
 
 TEXTBOX
 969
-87
+88
 1025
-105
+106
 Tableware
 11
 0.0
@@ -1563,9 +1578,9 @@ Tableware
 
 TEXTBOX
 1107
-86
+87
 1180
-104
+105
 Money
 11
 0.0
