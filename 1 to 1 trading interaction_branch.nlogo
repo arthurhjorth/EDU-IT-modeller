@@ -90,6 +90,8 @@ to go
   update-price-list
   update-mrs
 
+  check-supply-demand ;@remove later. only to see if supply and demand is as we wish
+
   tick
 
   if ticks = stop-after-x-tick [
@@ -538,6 +540,26 @@ if price-setting = "choose price" [
 
 end
 
+to check-supply-demand ;remove this when set-market-clearing-price is a go. Otherwise we overwrite values?
+
+  ask turtles [
+      set temp-budget ( tableware * price ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+      set  optimal-tableware round ( temp-budget * alpha / price ) ;
+      ;if optimal-tableware < 1  [
+      ; set optimal-tableware 1
+      ;]
+      set demand ( optimal-tableware - tableware )
+      if demand < 0 [
+        set demand 0
+      ]
+
+      set supply ( tableware - optimal-tableware )
+      if supply < 0 [
+        set supply 0
+      ]
+    ] ;ask turtles end
+
+end
 
 to set-market-clearing-price ; The price where quantity demanded is equal to the quantity supplied - no shortage or surplus exists in the market
 
@@ -614,16 +636,21 @@ End
 To decide-quantity ;der skal lige fikses noget her. det er problem med non-number
 calculate-utility
 
+if price-setting = "market-clearing" [
+  set price market-clearing-price
+  ]
+
 If price-setting = "equilibrium" [
-set price equilibrium-price
-]
+  set price equilibrium-price
+  ]
 
 If price-setting = "random" [
-set price random-price
-]
+  set price random-price
+  ]
 
 If price-setting = "manual-trade" [
-set price choose-price]
+  set price choose-price
+  ]
 
 
 ;similarly for market clearing:
@@ -1109,7 +1136,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.9
+0.7
 0.1
 1
 NIL
@@ -1447,6 +1474,7 @@ PENS
 "mean" 1.0 0 -5298144 true "" "plot mean-price"
 "equilibrium" 1.0 2 -14454117 true "" "if equilibrium-price > 0 [\nplot equilibrium-price ]"
 "random" 1.0 0 -13840069 true "" "if random-price > 0 [\nplot random-price]"
+"Market clearing" 1.0 0 -1184463 true "" "if market-clearing-price > 0 [\nplot market-clearing-price]"
 
 SLIDER
 195
@@ -1511,7 +1539,7 @@ running-speed
 running-speed
 0
 1
-0.2
+0.7
 0.1
 1
 NIL
@@ -1613,10 +1641,10 @@ Money
 1
 
 MONITOR
-1303
-209
-1382
-254
+1369
+157
+1448
+202
 NIL
 total-supply
 17
@@ -1624,10 +1652,10 @@ total-supply
 11
 
 MONITOR
-1318
-281
-1405
-326
+1368
+203
+1455
+248
 NIL
 total-demand
 17
