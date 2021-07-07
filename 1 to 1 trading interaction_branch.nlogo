@@ -13,6 +13,8 @@ globals [
   equilibrium-price-list
   random-price-list
   temp-closest-to-market-clearing
+  total-demand
+  total-supply
 
 ]
 
@@ -91,6 +93,7 @@ to go
   update-mrs
 
   check-supply-demand ;@remove later. only to see if supply and demand is as we wish
+  set-total-demand-supply
 
   tick
 
@@ -548,16 +551,38 @@ to check-supply-demand ;remove this when set-market-clearing-price is a go. Othe
       ;if optimal-tableware < 1  [
       ; set optimal-tableware 1
       ;]
+
+
+;      set demand ( optimal-tableware - tableware )
+;      if demand < 0 [
+;        set supply abs demand ;
+;        set demand 0
+;      ]
+
+
+
       set demand ( optimal-tableware - tableware )
       if demand < 0 [
         set demand 0
       ]
+
 
       set supply ( tableware - optimal-tableware )
       if supply < 0 [
         set supply 0
       ]
     ] ;ask turtles end
+
+end
+
+to set-total-demand-supply
+  set total-demand 0
+  set total-supply 0
+
+  ask turtles [
+   set total-demand total-demand + demand
+   set total-supply total-supply + supply
+  ]
 
 end
 
@@ -588,7 +613,6 @@ repeat 200 [
 
     ;
     if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
-
     set temp-closest-to-market-clearing ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
     set market-clearing-price precision price-temporary 2
 
@@ -849,12 +873,12 @@ to-report nr-succesful-trades
   report ( succesful-trades / 2 )
 end
 
-to-report total-supply
-  report item 0 [ supply ] of turtles
+to-report total-supplyy
+  report total-supply
 end
 
-to-report total-demand
-  report item 0 [ demand ] of turtles
+to-report total-demandd
+  report total-demand
 end
 
 to-report nr-tableware-merchants
@@ -1203,7 +1227,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-0
+1
 
 MONITOR
 195
@@ -1337,7 +1361,7 @@ SWITCH
 498
 consumers-earn-money?
 consumers-earn-money?
-0
+1
 1
 -1000
 
@@ -1348,7 +1372,7 @@ SWITCH
 534
 tableware-production?
 tableware-production?
-0
+1
 1
 -1000
 
@@ -1359,7 +1383,7 @@ SWITCH
 573
 tableware-breakage?
 tableware-breakage?
-0
+1
 1
 -1000
 
@@ -1499,7 +1523,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 890
@@ -1539,7 +1563,7 @@ running-speed
 running-speed
 0
 1
-0.7
+0.9
 0.1
 1
 NIL
