@@ -12,6 +12,7 @@ globals [
   market-clearing-price-list
   equilibrium-price-list
   random-price-list
+  temp-closest-to-market-clearing
 
 ]
 
@@ -538,30 +539,46 @@ if price-setting = "choose price" [
 end
 
 
-to set-market-clearing-price
+to set-market-clearing-price ; The price where quantity demanded is equal to the quantity supplied - no shortage or surplus exists in the market
 
 set price-temporary 0.1
+set temp-closest-to-market-clearing total-tableware
 
 repeat 200 [
     ask turtles [
-      set temp-budget ( tableware * price-temporary ) + money
-      set  optimal-tableware round ( temp-budget * alpha / price-temporary )
-      ;if optimalChocs < 1  [ set optimalChocs 1 ]
+      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ;
+      ;if optimal-tableware < 1  [
+      ; set optimal-tableware 1
+      ;]
+      set demand ( optimal-tableware - tableware )
+      if demand < 0 [
+        set demand 0
+      ]
+
+      set supply ( tableware - optimal-tableware )
+      if supply < 0 [
+        set supply 0
+      ]
+    ] ;ask turtles end
+
+
+
+    ;
+    if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
+
+    set temp-closest-to-market-clearing ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
+    set market-clearing-price precision price-temporary 2
 
     ]
 
+    set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
+
+  ] ;repeat 200 end
 
 
-    set price-temporary price-temporary + 0.1
-
-
-  ]
-
-set market-clearing-price precision 0.1 2
-
-set market-clearing-price-list fput market-clearing-price market-clearing-price-list
-
-;set market-clearing-price AND market-clearing-price-list
+set market-clearing-price-list fput market-clearing-price market-clearing-price-list ;@lisa . I don't really understand the list stuff u made. Does this price "update" only need to be put into the list as
+  ;the "final" market clearing price has been calculated? (as it is now)
 
 end
 
@@ -595,6 +612,7 @@ End
 
 
 To decide-quantity ;der skal lige fikses noget her. det er problem med non-number
+calculate-utility
 
 If price-setting = "equilibrium" [
 set price equilibrium-price
@@ -802,6 +820,14 @@ end
 
 to-report nr-succesful-trades
   report ( succesful-trades / 2 )
+end
+
+to-report total-supply
+  report item 0 [ supply ] of turtles
+end
+
+to-report total-demand
+  report item 0 [ demand ] of turtles
 end
 
 to-report nr-tableware-merchants
@@ -1150,7 +1176,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-2
+0
 
 MONITOR
 195
@@ -1585,6 +1611,28 @@ Money
 11
 0.0
 1
+
+MONITOR
+1303
+209
+1382
+254
+NIL
+total-supply
+17
+1
+11
+
+MONITOR
+1318
+281
+1405
+326
+NIL
+total-demand
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
