@@ -1,4 +1,4 @@
-extensions [csv table sound profiler]
+extensions [csv table profiler]
 
 globals [
   start-wave ;; for drawing a wave
@@ -47,7 +47,10 @@ globals [
   colors-left ;so plot line colors don't repeat
 
   samlet-utilfredshed
-  samlet-wall-utilfredshed ;utilfredshed
+  samlet-wall-utilfredshed
+  tax-utilfredshed
+
+  tax-money
 ]
 
 breed [ drops drop] ;for rain animation
@@ -134,7 +137,7 @@ to go
 
   ;MAYBE AUTO-RAIN FROM MONTH DATA:
   if running-month? [ ;if currently auto-running a month of rain:
-    update-plot ;@FIGURE OUT EXACTLY WHERE TO UPDATE THE PLOT!
+    update-plot
 
     ifelse table:has-key? month-table (word str-day str-time) [ ;if the current date and time matches a time it should auto-rain:
       ;manual rain:
@@ -161,7 +164,10 @@ to go
   ask patches [if water-level > 0 [move-water3]] ;afløb af vand til nabo-patches beregnet for hver patch (sea, land OG wall)
   ask patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
 
+  update-samlet-utilfredshed ;så water-utilfredshed opdateres hvert tick
+
   tick
+
 
   ;failsafe:
   if any? patches with [water-level < 0] [print "OH NO, A PATCH JUST HAD A NEGATIVE WATER LEVEL!" stop]
@@ -538,13 +544,17 @@ end
 
 to oversvøm ;forever button in interface, can try to raise the sea level (tidligere hæv-havet) ...
   ;@bare animation, disconnected fra den dynamiske model... kun farver, ikke egentlig forandring i water-level! (der har vi hæv-havet i stedet)
+  every 0.1 [ update-samlet-utilfredshed ]
+
   ask patches [
     ifelse member? self wall-patches [
-      ifelse (my-wall-height + terrain-height) < hav-stigning and any? neighbors with [shade-of? pcolor sky or pcolor = 102] [
+      ifelse member? self land-patches and my-wall-height + terrain-height < hav-stigning and any? neighbors with [shade-of? pcolor sky or pcolor = 102] [
         set pcolor 102 ;dark blue for oversvømmede wall-patches
       ]
       [
-        set pcolor my-wall-color ;wall-patches not underwater
+        ifelse member? self sea-patches and my-wall-height < hav-stigning and any? neighbors with [shade-of? pcolor sky or pcolor = 102]
+          [set pcolor 102] ;wall-patches in the sea
+          [set pcolor my-wall-color] ;wall-patches not underwater
       ]
     ]
       [
@@ -602,8 +612,7 @@ to build-wall ;forever button in interface
   ]
   [ ;if can't afford:
     if mouse-down? [
-      ;sound:play-note "REED ORGAN" 30 64 0.3 ;pitch, intensity, duration
-      ;@instead of sound, maybe just do message, or do nothing
+      ;do nothing
     ]
   ]
 
@@ -639,9 +648,10 @@ end
 ;--MONEY STUFF:
 
 to get-more-money ;button in interface
-  ;
+  set tax-money tax-money + 2000 ;@tweak how much money they get
 
-
+  update-tax-utilfredshed ;people get angry :(
+  update-samlet-utilfredshed
 end
 
 to-report money-spent
@@ -649,7 +659,7 @@ to-report money-spent
 end
 
 to-report money-left
-  report Budget - money-spent
+  report (Budget + tax-money) - money-spent
 end
 
 to-report any-money-left?
@@ -665,9 +675,6 @@ to-report wall-cost
 end
 
 ;--UTILFREDSHED stuff:
-to update-wall-utilfredshed ;only updated when a wall is built or removed (to optimise)
-  set samlet-wall-utilfredshed sum [wall-utilfredshed] of house-patches
-end
 
 to-report wall-utilfredshed ;house-patch reporter
   ifelse any? view-patches with [member? self wall-patches] [
@@ -678,17 +685,21 @@ to-report wall-utilfredshed ;house-patch reporter
   ]
 end
 
-to-report extra-utilfredshed ;house-patch reporter
+to update-wall-utilfredshed ;only updated when a wall is built or removed (to optimise)
+  set samlet-wall-utilfredshed sum [wall-utilfredshed] of house-patches
+  update-samlet-utilfredshed
+end
+
+to update-tax-utilfredshed
+  set tax-utilfredshed tax-utilfredshed + (count house-patches / 4) ;svarer til at alle bliver 0.25 mere utilfredse per penge-opkrævning
+end
+
+to-report water-utilfredshed ;house-patch reporter ;@OPTIMÉR: hvornår/hvordan skal denne køres for at opdatere utilfredshed ift. vand???
   ifelse member? self house-patches [
 
-    let water-utilfredshed 0
-    if water-level > 0.5 [set water-utilfredshed 1] ;@tweak
-
-    let tax-utilfredshed 0
-    ;@add utilfredshed hvis man opkræver flere penge!
-
-    report wall-utilfredshed + water-utilfredshed + tax-utilfredshed ;samlet utilfredshed for denne house-patch
-    ;@procentvis eller noget i stedet for bare additive?
+    ifelse water-level > 0.2 or pcolor = sky ;tweak water-level for utilfredshed
+      [report 3] ;@tweak, nu bare binær 0 eller 3. ;pcolor = sky fanger 'oversvøm'-animationen, som bare farver, men ikke opdaterer water-level
+      [report 0]
   ]
   [ ;if not house-patch:
     report 0
@@ -696,7 +707,8 @@ to-report extra-utilfredshed ;house-patch reporter
 end
 
 to update-samlet-utilfredshed ;monitor in interface ;@FIX!!!
-  set samlet-utilfredshed round (samlet-wall-utilfredshed + sum [extra-utilfredshed] of house-patches)
+  set samlet-utilfredshed round (samlet-wall-utilfredshed + tax-utilfredshed + sum [water-utilfredshed] of house-patches) ;walls + taxes + water
+  ;@procentvis eller noget i stedet for bare additive?
 end
 
 ;---VISUALS:
@@ -904,25 +916,43 @@ end
 
 ;---PLOT
 to setup-plot-pen ;run in run-month (so new line starts plotting every time it's run)
-  set-current-plot "Gennemsnitligt vandstand på land"
-
+  set-current-plot "Gennemsnitlig vandstand på land"
   create-temporary-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
   set-plot-pen-color first colors-left
+
+
+  set-current-plot "Indbyggernes utilfredshed"
+  create-temporary-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
+  set-plot-pen-color first colors-left
+
+
+
   set colors-left but-first colors-left
 end
 
 to update-plot ;run in go
   ifelse running-month? [
+
+    set-current-plot "Gennemsnitlig vandstand på land"
     set-current-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
     if ticks-since-start = 0 [plot-pen-up plotxy 0 0 plot-pen-down] ;undgår grim linje tilbage gennem plottet, hvis den samme pen restartes
     plotxy ticks-since-start (mean [water-level] of land-patches)
+
+    set-current-plot "Indbyggernes utilfredshed"
+    set-current-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
+    if ticks-since-start = 0 [plot-pen-up plotxy 0 0 plot-pen-down] ;undgår grim linje tilbage gennem plottet, hvis den samme pen restartes
+    plotxy ticks-since-start samlet-utilfredshed
+
   ]
   [ ;if not auto-running month:
+    set-current-plot "Gennemsnitlig vandstand på land"
     create-temporary-plot-pen "Vandstand" ;if it already exists, it just sets it as the current one
     plotxy ticks (mean [water-level] of land-patches)
+
+    set-current-plot "Indbyggernes utilfredshed"
+    create-temporary-plot-pen "Utilfredshed"
+    plotxy ticks samlet-utilfredshed
   ]
-
-
 end
 
 to-report ticks-since-start
@@ -1037,12 +1067,12 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-4
+1
 
 BUTTON
-410
+390
 535
-550
+530
 570
 Start nedbør
 start-rain
@@ -1057,15 +1087,15 @@ NIL
 1
 
 SLIDER
-1145
+1105
 300
-1395
+1355
 333
 hav-niveau
 hav-niveau
 0
 12
-0.0
+3.5
 .25
 1
 m
@@ -1094,24 +1124,24 @@ nedsivningsevne-interface
 11
 
 SLIDER
-300
+280
 455
-550
+530
 488
 mm-per-15-min
 mm-per-15-min
 0
 15
-4.5
+11.5
 .5
 1
 mm
 HORIZONTAL
 
 SLIDER
-300
+280
 495
-550
+530
 528
 nedbør-varighed
 nedbør-varighed
@@ -1235,11 +1265,11 @@ NIL
 1
 
 PLOT
-1145
+1105
 375
-1796
+1756
 605
-Gennemsnitligt vandstand på land
+Gennemsnitlig vandstand på land
 tid
 vandspejl (m)
 0.0
@@ -1252,10 +1282,10 @@ true
 PENS
 
 BUTTON
-945
-515
-1110
-548
+1415
+90
+1580
+123
 Vis oversvømmelse
 oversvøm
 T
@@ -1269,9 +1299,9 @@ NIL
 1
 
 SWITCH
-300
+280
 535
-405
+385
 568
 vis-regn?
 vis-regn?
@@ -1334,7 +1364,7 @@ BUTTON
 570
 255
 603
-Sæt hav-niveau
+Sæt hav-niveau / skab stormflod
 hæv-havet
 NIL
 1
@@ -1357,9 +1387,9 @@ Højvandsmure
 1
 
 TEXTBOX
-395
+375
 430
-490
+470
 451
 Nedbør
 17
@@ -1397,19 +1427,19 @@ Hav-vandstand/stormflod
 1
 
 TEXTBOX
-595
-440
-740
-490
+665
+430
+980
+455
 Indbyggernes utilfredshed
 17
 0.0
 1
 
 TEXTBOX
-1265
+1225
 170
-1585
+1545
 191
 Kør automatisk nedbørs-periode
 17
@@ -1417,9 +1447,9 @@ Kør automatisk nedbørs-periode
 1
 
 CHOOSER
-1145
+1105
 250
-1440
+1400
 295
 periode
 periode
@@ -1427,9 +1457,9 @@ periode
 2
 
 BUTTON
-1145
+1105
 335
-1645
+1605
 371
 Afspil periode (og fjern alt vand fra systemet først)
 run-month
@@ -1444,9 +1474,9 @@ NIL
 1
 
 MONITOR
-1145
+1105
 195
-1645
+1605
 244
 NIL
 auto-interface
@@ -1455,15 +1485,15 @@ auto-interface
 12
 
 SLIDER
-945
-550
-1110
-583
+1415
+125
+1580
+158
 hav-stigning
 hav-stigning
 0
 12
-10.0
+0.0
 0.5
 1
 NIL
@@ -1512,20 +1542,20 @@ Tjek forhold
 1
 
 TEXTBOX
-945
-465
-1135
-510
+1415
+40
+1605
+85
 Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
 12
 0.0
 1
 
 MONITOR
-595
-490
-735
-535
+820
+570
+960
+615
 Samlet utilfredshed
 samlet-utilfredshed
 17
@@ -1533,35 +1563,25 @@ samlet-utilfredshed
 11
 
 TEXTBOX
-595
-540
-825
-565
-Opdateres, når musen holdes uden for kortet.
-11
-0.0
-1
-
-TEXTBOX
-965
-440
-1115
-461
+1435
+15
+1585
+36
 Oversvømmelse
 17
 0.0
 1
 
 SLIDER
-1445
+1405
 260
-1645
+1605
 293
 %-ekstra-regn
 %-ekstra-regn
 0
 100
-20.0
+30.0
 5
 1
 %
@@ -1576,18 +1596,18 @@ hav-niveau
 hav-niveau
 0
 12
-0.0
+3.5
 .25
 1
 m
 HORIZONTAL
 
 BUTTON
-65
-368
-200
-413
-(HÆV SKATTEN!)
+10
+365
+145
+410
+NIL
 get-more-money
 NIL
 1
@@ -1599,22 +1619,33 @@ NIL
 NIL
 1
 
-BUTTON
-740
-490
-815
-535
-Opdatér
-update-samlet-utilfredshed
+MONITOR
+150
+365
+260
+411
 NIL
+tax-money
+17
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+11
+
+PLOT
+555
+455
+820
+615
+Indbyggernes utilfredshed
+tid
+utilfredshed
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
 
 @#$#@#$#@
 ## WHAT IS IT?
