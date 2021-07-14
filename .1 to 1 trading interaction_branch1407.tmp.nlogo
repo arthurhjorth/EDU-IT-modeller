@@ -322,7 +322,7 @@ end
 
 to set-partner
   ask consumers [
-    set partner one-of merchants with [ trading-style = [ trading-style ] of mself ] ] ; partner skal have samme trading-style som mig selv
+    set partner one-of merchants with [ trading-style = [ trading-style ] of self ] ] ; partner skal have samme trading-style som mig selv
 
 
   ask consumers [
@@ -506,12 +506,43 @@ end
 
 to trade2
 
+
+  ;;this is the layout we want:
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;; price-setting ;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+  ;;;;;;;;;;;;  market clearing ;;;;;;;;;;;;;
+
+  ; ask consumers with [ trading-style = "market-clearing" ]  [
+  ;;;;;; market-clearing-price-setting here ;;;;;;
+
+
+
+ ;;;;;;;;;;;;;; equilibrium ;;;;;;;;;;;;;;
+
+  ; ask consumers with [ trading-style = "equilibrium" ]  [
+  ;;;;;; equilibrium-price-setting here ;;;;;;
+
+
+   ;;;;;;;;;;;;;; random ;;;;;;;;;;;;;;
+
+  ; ask consumers with [ trading-style = "random" ]  [
+  ;;;;;; random-price-setting here ;;;;;;
+
+
+
   if price-setting = "market-clearing" [
     set-market-clearing-price
     decide-quantity
     trade-and-update-holdings
     output-write ( market-clearing-price ) ;@@lisa: update - what output makes sense?
   ]
+
+
+  ;if [ trading-style ] of turtles = "equilibrium"  [
 
   if price-setting = "equilibrium" [
     set-equilibrium-price
@@ -526,10 +557,10 @@ to trade2
     trade-and-update-holdings
 
 
-   ;;print related
+    ;;print related
        let minMRS min [ mrs ] of turtles
    let maxMRS max [ mrs ] of turtles
-    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 )
 
 
      output-print ( word "Consumer MRS " maxMRS ". "
@@ -546,15 +577,26 @@ if price-setting = "choose price" [ ;not in use rn
   ]
 
 
+
+
   if compare-all-price-settings? [
-    set-equilibrium-price
-    set-random-price
+
     set-market-clearing-price
     decide-quantity
     trade-and-update-holdings
-  ] ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 
+    set-equilibrium-price
+    decide-quantity
+    trade-and-update-holdings
+
+    set-random-price
+    decide-quantity
+    trade-and-update-holdings
+
+  ]
+ ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 end
+
 
 
 to check-supply-demand ;remove this when set-market-clearing-price is a go. Otherwise we overwrite values?
@@ -586,6 +628,8 @@ to check-supply-demand ;remove this when set-market-clearing-price is a go. Othe
         set supply 0
       ]
     ] ;ask turtles end
+
+;
 
 end
 
@@ -645,8 +689,8 @@ end
 
 to set-equilibrium-price
 
-    ask consumers [
-      set equilibrium-price  precision (
+  ask consumers with [ trading-style = "equilibrium" ]  ;only equilibrium-ppl use this command
+     [ set equilibrium-price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
                            ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
 
@@ -672,9 +716,9 @@ end
 
 To set-random-price
 
-   let minMRS min [ mrs ] of turtles
-   let maxMRS max [ mrs ] of turtles
-    set random-price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+  let minMRS min [ mrs ] of turtles with [trading-style = "random" ] ;defining lowest MRS
+   let maxMRS max [ mrs ] of turtles with [trading-style = "random" ] ;and highest MRS
+    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 ;+text-output?
 
 Set random-price-list fput random-price random-price-list
@@ -683,7 +727,8 @@ End
 
 
 
-To decide-quantity ;der skal lige fikses noget her. det er problem med non-number
+To decide-quantity
+
 calculate-utility
 
 if price-setting = "market-clearing" [
@@ -1224,10 +1269,10 @@ precision report-price 2
 11
 
 MONITOR
-1418
-24
-1574
-69
+1074
+83
+1230
+128
 NIL
 report-mrs-merchants
 17
@@ -1235,10 +1280,10 @@ report-mrs-merchants
 11
 
 MONITOR
-1264
-23
-1417
-68
+920
+82
+1073
+127
 NIL
 report-mrs-consumers
 17
@@ -1253,7 +1298,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price"
-1
+2
 
 MONITOR
 195
@@ -1279,9 +1324,9 @@ report-beta-consumers
 
 MONITOR
 1103
-25
+22
 1245
-70
+67
 NIL
 report-offer-merchants
 17
@@ -1290,9 +1335,9 @@ report-offer-merchants
 
 MONITOR
 904
-25
+22
 1100
-70
+67
 NIL
 report-offer-consumers
 17
@@ -1315,10 +1360,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-952
-150
-1090
-195
+951
+192
+1089
+237
 merchant-tableware
 round ( nr-tableware-merchants )
 17
@@ -1326,10 +1371,10 @@ round ( nr-tableware-merchants )
 11
 
 MONITOR
-1072
-150
-1192
-195
+1071
+192
+1191
+237
 merchant-money
 nr-money-merchants
 17
@@ -1337,10 +1382,10 @@ nr-money-merchants
 11
 
 MONITOR
-952
-104
-1073
-149
+951
+146
+1072
+191
 consumer-tableware
 round ( nr-tableware-consumers )
 17
@@ -1348,10 +1393,10 @@ round ( nr-tableware-consumers )
 11
 
 MONITOR
-1073
-104
-1193
-149
+1072
+146
+1192
+191
 consumer-money
 nr-money-consumers
 17
@@ -1414,10 +1459,10 @@ tableware-breakage?
 -1000
 
 MONITOR
-969
-196
-1075
-241
+968
+238
+1074
+283
 total-tableware
 round ( total-tableware )
 17
@@ -1455,10 +1500,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1075
-196
-1164
-241
+1074
+238
+1163
+283
 total-money
 round ( total-money )
 17
@@ -1466,10 +1511,10 @@ round ( total-money )
 11
 
 TEXTBOX
-1021
-73
-1171
-91
+1025
+131
+1175
+149
 CURRENT HOLDINGS
 11
 0.0
@@ -1477,39 +1522,39 @@ CURRENT HOLDINGS
 
 TEXTBOX
 966
-13
+10
 1186
-41
+38
 Most recent offer (quantity to buy/ sell)
 11
 0.0
 1
 
 TEXTBOX
-1305
-10
-1541
-38
+961
+69
+1197
+97
 Current marginal rate of substitution (MRS)
 11
 0.0
 1
 
 TEXTBOX
-733
-497
-909
-525
+732
+532
+908
+560
 Most recent price of tableware
 11
 0.0
 1
 
 PLOT
-898
-405
-1284
-616
+897
+440
+1283
+651
 price/tableware
 Ticks/ time
 price per item
@@ -1549,13 +1594,13 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
-890
-651
-1040
-696
+889
+686
+1039
+731
 Market Clearing
 precision mean-market-clearing-price 2
 17
@@ -1576,7 +1621,7 @@ SWITCH
 261
 compare-all-price-settings?
 compare-all-price-settings?
-0
+1
 1
 -1000
 
@@ -1596,10 +1641,10 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-894
-696
-1264
-724
+893
+731
+1263
+759
 missing: monitor only prices from succesful trades
 11
 0.0
@@ -1616,20 +1661,20 @@ all agents are using one mode for now
 1
 
 TEXTBOX
-894
-620
-1321
-648
+893
+655
+1320
+683
                                Average price of tableware per succesful trade\nMarket clearing                                    Equilibrium                                           Random
 11
 0.0
 1
 
 MONITOR
-1074
-648
-1157
-693
+1073
+683
+1156
+728
 Equilibrium
 precision mean-equilibrium-price 2
 17
@@ -1637,10 +1682,10 @@ precision mean-equilibrium-price 2
 11
 
 MONITOR
-1263
-648
-1327
-693
+1262
+683
+1326
+728
 Random
 precision mean-random-price 2
 17
@@ -1648,10 +1693,10 @@ precision mean-random-price 2
 11
 
 PLOT
-899
-243
-1269
-403
+898
+278
+1268
+438
 Current holdings
 NIL
 NIL
@@ -1671,30 +1716,30 @@ PENS
 "merchants money" 1.0 0 -1184463 true "" "plot nr-money-merchants"
 
 TEXTBOX
-969
-88
-1025
-106
+955
+131
+1011
+149
 Tableware
 11
 0.0
 1
 
 TEXTBOX
-1107
-87
-1180
-105
+1155
+130
+1228
+148
 Money
 11
 0.0
 1
 
 MONITOR
-1369
-157
-1448
-202
+1250
+160
+1329
+205
 NIL
 total-supply
 17
@@ -1702,10 +1747,10 @@ total-supply
 11
 
 MONITOR
-1368
-203
-1455
-248
+1249
+206
+1336
+251
 NIL
 total-demand
 17
