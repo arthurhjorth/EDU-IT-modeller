@@ -322,8 +322,8 @@ end
 
 to set-partner
   ask consumers [
-   set partner one-of merchants
-  ]
+    set partner one-of merchants with [ trading-style = [ trading-style ] of mself ] ] ; partner skal have samme trading-style som mig selv
+
 
   ask consumers [
    ask partner [
