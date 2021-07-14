@@ -100,7 +100,7 @@ to go
   if ticks = stop-after-x-tick [
     stop
   ]
-wait running-speed ;just to make the output better readable
+wait running-speed ;just to make the output better readable @@lisa: alternativ: every
 
   ;only consumers earning money - how it affects the dynamics. People will likely be more likely to pay more for a plate
   ;Tableware production --> price will fall if the relation between tableare prod and money prod
@@ -512,6 +512,7 @@ to trade2
     set-market-clearing-price
     decide-quantity
     trade-and-update-holdings
+    output-write ( market-clearing-price ) ;@@lisa: update - what output makes sense?
   ]
 
   if price-setting = "equilibrium" [
@@ -525,9 +526,23 @@ to trade2
     set-random-price
     decide-quantity
     trade-and-update-holdings
+
+
+   ;;print related
+       let minMRS min [ mrs ] of turtles
+   let maxMRS max [ mrs ] of turtles
+    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
+
+
+     output-print ( word "Consumer MRS " maxMRS ". "
+    word "Merchant MRS " minMRS ". "
+    word "Random price in between: " precision price 2)
+
   ]
 
-if price-setting = "choose price" [
+
+
+if price-setting = "choose price" [ ;not in use rn
   decide-quantity
     trade-and-update-holdings
   ]
@@ -542,6 +557,7 @@ if price-setting = "choose price" [
   ] ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 
 end
+
 
 to check-supply-demand ;remove this when set-market-clearing-price is a go. Otherwise we overwrite values?
 
@@ -635,10 +651,22 @@ to set-equilibrium-price
       set equilibrium-price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
                            ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
-;evt output-print her
 
-;updating price-list
+  ;updating price-list
 Set equilibrium-price-list fput equilibrium-price equilibrium-price-list
+
+
+
+  ;all for prints here
+  ask consumers [
+  let consumer-optimal-price ( alpha * tableware ) / ( beta * money )
+  let merchant-optimal-price ( [ alpha * tableware ] of partner / [ beta  * money ] of partner )
+  ]
+
+    output-print (word "Consumer optimal price" ;consumer-optimal-price ". " @@lisa: not possible to use let-variables in output? spørg ida
+      word "Merchant optimal price" ; merchant-optimal-price ". "
+      word "Average price-point of the two" equilibrium-price ". " )
+
 
 end
 
@@ -1160,7 +1188,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.7
+0.9
 0.1
 1
 NIL
@@ -1187,10 +1215,10 @@ Variables for the consumer breed\n
 1
 
 MONITOR
-564
-447
-614
-492
+844
+452
+894
+497
 price
 precision report-price 2
 17
@@ -1333,10 +1361,10 @@ nr-money-consumers
 11
 
 MONITOR
-768
-450
-890
-495
+718
+452
+840
+497
 NIL
 nr-succesful-trades
 17
@@ -1470,10 +1498,10 @@ Current marginal rate of substitution (MRS)
 1
 
 TEXTBOX
-459
-454
-553
-482
+733
+497
+909
+525
 Most recent price of tableware
 11
 0.0
@@ -1523,7 +1551,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 890
@@ -1537,10 +1565,10 @@ precision mean-market-clearing-price 2
 11
 
 OUTPUT
-496
-505
-886
-625
+495
+516
+885
+636
 9
 
 SWITCH
@@ -1555,15 +1583,15 @@ compare-all-price-settings?
 -1000
 
 SLIDER
-627
-451
-751
-484
+459
+448
+583
+481
 running-speed
 running-speed
 0
 1
-0.9
+0.2
 0.1
 1
 NIL
