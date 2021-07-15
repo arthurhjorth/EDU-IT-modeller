@@ -21,7 +21,7 @@ globals [
 breed [merchants merchant]
 breed [consumers consumer]
 
-merchants-own [
+turtles-own [
   alpha
   beta
   money
@@ -44,29 +44,54 @@ merchants-own [
   demand
  ]
 
-consumers-own [
-  alpha
-  beta
-  money
-  tableware
-  mrs
-  offer-money
-  offer-tableware
-  offer
-  utility
-  initial-utility
-  partner
-  temp-tableware
-  temp-money
-  temp-utility
-  ;for market clearing
-  temp-budget
-  trading-style
-  optimal-tableware
-  supply
-  demand
+;@lisa: i think we don't need a seperate for each breed
 
-]
+;merchants-own [
+;  alpha
+;  beta
+;  money
+;  tableware
+;  mrs
+;  offer-money
+;  offer-tableware
+;  offer
+;  utility
+;  initial-utility
+;  partner
+;  temp-tableware
+;  temp-money
+;  temp-utility
+;  ;for market-clearing
+;  temp-budget
+;  trading-style
+;  optimal-tableware
+;  supply
+;  demand
+; ]
+;
+;consumers-own [
+;  alpha
+;  beta
+;  money
+;  tableware
+;  mrs
+;  offer-money
+;  offer-tableware
+;  offer
+;  utility
+;  initial-utility
+;  partner
+;  temp-tableware
+;  temp-money
+;  temp-utility
+;  ;for market clearing
+;  temp-budget
+;  trading-style
+;  optimal-tableware
+;  supply
+;  demand
+;
+;]
 
 
 to setup
@@ -103,32 +128,33 @@ to go
   ]
 wait running-speed ;just to make the output better readable @@lisa: alternativ: every
 
-  ;only consumers earning money - how it affects the dynamics. People will likely be more likely to pay more for a plate
-  ;Tableware production --> price will fall if the relation between tableare prod and money prod
-  ;Add dynamics - earns money, destroys plates,
-
-  ;
-
 end
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;; FUNCTIONS ;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 
 
 to populate ;;run in setup. Create starting population
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;creating agents with their specific traits;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
- ;first creating agents based on price-setting type
- ; this includes specific locations etc.
+  ;determines characteristics specific to each type: location, color and price-setting strategy
+
 
  if price-setting = "market-clearing"
   [
-  repeat 1 [ make-market-ppls "merchants"]
-  repeat 1 [ make-market-ppls "consumers"]
+  repeat 1 [ make-market-clearing-ppls "merchants"]
+  repeat 1 [ make-market-clearing-ppls "consumers"]
   ]
 
 
@@ -148,17 +174,17 @@ to populate ;;run in setup. Create starting population
 
   if price-setting = "compare-all-price-settings"
   [
-  repeat 1 [ make-market-ppls "merchants"]
-  repeat 1 [ make-market-ppls "consumers"]
+  repeat 1 [ make-market-clearing-ppls "merchants"]
+  repeat 1 [ make-market-clearing-ppls "consumers"]
    repeat 1 [ make-equilibrium-ppls "merchants"]
   repeat 1 [ make-equilibrium-ppls "consumers"]
    repeat 1 [ make-random-ppls "merchants"]
   repeat 1 [ make-random-ppls "consumers"]
   ]
 
-
-    ;;general characteristics for all agents here
-  ;only specifications for each type
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;filling in traits general to all agents;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ask turtles
@@ -175,7 +201,6 @@ ask turtles
   ]
 
 
-
   ask consumers
   [set shape "person"
   set heading 270
@@ -185,12 +210,11 @@ ask turtles
    set tableware tableware-consumers
   ]
 
-
-
 end
 
 
-to make-market-ppls [kind]
+
+to make-market-clearing-ppls [kind]
   if kind = "merchants" [
     create-merchants 1 [
       set color green + 2
@@ -253,6 +277,42 @@ end
 
 
 to layout
+
+ask patches [set pcolor blue ]
+
+
+if price-setting = "market-clearing" or price-setting = "compare-all-price-settings" [
+
+ask patch 3 5
+[set plabel "Market clearing"]
+
+  ask patches with [pycor > 4 ] [set pcolor blue + 1]
+  ask patches with [pycor = 5 ] [set pcolor blue + 0.5]
+  ]
+
+
+  if price-setting = "equilibrium" or price-setting = "compare-all-price-settings" [
+    ask patch 2 -6
+    [set plabel "Equilibrium" ]
+
+      ask patches with [pycor = -6] [set pcolor blue - 1.5 ]
+  ]
+
+
+if price-setting = "random" or price-setting = "compare-all-price-settings" [
+  ask patch 1 -16
+[set plabel "Random"
+
+   ask patches with [pycor < -6 ] [set pcolor blue - 1 ]
+  ask patches with [pycor = -16] [set pcolor blue - 2.5 ]
+    ]
+  ]
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;; @ fun layout, such as ancient Greece style ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;  create-turtles 1
 ;  ask turtles
 ;  [set shape "building institution" ;make it acropolis
@@ -260,37 +320,13 @@ to layout
 ;    setxy 0 10
 ;    set color white]
 
-
-
- ; ask patches [set pcolor blue]
- ; ask patches with [pycor < 13] [set pcolor blue + 1]
- ; ask patches with [pycor < 9] [set pcolor blue + 2]
-
-
-;  ask patches with [pxcor > -8 and pxcor < 8 and pycor > -14 and pycor < 0]
-;  [set pcolor blue]
-ask patch 3 5
-[set plabel "Market clearing"]
-
-
-ask patch 2 -6
-[set plabel "Equilibrium"]
-
-
-  ask patch 1 -16
-[set plabel "Random"]
-
-  ask patches [set pcolor blue ]
-  ask patches with [pycor > 4 ] [set pcolor blue + 1]
-  ask patches with [pycor = 5 ] [set pcolor blue + 0.5]
-  ask patches with [pycor < -6 ] [set pcolor blue - 1 ]
-  ask patches with [pycor = -6] [set pcolor blue - 1.5 ]
-  ask patches with [pycor = -16] [set pcolor blue - 2.5 ]
-
-
-
-
 end
+
+
+;MRS beregninger med basis i bogen
+;Cudos to   chap5 edgeworth box game.
+  ;   set mrsCapt ( alphaCapt * captsCigs )  / ( ( 1 - alphaCapt ) * captsChocs )
+  ;   set mrsSgt  ( alphaSgt * sgtsCigs  )  / ( ( 1 - alphaSgt ) *  sgtsChocs )
 
 
 to update-mrs ;@@lisa: skal fikses når tableware = 0
@@ -312,10 +348,6 @@ ask consumers [
 
 ]
 
-;Cudos to   chap5 edgeworth box game.
-  ;   set mrsCapt ( alphaCapt * captsCigs )  / ( ( 1 - alphaCapt ) * captsChocs )
-  ;   set mrsSgt  ( alphaSgt * sgtsCigs  )  / ( ( 1 - alphaSgt ) *  sgtsChocs )
-
 end
 
 
@@ -329,8 +361,8 @@ to set-partner
       set partner myself
     ]
   ]
-
 end
+
 
 
 to trade
@@ -346,7 +378,7 @@ if price-setting = "choose price" [
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; Equilibrium
- ; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
+; equilibrium sets the price as the  mean between the two (the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
 ;based on equilibrum from red cross parcel
 
     if price-setting = "equilibrium" [
@@ -862,6 +894,11 @@ end
 
 to set-equilibrium-price
 
+ ;;;;;;;;;;;;;;;; Equilibrium ;;;;;;;;;;;;;;;;;;
+; equilibrium sets the price as the  mean between the two
+;(the underlying assumption is that negotiating will even prices out over time - and that both are equally good at negotiating)
+;based on equilibrum from the red cross parcel
+
   ask active-consumer [
      set price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
@@ -893,9 +930,18 @@ To set-random-price
    let maxMRS max [ mrs ] of active-turtles ;and highest MRS
     set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
-;+text-output?
 
 Set random-price-list fput price random-price-list
+
+  ;;;;;;;;;;;;;;;;;;;
+  ;; output-prints ;;
+  ;;;;;;;;;;;;;;;;;;;
+
+
+  output-print (word "Lowest MRS " precision minMRS 2 ". " )
+  output-print (word "Highest MRS " precision maxMRS 2 ". " ) ;is there a smarter way to change the line than putting a new command?
+  output-print (word "Random price in between " precision price 2 ". " )
+
 End
 
 
@@ -1034,7 +1080,7 @@ if deal > 0 [
 
 
     if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
-      output-print (word "Unsuccesful. No trade made." ) ]
+      output-print (word "Unsuccesful. No trade was made." ) ]
 
     if deal = 1
     [output-print (word "Successful trade! " deal "x of tableware was traded.") ]
@@ -1043,15 +1089,12 @@ if deal > 0 [
     [output-print (word "Successful trade! " deal "x of tableware were traded.") ]
 
 
-    output-print (word "Consumer utility improved by  " precision consumer-utility-difference 2 ". ")
-   output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
+    output-print (word "Consumer utility improved by  " precision consumer-utility-difference 5 ". ")
+   output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 5 ". ")
 
   ]
 
-
 End
-
-
 
 
 to create-price-lists
@@ -1491,7 +1534,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price" "compare-all-price-settings"
-2
+4
 
 MONITOR
 195
@@ -1787,7 +1830,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
@@ -1804,8 +1847,8 @@ OUTPUT
 455
 516
 892
-636
-11
+619
+13
 
 SLIDER
 459
