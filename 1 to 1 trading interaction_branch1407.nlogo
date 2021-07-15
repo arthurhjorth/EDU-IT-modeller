@@ -149,7 +149,7 @@ to populate ;;run in setup. Create starting population
   ]
 
 
-  if compare-all-price-settings?
+  if price-setting = "compare-all-price-settings"
   [
   repeat 1 [ make-market-ppls "merchants"]
   repeat 1 [ make-market-ppls "consumers"]
@@ -509,6 +509,29 @@ end
 to trade2
 
 
+  if price-setting = "market-clearing" [
+  ]
+
+
+  if price-setting = "equilibrium" [
+  ]
+
+
+  if price-setting = "random" [
+  ]
+
+
+  if price-setting = "compare-all-price-setting" [
+  ]
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;; identifying active agents ;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+
   ;;this is the layout we want:
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;; price-setting ;;;;;;;;;;;
@@ -583,7 +606,7 @@ if price-setting = "choose price" [ ;not in use rn
 
 
 
-  if compare-all-price-settings? [
+  if price-setting = "compare-all-price-settings" [
 
     set-market-clearing-price
     decide-quantity
@@ -600,6 +623,31 @@ if price-setting = "choose price" [ ;not in use rn
   ]
  ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 end
+
+
+
+
+;these commands "activates" turtles with a certain trading-style, so that only they run the trading-procedures
+to activate-market-clearing-turtles
+  set active-turtles turtles with [ trading-style = "market-clearing" ]
+  set active-merchant merchants with [ trading-style = "market-clearing" ]
+  set active-consumer consumers with [ trading-style = "market-clearing" ]
+end
+
+
+to activate-equilibrium-turtles
+  set active-turtles turtles with [ trading-style = "equilibrium" ]
+  set active-merchant merchants with [ trading-style = "equilibrium" ]
+  set active-consumer consumers with [ trading-style = "equilibrium" ] ;specifying which agents we want to use in this command!
+end
+
+
+to activate-random-turtles
+  set active-turtles turtles with [ trading-style = "random" ]
+  set active-merchant merchants with [ trading-style = "random" ]
+  set active-consumer consumers with [ trading-style = "random" ] ;specifying which agents we want to use in this command!
+end
+
 
 
 
@@ -1440,11 +1488,11 @@ report-mrs-consumers
 CHOOSER
 8
 143
-157
+226
 188
 price-setting
 price-setting
-"market-clearing" "equilibrium" "random" "choose price"
+"market-clearing" "equilibrium" "random" "choose price" "compare-all-price-settings"
 1
 
 MONITOR
@@ -1760,17 +1808,6 @@ OUTPUT
 885
 636
 9
-
-SWITCH
-0
-228
-214
-261
-compare-all-price-settings?
-compare-all-price-settings?
-1
-1
--1000
 
 SLIDER
 459
