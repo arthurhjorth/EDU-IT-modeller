@@ -1,8 +1,5 @@
 globals [
   price
-  market-clearing-price ;@to be phased out
-  equilibrium-price
-  random-price
   price-temporary
   deal-tableware
   deal-money
@@ -503,179 +500,179 @@ end
 
 
 
-to equilibrium-trade ; everything adjusted to equilibrium ppls only
-
-;Alternative:
-  ;  set active-agents agents with [trading-type = "equilibrium" ] ;selecting only those we want active in this condition
-  set active-turtles turtles with [ trading-style = "equilibrium" ]
-  set active-merchant merchants with [ trading-style = "equilibrium" ]
-  set active-consumer consumers with [ trading-style = "equilibrium" ] ;specifying which agents we want to use in this command!
-
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;;; price setting ;;;;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;ask consumers with [ trading-style = "equilibrium" ]  ;only equilibrium-ppl use this command
-  ask active-consumer
-     [ set equilibrium-price  precision (
-                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
-
-  ;updating price-list
-Set equilibrium-price-list fput equilibrium-price equilibrium-price-list
-
-
-  ;;until here OK;;
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;;; deciding quantity ;;;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;; this command is so long and unclear ); ;;;
-
-  set price equilibrium-price
-
-;  ask consumers with [ trading-style = "equilibrium" ] [ ;;@needs to be specified for which deals
-  ask active-consumer [
-
-    let budget (tableware * price ) + money ;calculating budget based on tableware owned and price-setting and current holding of money
-    let optimal round (budget * alpha / price) ;optimal number of tableware to HOLD given the current price
-    set offer precision ( optimal - tableware ) 2 ;offer to buy the number of tableware optimal with current holding subtracted
-  ]
-
-
- ; ask merchants with [ trading-style = "equilibrium" ] [
-  ask active-merchant [
-    let budget ( tableware * price ) + money
-    let optimal ( budget * alpha / price )
-    set offer precision ( tableware - optimal ) 2  ;@@ why is this the other way around compared to consumers????? because merchants don't want tableware! e.g. got 50, optimal is 30. 50-30=20. sell 20!
-
-  ]
-
-
-if quantity-options = "standard" [
-    ask active-turtles with [ offer > 0 ] [
-  set offer floor ( offer ) ;only whole number of tableware is traded
-  ;let offerUnits floor ( offer * price ) ;why multiply just to divide again?
-  ;set offer offerUnits / price
-  ]
-
-
-
-;no offers below zero.
-ask active-turtles with [ offer < 0 ]
-  [
-    set offer 0
-  ]
-
-
-;simple way of choosing which quantity
-    let merchant-offer item 0 [ offer ] of active-merchant
-    let consumer-offer item 0 [ offer ] of active-consumer
-
-    set deal min list ( merchant-offer ) ( consumer-offer ) ;the number to trade is decided by the agent who wants to trade the fewest
-
-  ] ; quantity options standard end
-
-
-if quantity-options = "one tableware at a time" [
-  ask active-turtles [
-     set deal 1
-    ]
-  ]
-
-
-
-;variables used for all quantity options
-ask active-turtles [
-  ifelse deal - tableware <= 0
-  [set deal-tableware deal]
-  [set deal-tableware tableware] ;they can never trade more than they have (we don't want negative holdings)
-set deal-money deal * price ;total price of purchase (for the quantity decided upon)
-  ]
-
-
-
-;;;;;;;;;;;;;;;;---------;;;;;;;;;;;; check if we increase utility, and engage in trade if yes. Otherwise nothing happens.
-  ;(set deal 0 is to allow us to prompt "trade cancelled" or so)
-
-ask active-consumer [
-   if deal > 0 [
-     set temp-tableware ( tableware + deal-tableware )
-     set temp-money ( money - deal-money )
-     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
-    ]
-  ]
-
-ask active-merchant [
-   if deal > 0 [
-     set temp-tableware ( tableware - deal-tableware )
-     set temp-money ( money + deal-money )
-     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
-    ]
-  ]
-
-;if temp-utility is smaller than utility then we set deal = 0. otherwise trade is accepted.
-;This also means that all price offers which does not allow a higher utility for both traders end up in a cancelled trade
-ask active-consumer [
-    if temp-utility < utility [
-     set deal 0
-    ]
-  ]
-
-ask active-merchant [
-     if temp-utility < utility [
-       set deal 0
-      ]
-    ]
-
-  if deal > 0 [
-     ask active-consumer [
-       set tableware temp-tableware
-       set money temp-money
-       set succesful-trades succesful-trades + 1
-      ]
-
-     ask active-merchant [
-       set tableware temp-tableware
-       set money temp-money
-       set succesful-trades succesful-trades + 1
-      ]
-    ]
-
-end
+;to equilibrium-trade ; everything adjusted to equilibrium ppls only
+;
+;;Alternative:
+;  ;  set active-agents agents with [trading-type = "equilibrium" ] ;selecting only those we want active in this condition
+;  set active-turtles turtles with [ trading-style = "equilibrium" ]
+;  set active-merchant merchants with [ trading-style = "equilibrium" ]
+;  set active-consumer consumers with [ trading-style = "equilibrium" ] ;specifying which agents we want to use in this command!
+;
+;
+;  ;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  ;;;;; price setting ;;;;;;
+;  ;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;  ;ask consumers with [ trading-style = "equilibrium" ]  ;only equilibrium-ppl use this command
+;  ask active-consumer
+;     [ set equilibrium-price  precision (
+;                           ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
+;                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
+;
+;  ;updating price-list
+;Set equilibrium-price-list fput equilibrium-price equilibrium-price-list
+;
+;
+;  ;;until here OK;;
+;
+;  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  ;;;;; deciding quantity ;;;;;
+;  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  ;;; this command is so long and unclear ); ;;;
+;
+;  set price equilibrium-price
+;
+;;  ask consumers with [ trading-style = "equilibrium" ] [ ;;@needs to be specified for which deals
+;  ask active-consumer [
+;
+;    let budget (tableware * price ) + money ;calculating budget based on tableware owned and price-setting and current holding of money
+;    let optimal round (budget * alpha / price) ;optimal number of tableware to HOLD given the current price
+;    set offer precision ( optimal - tableware ) 2 ;offer to buy the number of tableware optimal with current holding subtracted
+;  ]
+;
+;
+; ; ask merchants with [ trading-style = "equilibrium" ] [
+;  ask active-merchant [
+;    let budget ( tableware * price ) + money
+;    let optimal ( budget * alpha / price )
+;    set offer precision ( tableware - optimal ) 2  ;@@ why is this the other way around compared to consumers????? because merchants don't want tableware! e.g. got 50, optimal is 30. 50-30=20. sell 20!
+;
+;  ]
+;
+;
+;if quantity-options = "standard" [
+;    ask active-turtles with [ offer > 0 ] [
+;  set offer floor ( offer ) ;only whole number of tableware is traded
+;  ;let offerUnits floor ( offer * price ) ;why multiply just to divide again?
+;  ;set offer offerUnits / price
+;  ]
+;
+;
+;
+;;no offers below zero.
+;ask active-turtles with [ offer < 0 ]
+;  [
+;    set offer 0
+;  ]
+;
+;
+;;simple way of choosing which quantity
+;    let merchant-offer item 0 [ offer ] of active-merchant
+;    let consumer-offer item 0 [ offer ] of active-consumer
+;
+;    set deal min list ( merchant-offer ) ( consumer-offer ) ;the number to trade is decided by the agent who wants to trade the fewest
+;
+;  ] ; quantity options standard end
+;
+;
+;if quantity-options = "one tableware at a time" [
+;  ask active-turtles [
+;     set deal 1
+;    ]
+;  ]
+;
+;
+;
+;;variables used for all quantity options
+;ask active-turtles [
+;  ifelse deal - tableware <= 0
+;  [set deal-tableware deal]
+;  [set deal-tableware tableware] ;they can never trade more than they have (we don't want negative holdings)
+;set deal-money deal * price ;total price of purchase (for the quantity decided upon)
+;  ]
+;
+;
+;
+;;;;;;;;;;;;;;;;;---------;;;;;;;;;;;; check if we increase utility, and engage in trade if yes. Otherwise nothing happens.
+;  ;(set deal 0 is to allow us to prompt "trade cancelled" or so)
+;
+;ask active-consumer [
+;   if deal > 0 [
+;     set temp-tableware ( tableware + deal-tableware )
+;     set temp-money ( money - deal-money )
+;     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
+;    ]
+;  ]
+;
+;ask active-merchant [
+;   if deal > 0 [
+;     set temp-tableware ( tableware - deal-tableware )
+;     set temp-money ( money + deal-money )
+;     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
+;    ]
+;  ]
+;
+;;if temp-utility is smaller than utility then we set deal = 0. otherwise trade is accepted.
+;;This also means that all price offers which does not allow a higher utility for both traders end up in a cancelled trade
+;ask active-consumer [
+;    if temp-utility < utility [
+;     set deal 0
+;    ]
+;  ]
+;
+;ask active-merchant [
+;     if temp-utility < utility [
+;       set deal 0
+;      ]
+;    ]
+;
+;  if deal > 0 [
+;     ask active-consumer [
+;       set tableware temp-tableware
+;       set money temp-money
+;       set succesful-trades succesful-trades + 1
+;      ]
+;
+;     ask active-merchant [
+;       set tableware temp-tableware
+;       set money temp-money
+;       set succesful-trades succesful-trades + 1
+;      ]
+;    ]
+;
+;end
 
 
 
 to check-supply-demand ;remove this when set-market-clearing-price is a go. Otherwise we overwrite values?
 
-  ask turtles [
-      set temp-budget ( tableware * price ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-      set  optimal-tableware round ( temp-budget * alpha / price ) ;
-      ;if optimal-tableware < 1  [
-      ; set optimal-tableware 1
-      ;]
-
-
+;  ask turtles [
+;      set temp-budget ( tableware * price ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+;      set  optimal-tableware round ( temp-budget * alpha / price ) ;
+;      ;if optimal-tableware < 1  [
+;      ; set optimal-tableware 1
+;      ;]
+;
+;
+;;      set demand ( optimal-tableware - tableware )
+;;      if demand < 0 [
+;;        set supply abs demand ;
+;;        set demand 0
+;;      ]
+;
+;
+;
 ;      set demand ( optimal-tableware - tableware )
 ;      if demand < 0 [
-;        set supply abs demand ;
 ;        set demand 0
 ;      ]
-
-
-
-      set demand ( optimal-tableware - tableware )
-      if demand < 0 [
-        set demand 0
-      ]
-
-
-      set supply ( tableware - optimal-tableware )
-      if supply < 0 [
-        set supply 0
-      ]
-   ] ;ask turtles end
+;
+;
+;      set supply ( tableware - optimal-tableware )
+;      if supply < 0 [
+;        set supply 0
+;      ]
+;   ] ;ask turtles end
 
 
 
@@ -706,23 +703,49 @@ to trade2
   if price-setting = "market-clearing" [
     activate-market-clearing-turtles ;for all price-settings except for compare-all, this needs only be done once
     set-market-clearing-price
+    decide-quantity
+    check-utility-and-trade
+
   ]
 
 
   if price-setting = "equilibrium" [
     activate-equilibrium-turtles
     set-equilibrium-price
+    decide-quantity
+    check-utility-and-trade
   ]
 
 
   if price-setting = "random" [
     activate-random-turtles
     set-random-price
+    decide-quantity
+    check-utility-and-trade
   ]
 
 
-  if price-setting = "compare-all-price-setting" [
-  ]
+  if price-setting = "compare-all-price-setting" [ ;all three procedures in one
+
+    activate-market-clearing-turtles
+    set-market-clearing-price
+    decide-quantity
+    check-utility-and-trade
+
+
+
+    activate-equilibrium-turtles
+    set-equilibrium-price
+    decide-quantity
+    check-utility-and-trade
+
+
+    activate-random-turtles
+    set-random-price
+    decide-quantity
+    check-utility-and-trade
+
+   ]
 
 
   ;;this is the layout we want:
@@ -732,88 +755,40 @@ to trade2
 
 
 
-  ;;;;;;;;;;;;  market clearing ;;;;;;;;;;;;;
 
-  ; ask consumers with [ trading-style = "market-clearing" ]  [
-  ;;;;;; market-clearing-price-setting here ;;;;;;
-  ;; decide quantity & update holdings ;;
-
-
-
- ;;;;;;;;;;;;;; equilibrium ;;;;;;;;;;;;;;
-
-  ; ask consumers with [ trading-style = "equilibrium" ]  [
-  ;;;;;; equilibrium-price-setting here ;;;;;;
-  ;; decide quantity & update holdings ;;
-
-
-   ;;;;;;;;;;;;;; random ;;;;;;;;;;;;;;
-
-  ; ask consumers with [ trading-style = "random" ]  [
-  ;;;;;; random-price-setting here ;;;;;;
-  ;; decide quantity & update holdings ;;
-
-  if price-setting = "market-clearing" [
-    set-market-clearing-price
-    decide-quantity
-    trade-and-update-holdings
-    output-write ( market-clearing-price ) ;@@lisa: update - what output makes sense?
-  ]
-
-
-  ;if [ trading-style ] of turtles = "equilibrium"  [
-
-  if price-setting = "equilibrium" [
-    equilibrium-trade
-    ;set-equilibrium-price
-    ;decide-quantity
-    ;trade-and-update-holdings
-  ]
-
-
-  if price-setting = "random" [
-    set-random-price
-    decide-quantity
-    trade-and-update-holdings
-
-
-    ;;print related
-       let minMRS min [ mrs ] of turtles
-   let maxMRS max [ mrs ] of turtles
-    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 )
-
-
-     output-print ( word "Consumer MRS " maxMRS ". "
-    word "Merchant MRS " minMRS ". "
-    word "Random price in between: " precision price 2)
-
-  ]
-
-
-
-if price-setting = "choose price" [ ;not in use rn
-  decide-quantity
-    trade-and-update-holdings
-  ]
-
-
-
-
-  if price-setting = "compare-all-price-settings" [
-
-    set-market-clearing-price
-    decide-quantity
-    trade-and-update-holdings
-
-    set-equilibrium-price
-    decide-quantity
-    trade-and-update-holdings
-
-    set-random-price
-    decide-quantity
-    trade-and-update-holdings
-
-  ]
+;
+;
+;     output-print ( word "Consumer MRS " maxMRS ". "
+;    word "Merchant MRS " minMRS ". "
+;    word "Random price in between: " precision price 2)
+;
+;  ]
+;
+;
+;
+;if price-setting = "choose price" [ ;not in use rn
+;  decide-quantity
+;    trade-and-update-holdings
+;  ]
+;
+;
+;
+;
+;  if price-setting = "compare-all-price-settings" [
+;
+;    set-market-clearing-price
+;    decide-quantity
+;    trade-and-update-holdings
+;
+;    set-equilibrium-price
+;    decide-quantity
+;    trade-and-update-holdings
+;
+;    set-random-price
+;    decide-quantity
+;    trade-and-update-holdings
+;
+;  ]
  ;@@lisa: missing in quantity. probably needs to run 2 setups simultaneously
 end
 
@@ -869,7 +844,7 @@ repeat 200 [
     ;
     if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
     set temp-closest-to-market-clearing ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
-    set market-clearing-price precision price-temporary 2
+    set price precision price-temporary 2
 
     ]
 
@@ -878,7 +853,7 @@ repeat 200 [
   ] ;repeat 200 end
 
 
-set market-clearing-price-list fput market-clearing-price market-clearing-price-list ;adding the price to a list - and yes, we're only interested in the final price.
+set market-clearing-price-list fput price market-clearing-price-list ;adding the price to a list - and yes, we're only interested in the final price.
   ;@lisa . I don't really understand the list stuff u made. Does this price "update" only need to be put into the list as
   ;the "final" market clearing price has been calculated? (as it is now)
 end
@@ -899,13 +874,13 @@ Set equilibrium-price-list fput price equilibrium-price-list ;adding the latest 
 
  ; all for prints here
   ask active-consumer [
-  let consumer-optimal-price ( alpha * tableware ) / ( beta * money )
-  let merchant-optimal-price ( [ alpha * tableware ] of partner / [ beta  * money ] of partner )
+  let merchant-optimal-price ( alpha * tableware ) / ( beta * money )
+  let consumer-optimal-price ( [ alpha * tableware ] of partner / [ beta  * money ] of partner ) ;@lisa: passer det her virkelig?
 
 
-    output-print (word "Consumer optimal price " consumer-optimal-price ". "
-      word "Merchant optimal price " precision merchant-optimal-price 2 ". "
-      word "Average price-point of the two is " price ". " )
+    output-print (word "Consumer price " precision consumer-optimal-price 2 ". "
+      word "Merchant price " precision merchant-optimal-price 2 ". "
+      word "Midway meeting point " price ". " )
   ]
 
 end
@@ -974,11 +949,12 @@ ask active-turtles with [ offer < 0 ]
 
 
 
-if quantity-options = "one tableware at a time" and deal > 0 [ ;we want to trade one tableware at a time or no tableware
-  ask active-turtles [
-     set deal 1
-    ]
-  ]
+  if quantity-options = "one tableware at a time" [
+      ask active-turtles [
+        set deal 1
+        ]
+      ]
+
 
 
 ;variables used for all quantity options
@@ -988,7 +964,10 @@ ask active-turtles [
   [set deal-tableware tableware] ;they can never trade more than they have (we don't want negative holdings)
 set deal-money deal * price ;total price of purchase (for the quantity decided upon)
   ]
+end
 
+
+  to check-utility-and-trade
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;;;;;;; utilty-check ;;;;;;;;;
@@ -1025,15 +1004,8 @@ ask active-consumer [
 ask active-merchant [
      if temp-utility < utility [
        set deal 0
-
       ]
     ]
-
-end
-
-
-
-to trade-and-update-holdings
 
 if deal > 0 [
      ask active-consumer [
@@ -1049,6 +1021,33 @@ if deal > 0 [
        set succesful-trades succesful-trades + 1
       ]
     ]
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;; output-prints ;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  ask active-consumer [
+  let consumer-utility-difference ( temp-utility - utility )
+    let merchant-utility-difference ( [temp-utility] of partner - [utility] of partner )
+
+   ; (utility( [ alpha * tableware ] of partner / [ beta  * money ] of partner ) ;@lisa: passer det her virkelig?
+
+
+    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
+      output-print (word "Unsuccesful. No trade made." ) ]
+
+    if deal = 1
+    [output-print (word "Successful trade! " deal "x of tableware was traded.") ]
+
+    if deal > 1
+    [output-print (word "Successful trade! " deal "x of tableware were traded.") ]
+
+
+    output-print (word "Consumer utility improved by  " precision consumer-utility-difference 2 ". ")
+   output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
+
+  ]
+
 
 End
 
@@ -1184,7 +1183,7 @@ to-report report-offer-consumers
 
  ifelse willing-to-trade?
   [report quantity-offer]
-  [report "not interested in buying"]  ;only positive quantities are reported; if not, there is no chance of trading
+  [report "0   (not interested in buying)"]  ;only positive quantities are reported; if not, there is no chance of trading
   ; should the quantity value be added even when negative?
 
 ;@@lisa: needs to be adjusted for 1x tableware trades
@@ -1196,7 +1195,7 @@ to-report report-offer-merchants
 
   ifelse willing-to-trade?
   [report quantity-offer]
-  [report "not interested in selling"]
+  [report "0   (not interested in selling)"]
 end
 
 to-report report-price
@@ -1492,7 +1491,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "choose price" "compare-all-price-settings"
-1
+2
 
 MONITOR
 195
@@ -1517,7 +1516,7 @@ report-beta-consumers
 11
 
 MONITOR
-1103
+1081
 22
 1245
 67
@@ -1528,10 +1527,10 @@ report-offer-merchants
 11
 
 MONITOR
-904
-22
-1100
-67
+903
+24
+1079
+69
 NIL
 report-offer-consumers
 17
@@ -1802,11 +1801,11 @@ precision mean-market-clearing-price 2
 11
 
 OUTPUT
-428
+455
 516
 892
 636
-9
+11
 
 SLIDER
 459
@@ -1817,7 +1816,7 @@ running-speed
 running-speed
 0
 1
-0.2
+0.8
 0.1
 1
 NIL
@@ -1829,16 +1828,6 @@ TEXTBOX
 1263
 759
 missing: monitor only prices from succesful trades
-11
-0.0
-1
-
-TEXTBOX
-30
-271
-180
-299
-all agents are using one mode for now
 11
 0.0
 1
