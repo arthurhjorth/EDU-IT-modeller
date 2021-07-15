@@ -19,6 +19,8 @@ globals [
 breed [merchants merchant]
 breed [consumers consumer]
 
+
+; edit: we don't need a seperate breeds-own. Perhaps later for layout.
 turtles-own [
   alpha
   beta
@@ -42,54 +44,6 @@ turtles-own [
   demand
  ]
 
-;@lisa: i think we don't need a seperate for each breed
-
-;merchants-own [
-;  alpha
-;  beta
-;  money
-;  tableware
-;  mrs
-;  offer-money
-;  offer-tableware
-;  offer
-;  utility
-;  initial-utility
-;  partner
-;  temp-tableware
-;  temp-money
-;  temp-utility
-;  ;for market-clearing
-;  temp-budget
-;  trading-style
-;  optimal-tableware
-;  supply
-;  demand
-; ]
-;
-;consumers-own [
-;  alpha
-;  beta
-;  money
-;  tableware
-;  mrs
-;  offer-money
-;  offer-tableware
-;  offer
-;  utility
-;  initial-utility
-;  partner
-;  temp-tableware
-;  temp-money
-;  temp-utility
-;  ;for market clearing
-;  temp-budget
-;  trading-style
-;  optimal-tableware
-;  supply
-;  demand
-;
-;]
 
 
 to setup
