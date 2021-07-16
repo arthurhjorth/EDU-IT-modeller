@@ -1,0 +1,37 @@
+---
+title: "Middelfart-merging"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## MERGE THE MONTHLY RAIN FILES!
+
+```{r}
+setwd("C:/Users/idaba/OneDrive/Dokumenter/GitHub/EDU-IT-modeller/month-data/alle") #change wd
+path <- getwd()
+merge_file_name <- "regn-2010-2020-2021.csv" #change name
+
+filenames <- list.files(path= path, full.names=TRUE)
+
+All <- lapply(filenames,function(filename){
+    print(paste("Merging ",filename,sep = " "))
+    read.csv(filename, sep = ";")
+})
+
+df <- do.call(rbind.data.frame, All) #combine into one dataframe
+
+#CLEAN IT UP:
+colnames(df) <- c("DatoTid", "Nedboermm", "Nedboersminutter")
+df$Nedboersminutter <- NULL #we don't care about this
+#df <- df[df$Nedboermm != 0.0, ] #removing rows with no rain #NOPE, DON'T DO THIS! - done in NL instead
+df$DatoTid <- as.character(df$DatoTid)
+df$DatoTid <- substr(df$DatoTid,1,nchar(df$DatoTid)-3) #removing second ":00" from the time
+
+
+write.table(df, file = merge_file_name, sep = ",", row.names = FALSE, col.names = FALSE) #save merged csv
+```
+

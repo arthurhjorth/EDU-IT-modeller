@@ -21,6 +21,8 @@ globals [
   minute ;keeping track of time
   hour
   day
+  current-month ;only for auto-running
+  current-year ;only for auto-running
 
   testing
   colortest
@@ -36,15 +38,15 @@ globals [
 
   avg-sea-level
 
-  month-table ;table used for auto-running a month based on data
+  auto-table ;table used for auto-running a month based on data
   running-month?
-  auto-måned ;saving måned to this in case chooser is changed
   %-valgt ;saving %-ekstra-regn from interface
   hav-niveau-valgt
   periode-valgt
   total-auto-mængde
   ticks-at-start ;for plot
   colors-left ;so plot line colors don't repeat
+  short-months ;used in update-time
 
   samlet-utilfredshed
   samlet-wall-utilfredshed
@@ -86,7 +88,7 @@ to profile
   setup                  ; set up the model
   profiler:start         ; start profiling
   ;start-rain ;start the rain (with interface settings) before the go to get some water in the system
-  run-month              ;start auto-raining period to get water in the system
+  run-period              ;start auto-raining period to get water in the system
   repeat 100 [ go ]       ; run something you want to measure
   profiler:stop          ; stop profiling
   print profiler:report  ; view the results
@@ -121,6 +123,7 @@ to setup-variables
   set wall-patches no-patches set mid-wall-patches no-patches
   set running-month? false
   set colors-left [105 65 15 44 134 25 34 4 125 115 black black black black black black] ;used for plot pens
+  set short-months ["04" "06" "09" "11"] ;months with 30 days, used in update-time
 end
 
 
@@ -131,17 +134,15 @@ to go
   set avg-sea-level mean [water-level] of sea-patches
   ask land-patches [set water-table avg-sea-level]
 
-  update-time
-
   if not running-month? [update-plot]
 
   ;MAYBE AUTO-RAIN FROM MONTH DATA:
   if running-month? [ ;if currently auto-running a month of rain:
     update-plot
 
-    ifelse table:has-key? month-table (word str-day str-time) [ ;if the current date and time matches a time it should auto-rain:
+    ifelse table:has-key? auto-table key-checker [ ;if the current date and time matches a time it should auto-rain:
       ;manual rain:
-      let mm-rain table:get month-table (word str-day str-time)
+      let mm-rain table:get auto-table key-checker ;get the amount of rain for that hour
       ifelse mm-rain = "stop" [ ;hvis enden er nået:
         ask drops [die]
         set running-month? false ;end of the auto-running!
@@ -165,6 +166,7 @@ to go
   ask patches [recolor] ;hver patch farves for at vise højden på det nuværende vandspejl
 
   update-samlet-utilfredshed ;så water-utilfredshed opdateres hvert tick
+  update-time
 
   tick
 
@@ -173,6 +175,8 @@ to go
   if any? patches with [water-level < 0] [print "OH NO, A PATCH JUST HAD A NEGATIVE WATER LEVEL!" stop]
   if any? land-patches with [max-capacity < 0] [print "oh no, negative capacity!" stop]
 end
+
+
 
 to setup-house-patches ;used for tilfredshed, run in setup
   import-pcolors "mf-map-kystfix-alpha55.png" ;midlertidigt importeret for at sætte det her
@@ -741,14 +745,35 @@ end
 ;---INTERFACE STUFF:
 
 to update-time ;run in go
-  ;let index ticks mod 4
+  ;MINUTES:
   let index position minute ["15" "30" "45" "00"]
   let new-index (index + 1) mod 4
   set minute item new-index ["15" "30" "45" "00"]
-  if minute = "00" and ticks > 0 [set hour hour + 1]
+
+  ;HOUR:
+  if minute = "00" and ticks > 0 and ticks-since-start > 0 [set hour hour + 1]
   if hour = 24 [set hour 0]
-  ;if ticks mod (24 * 4) = 0 [set hour 0] ;here it loops around from 23 to 0
-  if str-time = "00:00" and ticks > 0 [set day day + 1]
+
+  ;DAY:
+  ;if ticks mod (24 * 4) = 0 [set hour 0] ;here it loops around from 23 to 0 ;use ticks-since-start?
+  if str-time = "00:00" and ticks > 0 and ticks-since-start > 0 [set day day + 1]
+
+  if running-month? [ ;month and year are only used if we're auto-running a specific period
+    ;MONTH:
+    if (current-month = "02" and (day = 29)) or (current-month = one-of short-months and day = 31) or day = 32 [
+      ;(@^^February and leapyears NOT taken into account right now, feb 29th is skipped!)
+      let month-index position current-month ["01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12"]
+      let new-month-index (month-index + 1) mod 12
+      set current-month item new-month-index ["01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12"]
+      set day 1 ;back to the first of the new month
+
+     ;YEAR:
+      if current-month = "01" [set current-year current-year + 1] ;only runs if the month was just changed to 01
+    ]
+  ]
+
+
+
 end
 
 to-report str-time ;for interface
@@ -757,11 +782,29 @@ to-report str-time ;for interface
   report (word str-hour ":" minute)
 end
 
-to-report str-day ;always two-digit. Not for interface, but for table-lookup with run-month
+to-report str-day ;always two-digit. Not for interface, but for table-lookup with run-period
   let day-nr day
   if day-nr < 10 [set day-nr (word "0" day-nr)] ;e.g. 03 instead of 3
   report day-nr
 end
+
+to-report Måned ;just for interface for auto-running, making it clear how far it is
+  ifelse running-month? [
+    report current-month
+  ]
+  [
+    report " - "
+  ]
+end
+to-report År ;just for interface for auto-running, making it clear how far it is
+  ifelse running-month? [
+    report current-year
+  ]
+  [
+    report " - "
+  ]
+end
+
 
 to-report seepage-m-per-s ;(jordens hydrauliske ledeevne)
   ;baseret på https://www.plastmo.dk/beregnere/faskineberegner.aspx
@@ -840,7 +883,7 @@ end
 
 ;---DATA-IMPORT OG AUTO-KØRSEL
 
-to-report import-month [filename] ;e.g. "Maj2010Båring.csv"
+to-report import-month-old [filename] ;works for the Google sheets version
   let file csv:from-file (word filename ".csv") ;this gives us ONE long list of single-item lists (each list containing one string)
   let nice-file map [i -> csv:from-row reduce word i] file ;a full list of lists (every sheets row is an item)
                                                                   ;explanation: 'reduce word' makes every nested list in the list one string entry instead of a single-item list
@@ -850,50 +893,99 @@ to-report import-month [filename] ;e.g. "Maj2010Båring.csv"
   ;data fra: https://www.dmi.dk/friedata/observationer/
 end
 
-to run-month
-  ask patches [set water-level 0]
-  hæv-havet
-  set month-table table:make ;initialize empty table
-  let data import-month periode ;import month data from csv. periode is the interface chooser
-  set auto-måned periode ;in case they change the chooser while running
+to-report import-month [filename] ;trying with the directly downloaded and merged files! ;dates are now in the format "YYYY-MM-DD TT:TT"
+  report csv:from-file (word filename ".csv")
+  ;result: [["2021-01-06 04:00" 0.1] ["2021-01-06 05:00" 0.1] ... ]
+  ;data fra: https://www.dmi.dk/friedata/observationer/
+end
 
-  ;saving the variables so any interface changes doesn't confuse the plot pen name:
-  set %-valgt %-ekstra-regn
-  set hav-niveau-valgt hav-niveau
-  set periode-valgt periode
+to-report get-year [date-time] ;for the format "YYYY-MM-DD TT:TT"
+  report substring date-time 0 4
+end
+to-report get-month [date-time] ;for the format "YYYY-MM-DD TT:TT"
+  report substring date-time 5 7 ;always two digits
+end
+to-report get-date [date-time] ;for the format "YYYY-MM-DD TT:TT"
+  report substring date-time 8 10 ;always two digits
+end
+to-report get-time [date-time] ;for the format "YYYY-MM-DD TT:TT"
+  report substring date-time 11 16 ;full time 5 digits, i.e. "07:00", matching str-time
+end
+to-report get-hour [date-time] ;for the format "YYYY-MM-DD TT:TT"
+  report substring date-time 11 13 ;always two digits
+end
 
-  ;create table
-  foreach data [ ;each entry is in the form ["02-05-2021 07:00" 0.4 4] ;dato, nedbør per time (i mm), nedbørsminutter
+
+to run-period
+  ask patches [set water-level 0] ;reset, alt vand i systemet fjernes
+  hæv-havet ;hav-niveauet sættes til det valgte
+  ;let data import-month-old periode ;import month data from csv. periode is the interface chooser
+
+  ;saving the variables so any interface changes won't confuse plot pen names or other stuff:
+  set periode-valgt (word fra-dato " - " til-dato) ;e.g. "2010-01-17 - 2010-01-29". for plot pen names and monitor
+  set %-valgt %-ekstra-regn set hav-niveau-valgt hav-niveau
+
+  let all-data import-month "regn-2010-2020-2021" ;csv with ALL month rain data combined
+  ;show all-data
+  ;LOOP over data to create table:
+  let first-entry? true
+  let first-rain-day "none" let first-rain-hour "none" let last-rain-day-and-time "none"
+  let reached-startpoint? false let reached-endpoint? false
+  set auto-table table:make ;initialize empty table
+
+  foreach all-data [ ;each entry is in the form ["2010-01-11 21:00" 1.1] ;liste med dato + nedbør per time (i mm)
     x ->
-    let full-date item 0 x
+    let full-date item 0 x ;e.g. "2010-01-11 21:00"
+    let just-date substring full-date 0 10 ;e.g. "2010-01-11"
 
-    let the-day (word item 0 full-date item 1 full-date) ;e.g. "02"
-    let the-time data-time full-date ;e.g. "07:00"
-    let day-and-time (word the-day the-time) ;e.g. "0207:00" - this is the key
-    let the-rain (item 1 x) * ( 1 + (%-valgt / 100) ) ;e.g. 0.4 * 1.15 ;tilføjer scaler
-    ;ignorerer nedbørsminutter, bruger kun antal mm
+    if just-date = fra-dato [ set reached-startpoint? true] ;when to begin loading rows to table...
+    if just-date = til-dato [set reached-endpoint? true] ;...and when to stop. så intervallet er eksklusiv til-dato
 
-    if the-rain != 0 [ table:put month-table day-and-time the-rain ] ;table, key, value ;only keeping the times it actually rained
-  ]
+    if reached-startpoint? and not reached-endpoint? [
 
-  ;set total-auto-mængde
+      let the-month get-month full-date ;e.g. "01"
+      let the-day get-date full-date ;e.g. "11"
+      let the-hour get-hour full-date ;e.g. 21
+      let the-time get-time full-date ;e.g. "21:00"
+      let the-year get-year full-date
+      ;let key (word the-year the-day the-time) ;e.g. "1121:00" - this is the key for the table entry
+      let key full-date
+      let the-rain (item 1 x) * ( 1 + (%-valgt / 100) ) ;e.g. 1.1 * 1.15 ;tilføjer scaler
+
+      if the-rain != 0 [ ;only keeping the times it actually rained
+        table:put auto-table key the-rain ;table, key, value
+        if first-entry? [set first-rain-day the-day set first-rain-hour the-hour set current-year read-from-string the-year set current-month the-month set first-entry? false] ;used further down to start at this day&time
+
+        set last-rain-day-and-time key ;overwrites hver gang, så sidste version er altså den sidste
+      ]
+    ]
+  ] ;end of loop
 
   ;byg en 'stopklods' ind i tabellen kvarteret efter det sidste regn-entry:
-  let last-date item 0 (last data)
-  let the-day (word item 0 last-date item 1 last-date) ;e.g. "29"
-  let the-time data-time last-date ;e.g. "07:00"
-  let stop-hour but-last but-last the-time ;e.g. "07:"
-  let stop-time (word stop-hour "15") ;e.g. "07:15", a quarter past the last rain hour
-  let stop-day-and-time (word the-day stop-time) ;e.g. "2907:15"
-  table:put month-table stop-day-and-time "stop" ;indbygget stopklods (tjekkes i go)
+  let stop-day-and-time but-last but-last last-rain-day-and-time ;removing "00"
+  set stop-day-and-time (word stop-day-and-time "15") ;changing it to a quarter past the last rain key, e.g. "2010-12-29 23:15"
+  table:put auto-table stop-day-and-time "stop" ;indbygget stopklods (tjekkes i go)
 
-  ;reset time to "the first of the month":
-  set day read-from-string (item 1 (item 0 first data)) ;the first date it rains (only works for dates 01 to 09, reports the second digit!)
-  set hour 0 set minute "00"
+  ;reset time to the first rain occurence for that period:
+  if first first-rain-day = "0" [set first-rain-day but-first first-rain-day] ;e.g. "06" becomes "6"
+  if first first-rain-hour = "0" [set first-rain-hour but-first first-rain-hour]
 
+  set day read-from-string first-rain-day
+  set hour read-from-string first first-rain-hour
+  set minute "00"
   set ticks-at-start ticks ;when the auto-sim began (for update-plot)
   setup-plot-pen
-  set running-month? true ;now go will auto-rain by matching current time to month-table
+  set running-month? true ;now go will auto-rain by matching current time to auto-table
+end
+
+to-report key-checker ;the current year+date+time in the same format as in auto-table. Used in go to check if there's a rain entry (when auto-running a period)
+  ;format: "2020-09-08 02:00"
+  ifelse running-month? [
+    report (word current-year "-" current-month "-" str-day " " str-time)
+  ]
+  [
+    report "nope"
+  ]
 end
 
 to-report data-time [input]
@@ -905,8 +997,11 @@ end
 
 to-report auto-interface
   ifelse running-month? [
-    let auto-mængde precision (sum map [i -> item 1 i * ( 1 + (%-valgt / 100) )] import-month auto-måned) 2 ;total rainfall for the auto-running period
-    report (word "KØRER NU: " auto-måned ". I alt " auto-mængde " mm nedbør (inkl. " %-valgt " % ekstra).")
+    ;let auto-mængde precision (sum map [i -> item 1 i * ( 1 + (%-valgt / 100) )] import-month periode-valgt) 2 ;total rainfall for the auto-running period
+    ;@change to get it directly from auto-table
+    let auto-mængde precision (sum table:values auto-table) 2
+
+    report (word "KØRER NU: " periode-valgt ". I alt " auto-mængde " mm nedbør (inkl. " %-valgt " % ekstra).")
   ]
   [
     report "Vælg en periode og tryk på knappen for at køre perioden med automatisk nedbør."
@@ -915,7 +1010,7 @@ end
 
 
 ;---PLOT
-to setup-plot-pen ;run in run-month (so new line starts plotting every time it's run)
+to setup-plot-pen ;run in run-period (so new line starts plotting every time it's run)
   set-current-plot "Gennemsnitlig vandstand på land"
   create-temporary-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
   set-plot-pen-color first colors-left
@@ -1067,7 +1162,7 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-1
+5
 
 BUTTON
 390
@@ -1088,14 +1183,14 @@ NIL
 
 SLIDER
 1105
-300
+350
 1355
-333
+383
 hav-niveau
 hav-niveau
 0
 12
-3.5
+0.0
 .25
 1
 m
@@ -1266,9 +1361,9 @@ NIL
 
 PLOT
 1105
-375
+425
 1756
-605
+655
 Gennemsnitlig vandstand på land
 tid
 vandspejl (m)
@@ -1448,21 +1543,21 @@ Kør automatisk nedbørs-periode
 
 CHOOSER
 1105
-250
+245
 1400
-295
+290
 periode
 periode
-"Maj 2010" "Maj 2021" "2. - 8. maj 2021"
+"Maj 2010" "Maj 2021" "(indstil andre auto-perioder her)"
 2
 
 BUTTON
 1105
-335
+385
 1605
-371
-Afspil periode (og fjern alt vand fra systemet først)
-run-month
+421
+Afspil periode med valgt hav-niveau (fjerner alt vand fra systemet først)
+run-period
 NIL
 1
 T
@@ -1476,7 +1571,7 @@ NIL
 MONITOR
 1105
 195
-1605
+1760
 244
 NIL
 auto-interface
@@ -1574,14 +1669,14 @@ Oversvømmelse
 
 SLIDER
 1405
-260
+255
 1605
-293
+288
 %-ekstra-regn
 %-ekstra-regn
 0
 100
-30.0
+0.0
 5
 1
 %
@@ -1596,7 +1691,7 @@ hav-niveau
 hav-niveau
 0
 12
-3.5
+0.0
 .25
 1
 m
@@ -1646,6 +1741,82 @@ true
 false
 "" ""
 PENS
+
+INPUTBOX
+1365
+320
+1495
+380
+fra-dato
+2020-06-04
+1
+0
+String
+
+INPUTBOX
+1500
+320
+1625
+380
+til-dato
+2021-06-05
+1
+0
+String
+
+TEXTBOX
+1185
+300
+1760
+331
+TIL ARTHUR til test: input i format YYYY-MM-DD (med bindestreger) (til-dato ikke inkluderet i perioden)
+12
+13.0
+1
+
+MONITOR
+1635
+335
+1792
+380
+NIL
+first table:keys auto-table
+17
+1
+11
+
+MONITOR
+1635
+380
+1790
+425
+NIL
+last table:keys auto-table
+17
+1
+11
+
+MONITOR
+1625
+150
+1682
+195
+NIL
+Måned
+17
+1
+11
+
+MONITOR
+1680
+150
+1760
+195
+NIL
+År
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
