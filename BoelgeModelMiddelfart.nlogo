@@ -925,7 +925,8 @@ to run-period
   set periode-valgt (word fra-dato " - " til-dato) ;e.g. "2010-01-17 - 2010-01-29". for plot pen names and monitor
   set %-valgt %-ekstra-regn set hav-niveau-valgt hav-niveau
 
-  let all-data import-month "regn-2010-2020-2021" ;csv with ALL month rain data combined
+  let all-data import-month "regn-2010-2015-2020-2021" ;csv with ALL month rain data combined
+                                                       ;@OBS: hvis vi får for meget data, kan vi evt. optimere tidsforbrug ved kun at loade det nødvendige her!
   ;show all-data
   ;LOOP over data to create table:
   let first-entry? true
@@ -1162,7 +1163,7 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-5
+3
 
 BUTTON
 390
@@ -1427,7 +1428,7 @@ INPUTBOX
 110
 270
 Budget
-10000.0
+1000.0
 1
 0
 Number
@@ -1718,7 +1719,7 @@ MONITOR
 150
 365
 260
-411
+410
 NIL
 tax-money
 17
@@ -1748,7 +1749,7 @@ INPUTBOX
 1495
 380
 fra-dato
-2020-06-04
+2021-05-02
 1
 0
 String
@@ -1759,7 +1760,7 @@ INPUTBOX
 1625
 380
 til-dato
-2021-06-05
+2021-05-17
 1
 0
 String
