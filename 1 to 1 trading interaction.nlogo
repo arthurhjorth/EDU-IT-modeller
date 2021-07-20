@@ -76,8 +76,6 @@ to go
   update-mrs
   conversate
 
-  check-supply-demand ;@remove later. only to see if supply and demand is as we wish
-  ;set-total-demand-supply
 
 
   tick
@@ -445,52 +443,6 @@ to set-partner
       set partner myself
     ]
   ]
-end
-
-
-
-
-
-to check-supply-demand ;remove this when set-market-clearing-price is a go. Otherwise we overwrite values
- ; @interferes with compare-all-prices-settings. Made a temporary switch so I can test more easily.
-
-
-  ifelse check-supply-demand?
-  [
-
-  ask turtles [
-      set temp-budget ( tableware * price ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-      set  optimal-tableware round ( temp-budget * alpha / price ) ;
-      ;if optimal-tableware < 1  [
-      ; set optimal-tableware 1
-      ;]
-
-
-      set demand ( optimal-tableware - tableware )
-      if demand < 0 [
-        set supply abs demand ;
-        set demand 0
-      ]
-
-
-
-;      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set demand 0
-;      ]
-;
-;
-;      set supply ( tableware - optimal-tableware )
-;      if supply < 0 [
-;        set supply 0
-;      ]
-
-   ] ;ask turtles end
-  ] ;if end
-
-  [ ;else start
-  ] ; else end
-
 end
 
 
@@ -1738,17 +1690,6 @@ SWITCH
 fill-screen?
 fill-screen?
 0
-1
--1000
-
-SWITCH
-138
-51
-288
-84
-check-supply-demand?
-check-supply-demand?
-1
 1
 -1000
 
