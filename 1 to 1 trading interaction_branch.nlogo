@@ -58,6 +58,8 @@ to setup
   calculate-utility
   set-initial-utility
   create-price-lists
+   conversate
+
 end
 
 
@@ -73,6 +75,7 @@ to go
 
   check-supply-demand ;@remove later. only to see if supply and demand is as we wish
   set-total-demand-supply
+
 
   tick
 
@@ -169,10 +172,10 @@ to populate ;;run in setup. Create starting population
       set size 8
     ]
     ask merchants [
-      setxy -10 -10
+      setxy 10 -11
     ]
     ask consumers [
-      setxy 10 -10
+      setxy -10 -11
     ]
   ]
 
@@ -323,6 +326,60 @@ end
 
 
 to conversate
+
+  ;;; consumer talks
+  let c-talk1 patch pxcor-consumer 7 ;price
+  let c-talk2 patch pxcor-consumer 1 ;quantity
+  let c-talk3 patch pxcor-consumer -5 ;utility
+
+  ;;; merchant talks
+  let m-talk1 patch pxcor-merchant 6 ;price
+  let m-talk2 patch pxcor-merchant 0 ;quantity
+  let m-talk3 patch pxcor-merchant -5 ;utility
+
+  ;;; agreement talks
+  let shared-talk1 patch pxcor-shared 5 ;price
+  let shared-talk2 patch pxcor-shared -1 ;utility
+
+
+;@actual values still need to be added
+
+  if price-setting = "equilibrium" [
+    ask c-talk1 [set plabel "my ideal price is"]
+    ask m-talk1 [set plabel "my ideal price is"]
+    ask shared-talk2  [set plabel "this will be the price" ]
+
+
+    ask c-talk2  [set plabel "i want to buy this amount" ]
+    ask m-talk2  [set plabel "i want to sell this amount" ]
+    ask shared-talk2  [set plabel "we trade this amount" ]
+
+
+
+    ask c-talk3  [set plabel "utility changed by :)" ]
+    ask m-talk3  [set plabel "utility changed by :)" ]
+
+    ]
+
+
+  if price-setting = "random" [
+    ask c-talk1 [set plabel "i want to trade at the rate (mrs)"]
+    ask m-talk1 [set plabel "i want to trade at the rate (mrs)"]
+    ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
+
+
+    ask c-talk2  [set plabel "then i want to buy no more than x tableware" ]
+    ask m-talk2  [set plabel "i want to sell no more than x tableware" ]
+    ask shared-talk2  [set plabel "so we trade x tableware" ]
+
+
+
+    ask c-talk3  [set plabel "utility changed by :)" ]
+    ask m-talk3  [set plabel "utility changed by :)" ]
+
+  ]
+
+
 
 
 
@@ -1237,7 +1294,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "compare-all-price-settings"
-3
+2
 
 MONITOR
 195
@@ -1682,17 +1739,6 @@ check-supply-demand?
 1
 -1000
 
-INPUTBOX
-74
-363
-303
-423
-pxcor-consumer
-0.0
-1
-0
-Number
-
 SLIDER
 44
 320
@@ -1701,8 +1747,38 @@ SLIDER
 pxcor-consumer
 pxcor-consumer
 -16
+0
+-7.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+51
+371
+223
+404
+pxcor-merchant
+pxcor-merchant
+0
 16
-0.0
+13.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+57
+427
+229
+460
+pxcor-shared
+pxcor-shared
+-5
+5
+3.0
 1
 1
 NIL
