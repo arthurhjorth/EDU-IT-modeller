@@ -497,7 +497,7 @@ to trade ;this is now THE function. No more trade2!
   ]
 
 
-  if price-setting = "compare-all-price-setting" [ ;just like the rest of them, but all of the above bundled together
+  if price-setting = "compare-all-price-settings" [ ;just like the rest of them, but all of the above bundled together
 
 ;    activate-market-clearing-turtles
 ;    set-market-clearing-price
@@ -1182,7 +1182,7 @@ alpha-merchants
 alpha-merchants
 0
 1
-0.1
+1.0
 0.1
 1
 NIL
@@ -1264,7 +1264,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "compare-all-price-settings"
-0
+3
 
 MONITOR
 195
