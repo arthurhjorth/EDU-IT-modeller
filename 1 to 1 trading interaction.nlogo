@@ -77,7 +77,7 @@ to go
   conversate
 
   check-supply-demand ;@remove later. only to see if supply and demand is as we wish
-  set-total-demand-supply
+  ;set-total-demand-supply
 
 
   tick
@@ -466,29 +466,30 @@ to check-supply-demand ;remove this when set-market-clearing-price is a go. Othe
       ;]
 
 
-;      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set supply abs demand ;
-;        set demand 0
-;      ]
-
-
-
       set demand ( optimal-tableware - tableware )
       if demand < 0 [
+        set supply abs demand ;
         set demand 0
       ]
 
 
-      set supply ( tableware - optimal-tableware )
-      if supply < 0 [
-        set supply 0
-      ]
-   ] ;ask turtles end
-  ]
 
-  [
-  ]
+;      set demand ( optimal-tableware - tableware )
+;      if demand < 0 [
+;        set demand 0
+;      ]
+;
+;
+;      set supply ( tableware - optimal-tableware )
+;      if supply < 0 [
+;        set supply 0
+;      ]
+
+   ] ;ask turtles end
+  ] ;if end
+
+  [ ;else start
+  ] ; else end
 
 end
 
@@ -497,7 +498,7 @@ to set-total-demand-supply
   set total-demand 0
   set total-supply 0
 
-  ask turtles [
+  ask turtles with [ trading-style = "market-clearing" ] [
    set total-demand total-demand + demand
    set total-supply total-supply + supply
   ]
@@ -596,8 +597,8 @@ end
 
 to set-market-clearing-price
 
-  ;;;;;;; The price where quantity demanded is equal to the quantity supplied
-  ;;;;;;; No shortage or surplus exists in the market
+  ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
+  ;;;;;;; The lowest possible shortage or surplus in the market
 
 set price-temporary 0.1
 set temp-closest-to-market-clearing total-tableware
@@ -609,17 +610,26 @@ repeat 200 [
       ;if optimal-tableware < 1  [
       ; set optimal-tableware 1
       ;]
+;      set demand ( optimal-tableware - tableware )
+;      if demand < 0 [
+;        set demand 0
+;      ]
+;
+;      set supply ( tableware - optimal-tableware )
+;      if supply < 0 [
+;        set supply 0
+;      ]
+
+
       set demand ( optimal-tableware - tableware )
       if demand < 0 [
+        set supply abs demand ;
         set demand 0
       ]
 
-      set supply ( tableware - optimal-tableware )
-      if supply < 0 [
-        set supply 0
-      ]
     ] ;ask turtles end
 
+    set-total-demand-supply
 
 
     ;
@@ -1123,7 +1133,7 @@ INPUTBOX
 320
 259
 money-merchants
-1000.0
+50.0
 1
 0
 Number
@@ -1134,7 +1144,7 @@ INPUTBOX
 460
 256
 money-consumers
-1000.0
+50.0
 1
 0
 Number
@@ -1230,7 +1240,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.9
+0.7
 0.1
 1
 NIL
@@ -1578,7 +1588,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
