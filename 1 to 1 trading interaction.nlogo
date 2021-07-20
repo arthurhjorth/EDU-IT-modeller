@@ -345,36 +345,35 @@ to conversate
 
 ;@actual values still need to be added
 
+    ;;;;;;; first commands are specific to condition ;;;;;;;
+  if price-setting = "market-clearing" [
+    ;@giver det mening at sætte information om supply/ demand her?
+    ask shared-talk1 [set plabel "this is the price"]
+  ]
+
+
   if price-setting = "equilibrium" [
     ask c-talk1 [set plabel consumer-optimal-price]
     ask m-talk1 [set plabel merchant-optimal-price]
     ask shared-talk2  [set plabel "this will be the price" ]
+  ]
 
 
+ if price-setting = "random" [
+    if price-setting = "random" [
+      ask c-talk1 [set plabel "i want to trade at the rate (mrs)"]
+      ask m-talk1 [set plabel "i want to trade at the rate (mrs)"]
+      ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
+    ]
+
+
+    ;;;;;;; commands that are shared for all conditions ;;;;;;
+    ;quantity
     ask c-talk2  [set plabel "i want to buy this amount" ]
     ask m-talk2  [set plabel "i want to sell this amount" ]
     ask shared-talk2  [set plabel "we trade this amount" ]
 
-
-
-    ask c-talk3  [set plabel "utility changed by :)" ]
-    ask m-talk3  [set plabel "utility changed by :)" ]
-
-    ]
-
-
-  if price-setting = "random" [
-    ask c-talk1 [set plabel "i want to trade at the rate (mrs)"]
-    ask m-talk1 [set plabel "i want to trade at the rate (mrs)"]
-    ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
-
-
-    ask c-talk2  [set plabel "then i want to buy no more than x tableware" ]
-    ask m-talk2  [set plabel "i want to sell no more than x tableware" ]
-    ask shared-talk2  [set plabel "so we trade x tableware" ]
-
-
-
+    ;utility
     ask c-talk3  [set plabel "utility changed by :)" ]
     ask m-talk3  [set plabel "utility changed by :)" ]
 
@@ -816,6 +815,8 @@ if deal > 0 [
        set money temp-money
        set succesful-trades succesful-trades + 1
       ]
+
+    update-price-list ;add price when successful
     ]
 
 
@@ -865,9 +866,13 @@ end
 
 
 to update-price-list
-  set price-list fput price price-list
-  if price-setting = "random"
-  [set price-list random-price-list]
+ifelse price-setting != "compare-all-price-settings"
+  [  set price-list fput price price-list ]
+
+  [ ;for compare-all we need differentiated lists
+  ]
+
+
 end
 
 
