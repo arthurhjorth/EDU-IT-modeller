@@ -50,6 +50,7 @@ to setup
   clear-all
   reset-ticks
 
+
   layout
   populate
   update-mrs
@@ -139,7 +140,8 @@ to populate ;;run in setup. Create starting population
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-ask turtles
+  let wanted (turtle-set merchants consumers) ;temporary variable to only handle these two turtle-breeds
+  ask wanted
   [set size 5
   set mrs 0]
 
@@ -155,11 +157,23 @@ ask turtles
 
   ask consumers
   [set shape "person"
-  set heading 270
-  set alpha alpha-consumers
-   set beta precision ( 1 - alpha-consumers ) 3
-   set money money-consumers
-   set tableware tableware-consumers
+    set heading 270
+    set alpha alpha-consumers
+    set beta precision ( 1 - alpha-consumers ) 3
+    set money money-consumers
+    set tableware tableware-consumers
+  ]
+
+  if fill-screen? and price-setting != "compare-all-price-settings" [ ;;; different formats
+    ask wanted [
+      set size 8
+    ]
+    ask merchants [
+      setxy -10 -10
+    ]
+    ask consumers [
+      setxy 10 -10
+    ]
   ]
 
 end
@@ -169,8 +183,8 @@ end
 to make-market-clearing-ppls [kind]
   if kind = "merchants" [
     create-merchants 1 [
-      set color green + 2
-      setxy -10 8.5
+      set color red - 1
+      setxy 10 8.5
       set trading-style "market-clearing"
   ]
   ]
@@ -178,8 +192,8 @@ to make-market-clearing-ppls [kind]
 
   if kind = "consumers" [
     create-consumers 1 [
-      set color yellow + 2
-      setxy 10 8.5
+      set color red + 1.5
+      setxy -10 8.5
       set trading-style "market-clearing"
   ]
   ]
@@ -191,16 +205,16 @@ to make-equilibrium-ppls [kind]
 
    if kind = "merchants" [
    create-merchants 1 [
-   set color green + 0.7
-   setxy -10 -2.5
+   set color yellow - 1
+   setxy 10 -2.5
    set trading-style "equilibrium"
   ]
   ]
 
   if kind = "consumers" [
    create-consumers 1 [
-      set color yellow + 0.7
-      setxy 10 -2.5
+      set color yellow + 1.5
+      setxy -10 -2.5
       set trading-style "equilibrium"
   ]
   ]
@@ -210,8 +224,8 @@ end
 to make-random-ppls [kind]
   if kind = "merchants" [
    create-merchants 1 [
-   set color green - 0.3
-   setxy -10 -12.5
+   set color green - 1
+   setxy 10 -12.5
       set trading-style "random"
 
   ]
@@ -219,8 +233,8 @@ to make-random-ppls [kind]
 
   if kind = "consumers" [
    create-consumers 1 [
-      set color yellow - 0.3
-      setxy 10 -12.5
+      set color green + 1.5
+      setxy -10 -12.5
       set trading-style "random"
   ]
   ]
@@ -230,7 +244,50 @@ end
 
 to layout
 
-ask patches [set pcolor blue ]
+  ask patches [set pcolor blue]
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;; full-screen option here ;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   ;;;; in this setting, when a non-multiple price-setting option is chosen, the display is fit for just two agents - with no different colors
+
+
+  if fill-screen? and price-setting != "compare-all-price-settings" [
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;; @ fun layout, such as ancient Greece style ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+      ask patches with [pycor < 15] [set pcolor blue - 0.5]
+  ask patches with [pycor < 9] [set pcolor blue - 1]
+
+  create-turtles 1
+  ask turtles
+  [set shape "building institution" ;make it acropolis
+    set size 8
+    setxy 0 12
+    set color white]
+
+
+   ; putting a visual tag to show the condition
+    ask patch 1 -16 [set plabel price-setting set pcolor blue]
+       ask patches with [pycor = -16] [set pcolor blue - 1.5 ]
+
+  ]
+
+
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;; no-fill-screen option here ;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  ;;;; this is the layout so far, with the three conditions having a slot of space in the display each.
+
+if price-setting = "compare-all-price-settings" or not fill-screen? [
 
 
 if price-setting = "market-clearing" or price-setting = "compare-all-price-settings" [
@@ -260,19 +317,34 @@ if price-setting = "random" or price-setting = "compare-all-price-settings" [
     ]
   ]
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;; @ fun layout, such as ancient Greece style ;;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;  create-turtles 1
-;  ask turtles
-;  [set shape "building institution" ;make it acropolis
-;    set size 13
-;    setxy 0 10
-;    set color white]
+  ]
 
 end
+
+
+to conversate
+
+
+
+  ;;;; here we make the interaction visible in the display ;;;;;
+
+if fill-screen? [
+  ;if price-setting = "equilibrium"
+  ;  [ ask patches with [ pxcor = pxcor-consumer ] and [ pycor = slot1 ]
+   ;   [set plabel "my price is"]
+
+
+
+      ;pxcor-merchant
+      ; pxcor-agreement
+     ;
+
+
+
+    ]
+
+end
+
 
 
 ;MRS beregninger med basis i bogen
@@ -320,35 +392,43 @@ end
 
 
 to check-supply-demand ;remove this when set-market-clearing-price is a go. Otherwise we overwrite values
- ; @interferes with compare-all-prices-settings. Comment out when necessary
+ ; @interferes with compare-all-prices-settings. Made a temporary switch so I can test more easily.
 
-;  ask turtles [
-;      set temp-budget ( tableware * price ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-;      set  optimal-tableware round ( temp-budget * alpha / price ) ;
-;      ;if optimal-tableware < 1  [
-;      ; set optimal-tableware 1
-;      ;]
-;
-;
-;;      set demand ( optimal-tableware - tableware )
-;;      if demand < 0 [
-;;        set supply abs demand ;
-;;        set demand 0
-;;      ]
-;
-;
-;
+
+  ifelse check-supply-demand?
+  [
+
+  ask turtles [
+      set temp-budget ( tableware * price ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+      set  optimal-tableware round ( temp-budget * alpha / price ) ;
+      ;if optimal-tableware < 1  [
+      ; set optimal-tableware 1
+      ;]
+
+
 ;      set demand ( optimal-tableware - tableware )
 ;      if demand < 0 [
+;        set supply abs demand ;
 ;        set demand 0
 ;      ]
-;
-;
-;      set supply ( tableware - optimal-tableware )
-;      if supply < 0 [
-;        set supply 0
-;      ]
-;   ] ;ask turtles end
+
+
+
+      set demand ( optimal-tableware - tableware )
+      if demand < 0 [
+        set demand 0
+      ]
+
+
+      set supply ( tableware - optimal-tableware )
+      if supply < 0 [
+        set supply 0
+      ]
+   ] ;ask turtles end
+  ]
+
+  [
+  ]
 
 end
 
@@ -1090,7 +1170,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.9
+0.7
 0.1
 1
 NIL
@@ -1157,7 +1237,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "compare-all-price-settings"
-1
+3
 
 MONITOR
 195
@@ -1259,10 +1339,10 @@ nr-succesful-trades
 11
 
 SWITCH
-7
-422
-371
-455
+14
+486
+378
+519
 dynamics?
 dynamics?
 0
@@ -1270,10 +1350,10 @@ dynamics?
 -1000
 
 SWITCH
-9
-479
-201
-512
+16
+543
+208
+576
 consumers-earn-money?
 consumers-earn-money?
 1
@@ -1281,10 +1361,10 @@ consumers-earn-money?
 -1000
 
 SWITCH
-7
-515
-187
-548
+14
+579
+194
+612
 tableware-production?
 tableware-production?
 1
@@ -1292,10 +1372,10 @@ tableware-production?
 -1000
 
 SWITCH
-7
-554
-192
-587
+14
+618
+199
+651
 tableware-breakage?
 tableware-breakage?
 1
@@ -1314,10 +1394,10 @@ round ( total-tableware )
 11
 
 SLIDER
-191
-516
-426
-549
+198
+580
+433
+613
 tableware-produced-per-tick
 tableware-produced-per-tick
 0
@@ -1329,10 +1409,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-204
-478
-376
-511
+211
+542
+383
+575
 salary-daily
 salary-daily
 0
@@ -1416,10 +1496,10 @@ PENS
 "Market clearing" 1.0 0 -1184463 true "" "if market-clearing-price > 0 [\nplot market-clearing-price]"
 
 SLIDER
-198
-554
-428
-587
+205
+618
+435
+651
 tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
@@ -1453,7 +1533,7 @@ precision mean-market-clearing-price 2
 
 OUTPUT
 455
-516
+502
 892
 619
 13
@@ -1467,7 +1547,7 @@ running-speed
 running-speed
 0
 1
-1.0
+0.7
 0.1
 1
 NIL
@@ -1579,6 +1659,54 @@ total-demand
 17
 1
 11
+
+SWITCH
+148
+13
+274
+46
+fill-screen?
+fill-screen?
+0
+1
+-1000
+
+SWITCH
+138
+51
+288
+84
+check-supply-demand?
+check-supply-demand?
+1
+1
+-1000
+
+INPUTBOX
+74
+363
+303
+423
+pxcor-consumer
+0.0
+1
+0
+Number
+
+SLIDER
+44
+320
+216
+353
+pxcor-consumer
+pxcor-consumer
+-16
+16
+0.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
