@@ -72,7 +72,6 @@ to go
   produce-tableware
   break-tableware
   earn-money
-  update-price-list
   update-mrs
   conversate
 
@@ -297,7 +296,7 @@ if price-setting = "compare-all-price-settings" or not fill-screen? [
 if price-setting = "market-clearing" or price-setting = "compare-all-price-settings" [
 
 ask patch 3 5
-[set plabel "Market clearing"]
+[set plabel "Market-clearing"]
 
   ask patches with [pycor > 4 ] [set pcolor blue + 1]
   ask patches with [pycor = 5 ] [set pcolor blue + 0.5]
@@ -328,6 +327,7 @@ end
 
 to conversate
 
+  ;defining plabels
   ;;; consumer talks
   let c-talk1 patch pxcor-consumer 7 ;price
   let c-talk2 patch pxcor-consumer 1 ;quantity
@@ -343,6 +343,11 @@ to conversate
   let shared-talk2 patch pxcor-shared -1 ;utility
 
 
+
+
+
+;;;;;;;; samtale-output;;;;;;;
+; for nu udkast
 ;@actual values still need to be added
 
     ;;;;;;; first commands are specific to condition ;;;;;;;
@@ -352,7 +357,7 @@ to conversate
   ]
 
 
-  if price-setting = "equilibrium" [
+  if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
     ask c-talk1 [set plabel consumer-optimal-price]
     ask m-talk1 [set plabel merchant-optimal-price]
     ask shared-talk2  [set plabel "this will be the price" ]
@@ -499,10 +504,10 @@ to trade ;this is now THE function. No more trade2!
 
   if price-setting = "compare-all-price-settings" [ ;just like the rest of them, but all of the above bundled together
 
-;    activate-market-clearing-turtles
-;    set-market-clearing-price
-;    decide-quantity
-;    check-utility-and-trade
+    activate-market-clearing-turtles
+    set-market-clearing-price
+    decide-quantity
+    check-utility-and-trade
 
 
 
@@ -595,11 +600,6 @@ repeat 200 [
   ] ;repeat 200 end
 
 
-set market-clearing-price-list fput price market-clearing-price-list ;adding the price to a list - and yes, we're only interested in the final price.
-  ;@lisa . I don't really understand the list stuff u made. Does this price "update" only need to be put into the list as
-  ;the "final" market clearing price has been calculated? (as it is now)
-
-
   ;;;;;;;;;;;;;;;;;;;
   ;; output-prints ;;
   ;;;;;;;;;;;;;;;;;;;
@@ -623,8 +623,6 @@ to set-equilibrium-price
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
                            ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
 
-  ;updating price-list
-Set equilibrium-price-list fput price equilibrium-price-list ;adding the latest price - currently regardless of whether it's used succesfully or not
 
 
    ;;;;;;;;;;;;;;;;;;;
@@ -655,7 +653,6 @@ To set-random-price
     set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
 
-Set random-price-list fput price random-price-list
 
   ;;;;;;;;;;;;;;;;;;;
   ;; output-prints ;;
@@ -759,8 +756,6 @@ end
   ;(set deal 0 is to allow us to prompt "trade cancelled" or so)
 
 
-
-
   ;;;; step 0: Defining variables for more easily readable calculations
 
   let deal-tableware ( deal )
@@ -816,7 +811,7 @@ if deal > 0 [
        set succesful-trades succesful-trades + 1
       ]
 
-    update-price-list ;add price when successful
+    update-price-list ;add price to list to save it, when trade is successful
     ]
 
 
@@ -861,16 +856,55 @@ to create-price-lists
   set market-clearing-price-list []
   set equilibrium-price-list []
   set random-price-list []
+
 end
 
 
 
 to update-price-list
+;  ;;;prints are only to test
+;
+;  ;in single price-setting conditions, save the agreed upon price in the list price-list
+;  ; in multiple price-setting condition, save the agreed upon price in seperate lists depending on the type of price-setting used
+;
+; ;- print 1
+;  ask active-merchant with [trading-style = "market-clearing"] [
+;    print 2]
+;
+;;  ask active-consumer with [trading-style = "market-clearing"] [
+;;      print price
+;;      set market-clearing-price-list fput price market-clearing-price-list
+;;  print market-clearing-price-list]
+;
+;
+;
+;
+;
 ifelse price-setting != "compare-all-price-settings"
-  [  set price-list fput price price-list ]
+ [
+    set price-list fput price price-list
+    print price-list ]
 
-  [ ;for compare-all we need differentiated lists
+
+
+  ;when the active turtle-set has the trading-style market-clearing, save the agreed upon price in the list market-clearing-price-list
+  ;else:
+  [
+
+    ask active-consumer with [trading-style = "market-clearing"] ;no list for market-clearing-people: apparently they don't trade in this condition
+    [ set market-clearing-price-list fput price market-clearing-price-list ]
+
+
+    ;print market-clearing-price-list
+    ask active-consumer with [trading-style = "equilibrium"]
+      [ set equilibrium-price-list fput price equilibrium-price-list ]
+
+
+    ask active-consumer with [trading-style = "random"]
+      [ set random-price-list fput price random-price-list ]
+
   ]
+
 
 
 end
@@ -1025,25 +1059,34 @@ report ( ( sum price-list ) / ( length price-list ) )
   ]
 end
 
-to-report mean-market-clearing-price ;@@lisa: still missing to count succesful only + amount
-  set price-list market-clearing-price-list
-  if length price-list > 0 [
-report ( ( sum price-list ) / ( length price-list ) )
+
+;;@these reporters can currently mess with the price-lists. Not OK! :)
+
+to-report mean-selling-price
+if length price-list > 0 [
+    report ( ( sum price-list ) / (length price-list ) )
+  ]
+end
+
+
+; the following reporters are used only in the compare-all condition
+
+to-report mean-market-clearing-price
+  if length market-clearing-price-list > 0 [
+report ( ( sum market-clearing-price-list ) / ( length market-clearing-price-list ) )
   ]
 end
 
 
 to-report mean-equilibrium-price
-  set price-list equilibrium-price-list
-  if length price-list > 0 [
-report ( ( sum price-list ) / ( length price-list ) )
+  if length equilibrium-price-list > 0 [
+report ( ( sum equilibrium-price-list ) / ( length equilibrium-price-list ) )
   ]
 end
 
 to-report mean-random-price
-  set price-list random-price-list
-  if length price-list > 0 [
-report ( ( sum price-list ) / ( length price-list ) )
+  if length random-price-list > 0 [
+report ( ( sum random-price-list ) / ( length random-price-list ) )
   ]
 end
 
@@ -1181,8 +1224,8 @@ SLIDER
 alpha-merchants
 alpha-merchants
 0
-1
-1.0
+0.9
+0.1
 0.1
 1
 NIL
@@ -1372,7 +1415,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-0
+1
 1
 -1000
 
@@ -1429,7 +1472,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-1.0
+0.1
 0.1
 1
 NIL
@@ -1444,7 +1487,7 @@ salary-daily
 salary-daily
 0
 20
-1.0
+20.0
 1
 1
 NIL
@@ -1545,7 +1588,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
@@ -1574,7 +1617,7 @@ running-speed
 running-speed
 0
 1
-0.7
+0.5
 0.1
 1
 NIL
@@ -1715,7 +1758,7 @@ pxcor-shared
 pxcor-shared
 -5
 5
-3.0
+5.0
 1
 1
 NIL
