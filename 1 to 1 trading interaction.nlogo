@@ -1014,6 +1014,10 @@ end
 
 
 to-report report-offer-consumers
+  ifelse ticks > 0
+
+;;; reporter section ;;;
+  [
   let quantity-offer floor ( item 0 [offer] of consumers )
 
 
@@ -1021,15 +1025,25 @@ to-report report-offer-consumers
   [report quantity-offer]
   [report "0   (not interested in buying)"]  ;only positive quantities are reported; if not, there is no chance of trading
   ; should the quantity value be added even when negative?
+  ]
+
+  ;;;; if the model has just been set up, keep this monitor blank
+  [report " "] ;at the beginning, keep the monitor blank
 end
 
 to-report report-offer-merchants
+  ifelse ticks > 0
+
+  [
   let quantity-offer floor ( item 0 [ offer ] of merchants )
 
 
   ifelse willing-to-trade?
   [report quantity-offer]
   [report "0   (not interested in selling)"]
+  ]
+
+  [report " "]
 end
 
 to-report report-price
@@ -1057,10 +1071,11 @@ to-report mean-price
   if length price-list > 0 [
 report ( ( sum price-list ) / ( length price-list ) )
   ]
+
 end
 
 
-;;@these reporters can currently mess with the price-lists. Not OK! :)
+;;@these reporters should only run in the compare-all condition
 
 to-report mean-selling-price
 if length price-list > 0 [
@@ -1172,10 +1187,10 @@ tableware-consumers
 Number
 
 BUTTON
-6
-10
-69
-43
+11
+87
+74
+120
 NIL
 setup
 NIL
@@ -1189,10 +1204,10 @@ NIL
 1
 
 BUTTON
-72
-10
-135
-43
+77
+87
+140
+120
 NIL
 go
 T
@@ -1415,7 +1430,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-1
+0
 1
 -1000
 
@@ -1560,10 +1575,10 @@ true
 true
 "" ""
 PENS
-"mean" 1.0 0 -5298144 true "" "plot mean-price"
-"equilibrium" 1.0 2 -14454117 true "" "if equilibrium-price > 0 [\nplot equilibrium-price ]"
-"random" 1.0 0 -13840069 true "" "if random-price > 0 [\nplot random-price]"
-"Market clearing" 1.0 0 -1184463 true "" "if market-clearing-price > 0 [\nplot market-clearing-price]"
+"mean" 1.0 0 -14985354 true "" "if price-setting != \"compare-all-price-settings\" [\nplot mean-price ]"
+"latest random" 1.0 0 -14439633 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length random-price-list > 0 [\nplot item 0 random-price-list\n]\n;]"
+"latest equilibrium" 1.0 0 -4079321 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length equilibrium-price-list > 0 [\nplot item 0 equilibrium-price-list\n]\n;]"
+"latest market-clearing" 1.0 0 -5298144 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length market-clearing-price-list > 0 [\nplot item 0 market-clearing-price-list\n]\n;]"
 
 SLIDER
 205
@@ -1574,7 +1589,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 10
-0.4
+6.2
 0.1
 1
 NIL
@@ -1617,7 +1632,7 @@ running-speed
 running-speed
 0
 1
-0.5
+0.0
 0.1
 1
 NIL
@@ -1681,8 +1696,6 @@ true
 true
 "" ""
 PENS
-"total tableware" 1.0 0 -16777216 true "" "plot total-tableware"
-"total money" 1.0 0 -7500403 true "" "plot total-money"
 "consumers tableware" 1.0 0 -2674135 true "" "plot nr-tableware-consumers"
 "merchants tableware" 1.0 0 -955883 true "" "plot nr-tableware-merchants"
 "consumers money" 1.0 0 -6459832 true "" "plot nr-money-consumers"
@@ -1720,25 +1733,10 @@ fill-screen?
 -1000
 
 SLIDER
-44
-320
-216
-353
-pxcor-consumer
-pxcor-consumer
--16
-0
--7.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-51
-371
-223
-404
+5
+385
+177
+418
 pxcor-merchant
 pxcor-merchant
 0
@@ -1750,10 +1748,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-57
-427
-229
-460
+7
+420
+179
+453
 pxcor-shared
 pxcor-shared
 -5
@@ -1763,6 +1761,31 @@ pxcor-shared
 1
 NIL
 HORIZONTAL
+
+SLIDER
+5
+350
+177
+383
+pxcor-consumer
+pxcor-consumer
+-16
+0
+-15.0
+1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+24
+316
+174
+344
+temporary sliders to allocate plabels:
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
