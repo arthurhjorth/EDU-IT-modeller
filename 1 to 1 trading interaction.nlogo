@@ -15,6 +15,8 @@ globals [
   active-turtles
   merchant-optimal-price
   consumer-optimal-price
+  unsuccesful-price
+  recorded-time
 ]
 
 
@@ -681,6 +683,7 @@ ask active-consumer [
     let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
     let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
     set offer precision ( optimal - tableware ) 2  ;offer to buy the number of tableware optimal with current holding subtracted
+
   ]
 
 
@@ -689,6 +692,7 @@ ask active-consumer [
     let optimal ( budget * alpha / price )
     set offer precision ( tableware - optimal ) 2
     if offer > tableware [ set offer tableware ] ; ensures that the merchant won't offer more than it currently has in its holding (can at most sell all the tableware they have)
+
   ]
 
 
@@ -815,6 +819,15 @@ if deal > 0 [
     ]
 
 
+  ;save the prices suggested in interactions that didn't end with a trade
+  ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccesful trade
+if deal = 0 [
+    set unsuccesful-price price
+    set recorded-time ( ticks + 1)
+  print recorded-time]
+
+
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;; output-prints ;;;;;;;;;;;;
   ;;; utility, success and quantity ;;;
@@ -856,34 +869,21 @@ to create-price-lists
   set market-clearing-price-list []
   set equilibrium-price-list []
   set random-price-list []
-
 end
 
 
 
 to update-price-list
-;  ;;;prints are only to test
-;
-;  ;in single price-setting conditions, save the agreed upon price in the list price-list
-;  ; in multiple price-setting condition, save the agreed upon price in seperate lists depending on the type of price-setting used
-;
-; ;- print 1
-;  ask active-merchant with [trading-style = "market-clearing"] [
-;    print 2]
-;
-;;  ask active-consumer with [trading-style = "market-clearing"] [
-;;      print price
-;;      set market-clearing-price-list fput price market-clearing-price-list
-;;  print market-clearing-price-list]
-;
-;
-;
-;
-;
-ifelse price-setting != "compare-all-price-settings"
- [
+
+
+  ; in single price-setting conditions, save the agreed upon price in the list price-list
+  ;  in multiple price-setting condition, save the agreed upon price in seperate lists depending on the type of price-setting used
+
+
+  ifelse price-setting != "compare-all-price-settings"
+  [
     set price-list fput price price-list
-    print price-list ]
+  ]
 
 
 
@@ -904,7 +904,6 @@ ifelse price-setting != "compare-all-price-settings"
       [ set random-price-list fput price random-price-list ]
 
   ]
-
 
 
 end
@@ -1226,7 +1225,7 @@ INPUTBOX
 448
 70
 stop-after-x-tick
-100.0
+50.0
 1
 0
 Number
@@ -1306,7 +1305,7 @@ report-mrs-merchants
 MONITOR
 920
 82
-1073
+1075
 127
 NIL
 report-mrs-consumers
@@ -1322,7 +1321,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "compare-all-price-settings"
-3
+1
 
 MONITOR
 195
@@ -1369,10 +1368,10 @@ report-offer-consumers
 11
 
 MONITOR
-951
-192
-1089
-237
+1071
+146
+1209
+191
 merchant-tableware
 round ( nr-tableware-merchants )
 17
@@ -1402,10 +1401,10 @@ round ( nr-tableware-consumers )
 11
 
 MONITOR
-1072
-146
-1192
-191
+953
+192
+1073
+237
 consumer-money
 nr-money-consumers
 17
@@ -1430,7 +1429,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-0
+1
 1
 -1000
 
@@ -1463,7 +1462,7 @@ SWITCH
 651
 tableware-breakage?
 tableware-breakage?
-1
+0
 1
 -1000
 
@@ -1579,6 +1578,8 @@ PENS
 "latest random" 1.0 0 -14439633 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length random-price-list > 0 [\nplot item 0 random-price-list\n]\n;]"
 "latest equilibrium" 1.0 0 -4079321 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length equilibrium-price-list > 0 [\nplot item 0 equilibrium-price-list\n]\n;]"
 "latest market-clearing" 1.0 0 -5298144 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length market-clearing-price-list > 0 [\nplot item 0 market-clearing-price-list\n]\n;]"
+"latest succesful price" 1.0 0 -11221820 true "" "if price-setting != \"compare-all-price-settings\" [\nplot item 0 price-list\n]"
+"refused offer price" 1.0 2 -2139308 true "" "if recorded-time + 1 = ticks [\nplot unsuccesful-price\n]\n;now just needs to be adjusted to plot alongside the current price\n; so xcor = ticks"
 
 SLIDER
 205
@@ -1589,7 +1590,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 10
-6.2
+1.0
 0.1
 1
 NIL
@@ -1632,7 +1633,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.5
 0.1
 1
 NIL
@@ -1702,11 +1703,11 @@ PENS
 "merchants money" 1.0 0 -1184463 true "" "plot nr-money-merchants"
 
 TEXTBOX
-955
+947
 131
 1011
-149
-Tableware
+159
+Consumer
 11
 0.0
 1
@@ -1716,7 +1717,7 @@ TEXTBOX
 130
 1228
 148
-Money
+Merchant
 11
 0.0
 1
@@ -1771,7 +1772,7 @@ pxcor-consumer
 pxcor-consumer
 -16
 0
--15.0
+0.0
 1
 1
 NIL
@@ -1786,6 +1787,28 @@ temporary sliders to allocate plabels:
 11
 0.0
 1
+
+MONITOR
+228
+364
+353
+409
+NIL
+utility-merchants
+17
+1
+11
+
+MONITOR
+229
+411
+353
+456
+NIL
+utility-consumers
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
