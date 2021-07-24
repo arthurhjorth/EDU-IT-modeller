@@ -111,33 +111,43 @@ to populate ;;run in setup. Create starting population
 
  if price-setting = "market-clearing"
   [
-  repeat 1 [ make-market-clearing-ppls "merchants"]
-  repeat 1 [ make-market-clearing-ppls "consumers"]
+  repeat 1 [ make-market-clearing-turtles "merchants"]
+  repeat 1 [ make-market-clearing-turtles "consumers"]
   ]
 
 
   if price-setting = "equilibrium"
   [
-  repeat 1 [ make-equilibrium-ppls "merchants"]
-  repeat 1 [ make-equilibrium-ppls "consumers"]
+  repeat 1 [ make-equilibrium-turtles "merchants"]
+  repeat 1 [ make-equilibrium-turtles "consumers"]
   ]
 
 
   if price-setting = "random"
   [
-  repeat 1 [ make-random-ppls "merchants"]
-  repeat 1 [ make-random-ppls "consumers"]
+  repeat 1 [ make-random-turtles "merchants"]
+  repeat 1 [ make-random-turtles "consumers"]
   ]
+
+
+   if price-setting = "negotiation"
+  [
+  repeat 1 [ make-negotiation-turtles "merchants"]
+  repeat 1 [ make-negotiation-turtles "consumers"]
+  ]
+
 
 
   if price-setting = "compare-all-price-settings"
   [
-  repeat 1 [ make-market-clearing-ppls "merchants"]
-  repeat 1 [ make-market-clearing-ppls "consumers"]
-   repeat 1 [ make-equilibrium-ppls "merchants"]
-  repeat 1 [ make-equilibrium-ppls "consumers"]
-   repeat 1 [ make-random-ppls "merchants"]
-  repeat 1 [ make-random-ppls "consumers"]
+  repeat 1 [ make-market-clearing-turtles "merchants"]
+    repeat 1 [ make-market-clearing-turtles "consumers"]
+    repeat 1 [ make-equilibrium-turtles "merchants"]
+    repeat 1 [ make-equilibrium-turtles "consumers"]
+    repeat 1 [ make-random-turtles "merchants"]
+    repeat 1 [ make-random-turtles "consumers"]
+    repeat 1 [ make-negotiation-turtles "merchants"]
+    repeat 1 [ make-negotiation-turtles "consumers"]
   ]
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -185,7 +195,7 @@ end
 
 
 
-to make-market-clearing-ppls [kind]
+to make-market-clearing-turtles [kind]
   if kind = "merchants" [
     create-merchants 1 [
       set color red - 1
@@ -206,7 +216,7 @@ to make-market-clearing-ppls [kind]
 end
 
 
-to make-equilibrium-ppls [kind]
+to make-equilibrium-turtles [kind]
 
    if kind = "merchants" [
    create-merchants 1 [
@@ -226,7 +236,7 @@ to make-equilibrium-ppls [kind]
 end
 
 
-to make-random-ppls [kind]
+to make-random-turtles [kind]
   if kind = "merchants" [
    create-merchants 1 [
    set color green - 1
@@ -241,6 +251,26 @@ to make-random-ppls [kind]
       set color green + 1.5
       setxy -10 -12.5
       set trading-style "random"
+  ]
+  ]
+end
+
+
+to make-negotiation-turtles [kind]
+  if kind = "merchants" [
+   create-merchants 1 [
+   set color magenta - 1
+   setxy 10 -12.5 ;@ needs to be adjusted along with all the rest
+      set trading-style "negotiation"
+
+  ]
+  ]
+
+  if kind = "consumers" [
+   create-consumers 1 [
+      set color magenta + 1.5
+      setxy -10 -12.5
+      set trading-style "negotiation"
   ]
   ]
 end
@@ -490,6 +520,7 @@ to trade ;this is now THE function. No more trade2!
     set-market-clearing-price                ; step 2
     decide-quantity                          ; step 3
     check-utility-and-trade                  ; step 4
+    print-trade-details                      ;prints
 
   ]
 
@@ -499,6 +530,7 @@ to trade ;this is now THE function. No more trade2!
     set-equilibrium-price
     decide-quantity
     check-utility-and-trade
+    print-trade-details
   ]
 
 
@@ -507,7 +539,15 @@ to trade ;this is now THE function. No more trade2!
     set-random-price
     decide-quantity
     check-utility-and-trade
+    print-trade-details
   ]
+
+  if price-setting = "negotiation" [
+    activate-negotiation-turtles
+    set-negotiation-price
+    print-trade-details
+  ]
+  ;that's all for this command
 
 
   if price-setting = "compare-all-price-settings" [ ;just like the rest of them, but all of the above bundled together
@@ -529,6 +569,9 @@ to trade ;this is now THE function. No more trade2!
     set-random-price
     decide-quantity
     check-utility-and-trade
+
+    activate-negotiation-turtles
+    set-negotiation-price
 
    ]
 
@@ -555,6 +598,12 @@ to activate-random-turtles
   set active-turtles turtles with [ trading-style = "random" ]
   set active-merchant merchants with [ trading-style = "random" ]
   set active-consumer consumers with [ trading-style = "random" ] ;specifying which agents we want to use in this command!
+end
+
+to activate-negotiation-turtles
+  set active-turtles turtles with [ trading-style = "negotiation" ]
+  set active-merchant merchants with [ trading-style = "negotiation" ]
+  set active-consumer consumers with [ trading-style = "negotiation" ] ;specifying which agents we want to use in this command!
 end
 
 
@@ -672,6 +721,82 @@ To set-random-price
   output-print (word "Random price in between " precision price 2 ". " )
 
 End
+
+
+to set-negotiation-price ;this is actually a full command - no need for extra decide-quantity and checking utility after this
+  ;@ a loop can definitely be useful here. ;-)
+
+
+  ask one-of active-turtles [ ;randomly decides who opens the negotiation
+
+   ;;;; round 1:
+    print 1
+    set price mrs ;sets price at their ideal (@alternative: Use from equilibrium. Currently gives funny numbers). Actually, yes, use equlibrium, because mrs is indifference
+    print 2
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    print 3
+    ifelse deal > 0 [stop] ;if the trade is accepted, the trade is complete
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      set price [mrs] of partner
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [stop]
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let mrs-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price mrs + (mrs-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [mrs] of partner + mrs-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price mrs + (mrs-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [stop]
+
+            [
+              ; round 6, agent2 does the same
+              set price ( [mrs] of partner + mrs-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [stop]
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price mrs + mrs-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+
+end
+
 
 
 
@@ -835,7 +960,7 @@ if deal > 0 [
 
 
   ;save the prices suggested in interactions that didn't end with a trade
-  ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccesful trade
+  ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccesful trade (x-coordinate = current tick and not x=1 -> x=2 osv)
 if deal = 0 [
     set unsuccesful-price price
     set recorded-time ( ticks + 1)
@@ -843,6 +968,10 @@ if deal = 0 [
 
 
 
+end
+
+
+to print-trade-details
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;; output-prints ;;;;;;;;;;;;
@@ -1350,7 +1479,7 @@ CHOOSER
 171
 price-setting
 price-setting
-"market-clearing" "equilibrium" "random" "compare-all-price-settings"
+"market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
 1
 
 MONITOR
@@ -1492,7 +1621,7 @@ SWITCH
 651
 tableware-breakage?
 tableware-breakage?
-0
+1
 1
 -1000
 
@@ -1620,7 +1749,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 10
-5.0
+0.0
 0.1
 1
 NIL
@@ -1634,7 +1763,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
@@ -1663,7 +1792,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.7
 0.1
 1
 NIL
@@ -1839,6 +1968,16 @@ utility-consumers
 17
 1
 11
+
+TEXTBOX
+1239
+91
+1389
+168
+@question: nicer to have mrs in the other direction for merchants? ie. tableware for money. More easily comparable/ possible to see from beginning, if the wishes of the two agents match
+9
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
