@@ -417,9 +417,15 @@ end
   ;   set mrsSgt  ( alphaSgt * sgtsCigs  )  / ( ( 1 - alphaSgt ) *  sgtsChocs )
 
 
-to update-mrs ;@@lisa: skal fikses når tableware = 0
+to update-mrs
+
+  ;; løsning for at undgå division med 0 (når tableware = 0):
+  ;; vi springer over udregning af ny mrs indtil næste runde og indsætter label "no tableware left"
+
+
 ask merchants [
     if tableware = 0 [set mrs "no tableware left" stop]
+
     let nr ( alpha-merchants * money )  / ( beta * tableware )
     let rounded precision nr 3
     set mrs rounded
@@ -427,8 +433,7 @@ ask merchants [
 
 
 ask consumers [
-   ; if tableware = 0 [set mrs "no tableware left" stop] ;@@lisa: ikke færdig løsning! En mulighed er at sætte en place-holder table-ware = 1
-    if tableware = 0 [set mrs ( alpha-consumers * money ) / ( beta * 1 ) stop ] ;not rounded
+    if tableware = 0 [set mrs "no tableware left" stop]
 
     let nr ( alpha-consumers * money )  / ( beta * tableware )
     let rounded precision nr 3
@@ -437,6 +442,7 @@ ask consumers [
 ]
 
 end
+
 
 
 to set-partner
@@ -679,20 +685,29 @@ calculate-utility
   ;;;; given my a) current holding, b) the set price and c) my preferences (alpha and beta),
   ;;;; how many pieces of tableware do I wish to trade this round?
 
-ask active-consumer [
-    let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
-    let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
-    set offer precision ( optimal - tableware ) 2  ;offer to buy the number of tableware optimal with current holding subtracted
+  ask active-consumer [
+    ifelse  price = 0
+    [ set offer 0 ] ;undgå ulovlig division. Vi kan assume at offer er 0 hvis pris er 0, idet agenter aldrig vil give væk gratis ("more is always better" -economy)
 
+    ; else:
+    [
+      let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
+      let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
+      set offer precision ( optimal - tableware ) 2  ;offer to buy the number of tableware optimal with current holding subtracted
+    ]
   ]
 
 
   ask active-merchant [
-    let budget ( tableware * price ) + money
-    let optimal ( budget * alpha / price )
-    set offer precision ( tableware - optimal ) 2
-    if offer > tableware [ set offer tableware ] ; ensures that the merchant won't offer more than it currently has in its holding (can at most sell all the tableware they have)
+    ifelse price = 0
+    [ set offer 0 ]
 
+    [
+      let budget ( tableware * price ) + money
+      let optimal ( budget * alpha / price )
+      set offer precision ( tableware - optimal ) 2
+      if offer > tableware [ set offer tableware ] ; ensures that the merchant won't offer more than it currently has in its holding (can at most sell all the tableware they have)
+    ]
   ]
 
 
@@ -828,13 +843,14 @@ if deal = 0 [
 
 
 
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;; output-prints ;;;;;;;;;;;;
   ;;; utility, success and quantity ;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-  ;;; defining agents' change in utility given the trade
+  ;;; defining agents' change in utility given the ongoing trade
 
   ask active-consumer [
   let consumer-utility-difference ( temp-utility - utility )
@@ -842,10 +858,23 @@ if deal = 0 [
 
 
 ;;;; print-outputs depending on the success of the trade
+    ;;;; if no trade happens, then calculate what the change in utility would've been given trade of 1x tableware
     if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
+      ;; defining utility given 1x trade
+
+
+      ask active-consumer [
+      let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
+        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( [money] of partner + price ) ^ [beta] of partner ) ) 2
+
+      let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
+      let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
+
+
+
       output-print (word "Unsuccesful. No trade was made." )
-      output-print (word "Consumer utility would have changed with " precision ( consumer-utility-difference ) 2 " given trade with " deal "x of tableware.") ;@måske indstil givet handel med 1x
-      output-print (word "Merchant utility would have changed with "  precision ( consumer-utility-difference ) 2 " given trade with " deal "x of tableware.")
+      output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.") ;@måske indstil givet handel med 1x
+      output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
     ]
 
     if deal = 1
@@ -859,6 +888,7 @@ if deal = 0 [
       output-print (word "Consumer utility improved by  " precision consumer-utility-difference 2 ". ")
       output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
     ]
+  ]
   ]
 
 End
@@ -1429,7 +1459,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-1
+0
 1
 -1000
 
@@ -1590,7 +1620,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 10
-1.0
+5.0
 0.1
 1
 NIL
@@ -1604,7 +1634,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
@@ -1633,7 +1663,7 @@ running-speed
 running-speed
 0
 1
-0.5
+0.0
 0.1
 1
 NIL
