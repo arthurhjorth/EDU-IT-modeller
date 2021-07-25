@@ -56,7 +56,7 @@ to setup
 
 
   layout
-  populate
+ populate
   update-mrs
   set-partner
   calculate-utility
@@ -179,7 +179,8 @@ to populate ;;run in setup. Create starting population
     set tableware tableware-consumers
   ]
 
-  if fill-screen? and price-setting != "compare-all-price-settings" [ ;;; different formats
+
+  if price-setting != "compare-all-price-settings" [ ;;; different formats
     ask wanted [
       set size 8
     ]
@@ -279,78 +280,68 @@ end
 
 to layout
 
-  ask patches [set pcolor blue]
 
+  ifelse price-setting = "compare-all-price-settings"
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;;;;; full-screen option here ;;;;;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-   ;;;; in this setting, when a non-multiple price-setting option is chosen, the display is fit for just two agents - with no different colors
-
-
-  if fill-screen? and price-setting != "compare-all-price-settings" [
-
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;; @ fun layout, such as ancient Greece style ;;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-      ask patches with [pycor < 15] [set pcolor blue - 0.5]
-  ask patches with [pycor < 9] [set pcolor blue - 1]
-
-  create-turtles 1
-  ask turtles
-  [set shape "building institution" ;make it acropolis
-    set size 8
-    setxy 0 12
-    set color white]
-
-
-   ; putting a visual tag to show the condition
-    ask patch 1 -16 [set plabel price-setting set pcolor blue]
-       ask patches with [pycor = -16] [set pcolor blue - 1.5 ]
-
-  ]
+    [
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;; layout compare-all-price-settings ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;;;;; no-fill-screen option here ;;;;;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;;;; this is the layout so far, with the three conditions having a slot of space in the display each.
-
-if price-setting = "compare-all-price-settings" or not fill-screen? [
+    ;coloring patch sections for 4 conditions
+    ask patches [ set pcolor blue - 2 ]
+    ask patches with [ pycor > -8 ][ set pcolor blue - 1]
+    ask patches with [ pycor > 0 ][ set pcolor blue ]
+    ask patches with [ pycor > 8 ][ set pcolor blue + 1]
+    ask patches with [pycor = 16] [set pcolor blue + 1.5] ;the top one will be bigger by one patch
 
 
-if price-setting = "market-clearing" or price-setting = "compare-all-price-settings" [
-
-ask patch 3 5
-[set plabel "Market-clearing"]
-
-  ask patches with [pycor > 4 ] [set pcolor blue + 1]
-  ask patches with [pycor = 5 ] [set pcolor blue + 0.5]
-  ]
+    ;adding plabels to signify conditions
+    ask patch 3 8
+    [set plabel "Market-clearing"]
+    ask patches with [pycor = 8 ] [set pcolor blue - 0.5]
 
 
-  if price-setting = "equilibrium" or price-setting = "compare-all-price-settings" [
-    ask patch 2 -6
+    ask patch 2 0
     [set plabel "Equilibrium" ]
+    ask patches with [pycor = -0] [set pcolor blue - 1.5 ]
 
-      ask patches with [pycor = -6] [set pcolor blue - 1.5 ]
+
+    ask patch 1 -8
+    [set plabel "Random"]
+    ask patches with [pycor = -8] [set pcolor blue - 2.5 ]
+
+
+    ask patch 2 -16
+    [set plabel "Negotiation"]
+    ask patches with [pycor = -16] [set pcolor blue - 3 ]
+
+
   ]
 
 
-if price-setting = "random" or price-setting = "compare-all-price-settings" [
-  ask patch 1 -16
-[set plabel "Random"
+ [
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;; else, layout singular conditions ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-   ask patches with [pycor < -6 ] [set pcolor blue - 1 ]
-  ask patches with [pycor = -16] [set pcolor blue - 2.5 ]
-    ]
-  ]
+
+    ask patches with [pycor < 15] [set pcolor blue - 0.5]
+    ask patches with [pycor < 9] [set pcolor blue - 1]
+
+    create-turtles 1
+    ask turtles
+    [set shape "building institution" ;make it acropolis
+      set size 8
+      setxy 0 12
+      set color white]
+
+
+    ; putting a visual tag to show the condition
+    ask patch 1 -16 [set plabel price-setting set pcolor blue]
+    ask patches with [pycor = -16] [set pcolor blue - 1.5 ]
 
   ]
 
@@ -415,27 +406,6 @@ to conversate
     ask m-talk3  [set plabel "utility changed by :)" ]
 
   ]
-
-
-
-
-
-  ;;;; here we make the interaction visible in the display ;;;;;
-
-if fill-screen? [
-  ;if price-setting = "equilibrium"
-  ;  [ ask patches with [ pxcor = pxcor-consumer ] and [ pycor = slot1 ]
-   ;   [set plabel "my price is"]
-
-
-
-      ;pxcor-merchant
-      ; pxcor-agreement
-     ;
-
-
-
-    ]
 
 end
 
@@ -730,14 +700,11 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
   ask one-of active-turtles [ ;randomly decides who opens the negotiation
 
    ;;;; round 1:
-    print 1
     set price mrs ;sets price at their ideal (@alternative: Use from equilibrium. Currently gives funny numbers). Actually, yes, use equlibrium, because mrs is indifference
-    print 2
     decide-quantity
     ;possible to make an ifelse about deal here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
-    print 3
-    ifelse deal > 0 [stop] ;if the trade is accepted, the trade is complete
+    ifelse deal > 0 [print "bid 1 accepted" stop] ;if the trade is accepted, the trade is complete
 
     [
     ;;;; else, start round 2:
@@ -746,7 +713,7 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
       set price [mrs] of partner
       decide-quantity
       check-utility-and-trade
-      ifelse deal > 0 [stop]
+      ifelse deal > 0 [print "bid 2 accepted" stop]
 
       [
       ;;;; else, start round 3:
@@ -755,7 +722,7 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
         set price mrs + (mrs-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
         decide-quantity
         check-utility-and-trade
-        ifelse deal > 0 [stop]
+        ifelse deal > 0 [print "bid 3 accepted" stop]
 
         [
           ;;;; else, start round 4:
@@ -763,27 +730,28 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
           set price ( [mrs] of partner + mrs-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
           decide-quantity
           check-utility-and-trade
-          ifelse deal > 0 [stop]
+          ifelse deal > 0 [print "bid 4 accepted" stop]
 
           [
             ;;; round 5, agent 1 with 40%
             set price mrs + (mrs-difference * 0.4 )
             decide-quantity
             check-utility-and-trade
-            ifelse deal > 0 [stop]
+            ifelse deal > 0 [print "bid 5 accepted" stop]
 
             [
               ; round 6, agent2 does the same
               set price ( [mrs] of partner + mrs-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
-              ifelse deal > 0 [stop]
+              ifelse deal > 0 [print "bid 6 accepted" stop]
 
               [
                 ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
                 set price mrs + mrs-difference * 0.5
                 decide-quantity
                 check-utility-and-trade
+                print "agents met halfway between their inital prices"
                 ;the end
 
               ]
@@ -964,7 +932,7 @@ if deal > 0 [
 if deal = 0 [
     set unsuccesful-price price
     set recorded-time ( ticks + 1)
-  print recorded-time]
+  print "no deal made - tick recorded:" print recorded-time]
 
 
 
@@ -1480,7 +1448,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-1
+4
 
 MONITOR
 195
@@ -1880,17 +1848,6 @@ Merchant
 11
 0.0
 1
-
-SWITCH
-148
-13
-274
-46
-fill-screen?
-fill-screen?
-0
-1
--1000
 
 SLIDER
 5
