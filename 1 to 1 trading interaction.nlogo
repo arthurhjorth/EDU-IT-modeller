@@ -70,7 +70,6 @@ end
 to go
 
   trade
-
   produce-tableware
   break-tableware
   earn-money
@@ -185,10 +184,10 @@ to populate ;;run in setup. Create starting population
       set size 8
     ]
     ask merchants [
-      setxy 10 -11
+      setxy 10 -9
     ]
     ask consumers [
-      setxy -10 -11
+      setxy -10 -9
     ]
   ]
 
@@ -200,7 +199,7 @@ to make-market-clearing-turtles [kind]
   if kind = "merchants" [
     create-merchants 1 [
       set color red - 1
-      setxy 10 8.5
+      setxy 10 11
       set trading-style "market-clearing"
   ]
   ]
@@ -209,7 +208,7 @@ to make-market-clearing-turtles [kind]
   if kind = "consumers" [
     create-consumers 1 [
       set color red + 1.5
-      setxy -10 8.5
+      setxy -10 11
       set trading-style "market-clearing"
   ]
   ]
@@ -222,7 +221,7 @@ to make-equilibrium-turtles [kind]
    if kind = "merchants" [
    create-merchants 1 [
    set color yellow - 1
-   setxy 10 -2.5
+   setxy 10 3
    set trading-style "equilibrium"
   ]
   ]
@@ -230,7 +229,7 @@ to make-equilibrium-turtles [kind]
   if kind = "consumers" [
    create-consumers 1 [
       set color yellow + 1.5
-      setxy -10 -2.5
+      setxy -10 3
       set trading-style "equilibrium"
   ]
   ]
@@ -241,7 +240,7 @@ to make-random-turtles [kind]
   if kind = "merchants" [
    create-merchants 1 [
    set color green - 1
-   setxy 10 -12.5
+   setxy 10 -5
       set trading-style "random"
 
   ]
@@ -250,7 +249,7 @@ to make-random-turtles [kind]
   if kind = "consumers" [
    create-consumers 1 [
       set color green + 1.5
-      setxy -10 -12.5
+      setxy -10 -5
       set trading-style "random"
   ]
   ]
@@ -261,7 +260,7 @@ to make-negotiation-turtles [kind]
   if kind = "merchants" [
    create-merchants 1 [
    set color magenta - 1
-   setxy 10 -12.5 ;@ needs to be adjusted along with all the rest
+   setxy 10 -13 ;@ needs to be adjusted along with all the rest
       set trading-style "negotiation"
 
   ]
@@ -270,7 +269,7 @@ to make-negotiation-turtles [kind]
   if kind = "consumers" [
    create-consumers 1 [
       set color magenta + 1.5
-      setxy -10 -12.5
+      setxy -10 -13
       set trading-style "negotiation"
   ]
   ]
@@ -327,21 +326,24 @@ to layout
   ;;;; else, layout singular conditions ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+    ;patch colors
+    ask patches [set pcolor blue - 1]
+    ask patches with [pycor > 7 ] [set pcolor blue - 0.5]
+    ask patches with [pycor > 11.5] [set pcolor blue ]
 
-    ask patches with [pycor < 15] [set pcolor blue - 0.5]
-    ask patches with [pycor < 9] [set pcolor blue - 1]
 
+    ; putting a visual tag to show the condition
+    ask patch 1 -16 [set plabel price-setting set pcolor blue]
+    ask patches with [pycor < -14] [set pcolor blue - 2 ]
+
+
+    ;;;gimmicks: acropolis
     create-turtles 1
     ask turtles
     [set shape "building institution" ;make it acropolis
       set size 8
       setxy 0 12
       set color white]
-
-
-    ; putting a visual tag to show the condition
-    ask patch 1 -16 [set plabel price-setting set pcolor blue]
-    ask patches with [pycor = -16] [set pcolor blue - 1.5 ]
 
   ]
 
@@ -696,15 +698,19 @@ End
 to set-negotiation-price ;this is actually a full command - no need for extra decide-quantity and checking utility after this
   ;@ a loop can definitely be useful here. ;-)
 
+  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  let second-bidder [partner] of initial-bidder
 
-  ask one-of active-turtles [ ;randomly decides who opens the negotiation
+  ask initial-bidder [
 
    ;;;; round 1:
     set price mrs ;sets price at their ideal (@alternative: Use from equilibrium. Currently gives funny numbers). Actually, yes, use equlibrium, because mrs is indifference
     decide-quantity
     ;possible to make an ifelse about deal here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
-    ifelse deal > 0 [print "bid 1 accepted" stop] ;if the trade is accepted, the trade is complete
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop ] ;if the bid is accepted, exit this function
 
     [
     ;;;; else, start round 2:
@@ -713,7 +719,9 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
       set price [mrs] of partner
       decide-quantity
       check-utility-and-trade
-      ifelse deal > 0 [print "bid 2 accepted" stop]
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+       stop]
 
       [
       ;;;; else, start round 3:
@@ -722,7 +730,9 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
         set price mrs + (mrs-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
         decide-quantity
         check-utility-and-trade
-        ifelse deal > 0 [print "bid 3 accepted" stop]
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+        stop]
 
         [
           ;;;; else, start round 4:
@@ -730,28 +740,40 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
           set price ( [mrs] of partner + mrs-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
           decide-quantity
           check-utility-and-trade
-          ifelse deal > 0 [print "bid 4 accepted" stop]
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop]
 
           [
             ;;; round 5, agent 1 with 40%
             set price mrs + (mrs-difference * 0.4 )
             decide-quantity
             check-utility-and-trade
-            ifelse deal > 0 [print "bid 5 accepted" stop]
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop]
 
             [
               ; round 6, agent2 does the same
               set price ( [mrs] of partner + mrs-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
-              ifelse deal > 0 [print "bid 6 accepted" stop]
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+             stop ]
+
+
+
 
               [
                 ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
                 set price mrs + mrs-difference * 0.5
                 decide-quantity
                 check-utility-and-trade
-                print "agents met halfway between their inital prices"
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices." ]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price." ]
+
                 ;the end
 
               ]
@@ -761,6 +783,7 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
       ]
     ]
   ]
+
 
 
 end
@@ -929,12 +952,10 @@ if deal > 0 [
 
   ;save the prices suggested in interactions that didn't end with a trade
   ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccesful trade (x-coordinate = current tick and not x=1 -> x=2 osv)
-if deal = 0 [
+if deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
     set unsuccesful-price price
-    set recorded-time ( ticks + 1)
+    set recorded-time ( ticks )
   print "no deal made - tick recorded:" print recorded-time]
-
-
 
 end
 
@@ -1448,7 +1469,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+2
 
 MONITOR
 195
@@ -1706,7 +1727,7 @@ PENS
 "latest equilibrium" 1.0 0 -4079321 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length equilibrium-price-list > 0 [\nplot item 0 equilibrium-price-list\n]\n;]"
 "latest market-clearing" 1.0 0 -5298144 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length market-clearing-price-list > 0 [\nplot item 0 market-clearing-price-list\n]\n;]"
 "latest succesful price" 1.0 0 -11221820 true "" "if price-setting != \"compare-all-price-settings\" [\nplot item 0 price-list\n]"
-"refused offer price" 1.0 2 -2139308 true "" "if recorded-time + 1 = ticks [\nplot unsuccesful-price\n]\n;now just needs to be adjusted to plot alongside the current price\n; so xcor = ticks"
+"refused offer price" 1.0 2 -2139308 true "" "if recorded-time + 1 = ticks [\nplotxy recorded-time unsuccesful-price\n]\n;now just needs to be adjusted to plot alongside the current price\n; so xcor = ticks"
 
 SLIDER
 205
@@ -1760,7 +1781,7 @@ running-speed
 running-speed
 0
 1
-0.7
+0.5
 0.1
 1
 NIL
