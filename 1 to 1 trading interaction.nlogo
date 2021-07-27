@@ -460,18 +460,6 @@ to set-partner
 end
 
 
-to set-total-demand-supply
-  set total-demand 0
-  set total-supply 0
-
-  ask turtles with [ trading-style = "market-clearing" ] [
-   set total-demand total-demand + demand
-   set total-supply total-supply + supply
-  ]
-
-end
-
-
 
 to trade ;this is now THE function. No more trade2!
 ;;;;;;;;;;;;;    trading in 4 steps (seperate functions:
@@ -584,37 +572,44 @@ to set-market-clearing-price
 
   ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
   ;;;;;;; The lowest possible shortage or surplus in the market
-
 set price-temporary 0.1
 set temp-closest-to-market-clearing total-tableware
 
 repeat 200 [
-    ask active-turtles [
+    set total-demand 0 ;resetting total-demand and supply
+    set total-supply 0
+
+    ask turtles with [ trading-style = "market-clearing" ] [
+      set demand 0 ;resetting demand and supply
+      set supply 0
       set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ;
+      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
       ;if optimal-tableware < 1  [
       ; set optimal-tableware 1
       ;]
-;      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set demand 0
-;      ]
-;
-;      set supply ( tableware - optimal-tableware )
-;      if supply < 0 [
-;        set supply 0
-;      ]
-
 
       set demand ( optimal-tableware - tableware )
       if demand < 0 [
-        set supply abs demand ;
         set demand 0
       ]
+
+      set supply ( tableware - optimal-tableware )
+      if supply < 0 [
+        set supply 0
+      ]
+
+
+;      set demand ( optimal-tableware - tableware )
+;      if demand < 0 [
+;        set supply abs demand ;
+;        set demand 0
+;      ]
 
     ] ;ask turtles end
 
     set-total-demand-supply
+
+    ;set demand-supply-plot-list
 
 
     ;
@@ -622,11 +617,13 @@ repeat 200 [
     set temp-closest-to-market-clearing ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
     set price precision price-temporary 2
 
-    ]
+    ] ;if end
 
     set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
 
   ] ;repeat 200 end
+
+  ;update-demand-supply-plot ;;not rdy yey
 
 
   ;;;;;;;;;;;;;;;;;;;
@@ -638,7 +635,19 @@ repeat 200 [
 
 end
 
+to set-total-demand-supply
+  ask turtles with [ trading-style = "market-clearing" ] [
+   set total-demand total-demand + demand
+   set total-supply total-supply + supply
+  ]
+end
 
+to clear-demand-supply-plot
+    set-current-plot "Demand and Supply Plot" ;;the following manual plot commands will only be used on this plot
+    clear-plot
+
+
+end
 
 to set-equilibrium-price
 
@@ -1121,13 +1130,6 @@ to-report nr-succesful-trades
   report ( succesful-trades / 2 )
 end
 
-to-report total-supplyy
-  report total-supply
-end
-
-to-report total-demandd
-  report total-demand
-end
 
 to-report nr-tableware-merchants
   report item 0 [ tableware ] of merchants
@@ -1373,7 +1375,7 @@ INPUTBOX
 448
 70
 stop-after-x-tick
-50.0
+10.0
 1
 0
 Number
@@ -1402,7 +1404,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.7
+0.9
 0.1
 1
 NIL
@@ -1469,7 +1471,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-2
+0
 
 MONITOR
 195
@@ -1752,7 +1754,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
@@ -1781,7 +1783,7 @@ running-speed
 running-speed
 0
 1
-0.5
+0.3
 0.1
 1
 NIL
@@ -1956,6 +1958,47 @@ TEXTBOX
 9
 0.0
 1
+
+PLOT
+897
+275
+1308
+446
+Demand and Supply Plot
+price-temporary
+Tableware
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Total demand" 1.0 0 -5298144 true "" "plotxy price-temporary total-demand"
+"Total supply" 1.0 0 -13345367 true "" "plotxy price-temporary total-supply"
+
+MONITOR
+1316
+295
+1399
+340
+NIL
+total-supply
+17
+1
+11
+
+MONITOR
+1315
+341
+1402
+386
+NIL
+total-demand
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
