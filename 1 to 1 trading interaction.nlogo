@@ -511,6 +511,8 @@ to trade ;this is now THE function. No more trade2!
 
 
   if price-setting = "compare-all-price-settings" [ ;just like the rest of them, but all of the above bundled together
+    ;@@@Lisa. I think we need to "set price" under another label than just price when compare-all is on...
+    ;@@@Lisa. Try to put on compare-all-price-settings and then press go. Every reporter is flickering, changing back and forth between values. Unsure why.
 
     activate-market-clearing-turtles
     set-market-clearing-price
@@ -623,15 +625,14 @@ repeat 200 [
 
   ] ;repeat 200 end
 
-  ;update-demand-supply-plot ;;not rdy yey
-
 
   ;;;;;;;;;;;;;;;;;;;
   ;; output-prints ;;
-  ;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;; @@@Lisa. For all output prints on for example "set-equilibrium-price". Do we need it to be only in the case of success?
 
-  ;@ what outputs would we like?
-  ; Probably an indifference plot
+    output-print (word "Finding the lowest difference between supply and" )
+    output-print (word "demand at prices between 0.1 and 20 for each tableware" )
+    output-print (word "Lowest difference found at a price of " precision price 2 ". " )
 
 end
 
@@ -986,7 +987,7 @@ to print-trade-details
 
 ;;;; print-outputs depending on the success of the trade
     ;;;; if no trade happens, then calculate what the change in utility would've been given trade of 1x tableware
-    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
+    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [ ;@@@Lisa. Forklar gerne lige her. Føler end bracket for denne burde være inden "if deal = 1
       ;; defining utility given 1x trade
 
 
@@ -1004,14 +1005,14 @@ to print-trade-details
       output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
     ]
 
-    if deal = 1
-    [output-print (word "Successful trade! " deal "x of tableware was traded.")
+    if deal = 1 [
+      output-print (word "Successful trade! " deal "x of tableware was traded.")
       output-print (word "Consumer utility improved by " precision consumer-utility-difference 2 ". ")
       output-print (word "Merchant utility improved by "  precision merchant-utility-difference 2 ". ")
     ]
 
-    if deal > 1
-    [output-print (word "Successful trade! " deal "x of tableware were traded.")
+    if deal > 1 [
+      output-print (word "Successful trade! " deal "x of tableware were traded.")
       output-print (word "Consumer utility improved by  " precision consumer-utility-difference 2 ". ")
       output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
     ]
@@ -1471,7 +1472,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-0
+3
 
 MONITOR
 195
@@ -1965,7 +1966,7 @@ PLOT
 1308
 446
 Demand and Supply Plot
-price-temporary
+price temporary
 Tableware
 0.0
 10.0
