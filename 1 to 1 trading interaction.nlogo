@@ -575,7 +575,7 @@ to set-market-clearing-price
   ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
   ;;;;;;; The lowest possible shortage or surplus in the market
 set price-temporary 0.1
-set temp-closest-to-market-clearing total-tableware
+set temp-closest-to-market-clearing total-tableware ; Simply to have some initial limiting factor for the later if-statement where we overwrite price-temporary and difference between supply and demand.
 
 repeat 200 [
     set total-demand 0 ;resetting total-demand and supply
@@ -591,14 +591,15 @@ repeat 200 [
       ;]
 
       set demand ( optimal-tableware - tableware )
-      if demand < 0 [
-        set demand 0
-      ]
+;      if demand < 0 [
+;        set demand 0
+;    ]
 
       set supply ( tableware - optimal-tableware )
-      if supply < 0 [
-        set supply 0
-      ]
+;      if supply < 0 [
+;        set supply 0
+;    ]
+
 
 
 ;      set demand ( optimal-tableware - tableware )
@@ -616,7 +617,7 @@ repeat 200 [
 
     ;
     if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
-    set temp-closest-to-market-clearing ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
+    set temp-closest-to-market-clearing abs ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
     set price precision price-temporary 2
 
     ] ;if end
@@ -660,7 +661,8 @@ to set-equilibrium-price
   ask active-consumer [
      set price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2 ]
+                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2
+  ]
 
 
 
@@ -1298,7 +1300,7 @@ INPUTBOX
 320
 259
 money-merchants
-50.0
+200.0
 1
 0
 Number
@@ -1309,7 +1311,7 @@ INPUTBOX
 460
 256
 money-consumers
-50.0
+500.0
 1
 0
 Number
@@ -1320,7 +1322,7 @@ INPUTBOX
 321
 323
 tableware-merchants
-50.0
+100.0
 1
 0
 Number
@@ -1331,7 +1333,7 @@ INPUTBOX
 462
 319
 tableware-consumers
-50.0
+100.0
 1
 0
 Number
@@ -1390,7 +1392,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.1
+0.3
 0.1
 1
 NIL
@@ -1405,7 +1407,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.9
+0.8
 0.1
 1
 NIL
@@ -1472,7 +1474,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-3
+1
 
 MONITOR
 195
@@ -1519,10 +1521,10 @@ report-offer-consumers
 11
 
 MONITOR
-1071
-146
-1209
-191
+934
+164
+1046
+209
 merchant-tableware
 round ( nr-tableware-merchants )
 17
@@ -1530,10 +1532,10 @@ round ( nr-tableware-merchants )
 11
 
 MONITOR
-1071
-192
-1191
-237
+951
+210
+1046
+255
 merchant-money
 nr-money-merchants
 17
@@ -1541,10 +1543,10 @@ nr-money-merchants
 11
 
 MONITOR
-951
-146
-1072
-191
+1047
+163
+1168
+208
 consumer-tableware
 round ( nr-tableware-consumers )
 17
@@ -1552,10 +1554,10 @@ round ( nr-tableware-consumers )
 11
 
 MONITOR
-953
-192
-1073
-237
+1048
+211
+1153
+256
 consumer-money
 nr-money-consumers
 17
@@ -1580,7 +1582,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-0
+1
 1
 -1000
 
@@ -1618,10 +1620,10 @@ tableware-breakage?
 -1000
 
 MONITOR
-968
-238
-1074
-283
+1253
+215
+1338
+260
 total-tableware
 round ( total-tableware )
 17
@@ -1659,10 +1661,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1074
-238
-1163
-283
+1182
+215
+1251
+260
 total-money
 round ( total-money )
 17
@@ -1670,10 +1672,10 @@ round ( total-money )
 11
 
 TEXTBOX
-1025
-131
-1175
-149
+997
+150
+1101
+168
 CURRENT HOLDINGS
 11
 0.0
@@ -1854,20 +1856,20 @@ PENS
 "merchants money" 1.0 0 -1184463 true "" "plot nr-money-merchants"
 
 TEXTBOX
-947
-131
-1011
-159
+1137
+149
+1201
+168
 Consumer
 11
 0.0
 1
 
 TEXTBOX
-1155
-130
-1228
-148
+911
+149
+984
+167
 Merchant
 11
 0.0
@@ -1966,7 +1968,7 @@ PLOT
 1308
 446
 Demand and Supply Plot
-price temporary
+Price Temporary
 Tableware
 0.0
 10.0
