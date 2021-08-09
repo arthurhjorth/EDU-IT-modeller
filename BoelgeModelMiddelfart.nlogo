@@ -1,6 +1,8 @@
 extensions [csv table profiler]
 
 globals [
+  regn-i-simulationen
+
   start-wave ;; for drawing a wave
   end-wave ;; for drawing a wave, not sure we need it
   sea-patches
@@ -497,7 +499,8 @@ to move-water ;patch procedure, sker efter seepage procedure (random rækkefølg
 end
 
 to start-rain ;button in interface
-  let this-duration ( nedbør-varighed / 15 ) ;dette regnskyls varighed i ticks
+  let this-duration round ( nedbør-varighed * 4) ;dette regnskyls varighed i ticks
+  show this-duration
 
   ifelse raining? [
     ;if it was already raining:
@@ -508,6 +511,13 @@ to start-rain ;button in interface
     set ticks-rained 0
   ]
   set raining? true
+  let total-rain mm-per-15-min * nedbør-varighed * 4
+
+
+
+
+  set regn-i-simulationen (word total-rain " mm regn over " nedbør-varighed " timer")
+
 end
 
 to rainfall ;patch procedure. køres i go if raining? = true (aktiveret med knap i interface via start-rain procedure), fortsætter herefter selv i den bestemte varighed
@@ -1096,9 +1106,9 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 280
-10
+70
 1078
-424
+484
 -1
 -1
 4.18
@@ -1122,10 +1132,10 @@ ticks
 30.0
 
 BUTTON
-30
-55
-240
-95
+15
+445
+265
+485
 START/STOP
 go\n
 T
@@ -1140,9 +1150,9 @@ NIL
 
 BUTTON
 30
-10
+30
 240
-50
+70
 OPSÆT / NULSTIL SIMULATIONEN
 setup\n
 NIL
@@ -1156,21 +1166,21 @@ NIL
 1
 
 CHOOSER
-10
-455
-110
-500
+15
+295
+115
+340
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-3
+5
 
 BUTTON
-390
-535
-530
-570
-Start nedbør
+125
+185
+265
+216
+Tilføj Nedbør
 start-rain
 NIL
 1
@@ -1183,15 +1193,15 @@ NIL
 1
 
 SLIDER
-1105
-350
-1355
-383
+1820
+640
+2070
+673
 hav-niveau
 hav-niveau
 0
 12
-0.0
+1.5
 .25
 1
 m
@@ -1199,9 +1209,9 @@ HORIZONTAL
 
 MONITOR
 665
-15
+75
 720
-60
+120
 Tid
 str-time
 17
@@ -1209,10 +1219,10 @@ str-time
 11
 
 MONITOR
-115
-455
-260
-500
+120
+295
+265
+340
 Jordens nedsivningsevne
 nedsivningsevne-interface
 17
@@ -1220,40 +1230,40 @@ nedsivningsevne-interface
 11
 
 SLIDER
-280
-455
-530
-488
+15
+105
+265
+138
 mm-per-15-min
 mm-per-15-min
 0
-15
-11.5
+25
+6.0
 .5
 1
 mm
 HORIZONTAL
 
 SLIDER
-280
-495
-530
-528
+15
+145
+265
+178
 nedbør-varighed
 nedbør-varighed
-15
-180
-90.0
-15
+0
+24
+1.5
+.25
 1
-minutter
+timer
 HORIZONTAL
 
 MONITOR
 610
-15
+75
 665
-60
+120
 Dag
 day
 17
@@ -1261,10 +1271,10 @@ day
 11
 
 BUTTON
-115
-250
-260
-305
+1190
+135
+1335
+190
 BYG EN HØJVANDSMUR
 build-wall
 T
@@ -1278,10 +1288,10 @@ NIL
 1
 
 BUTTON
-95
-130
-185
-163
+620
+35
+710
+68
 Vis højdekort
 clear-drawing\nimport-drawing \"mf-heightline-ref-alpha55.png\"
 NIL
@@ -1295,10 +1305,10 @@ NIL
 1
 
 BUTTON
-190
-130
-270
-163
+715
+35
+795
+68
 Skjul kort
 clear-drawing
 NIL
@@ -1312,10 +1322,10 @@ NIL
 1
 
 BUTTON
-10
-130
-90
-163
+535
+35
+615
+68
 Vis bykort
 clear-drawing\nimport-drawing \"mf-map-kystfix-alpha55.png\"
 NIL
@@ -1329,10 +1339,10 @@ NIL
 1
 
 SLIDER
-115
-210
-260
-243
+1190
+95
+1335
+128
 mur-højde
 mur-højde
 0.5
@@ -1344,10 +1354,10 @@ m
 HORIZONTAL
 
 BUTTON
-190
-310
-260
-360
+1265
+195
+1335
+245
 Fjern alle
 remove-all-walls
 NIL
@@ -1361,13 +1371,13 @@ NIL
 1
 
 PLOT
-1105
-425
-1756
-655
+1820
+715
+2471
+945
 Gennemsnitlig vandstand på land
 tid
-vandspejl (m)
+Gns Oversvømmelse (m)
 0.0
 10.0
 0.0
@@ -1378,10 +1388,10 @@ true
 PENS
 
 BUTTON
-1415
-90
-1580
-123
+2130
+380
+2295
+413
 Vis oversvømmelse
 oversvøm
 T
@@ -1395,10 +1405,10 @@ NIL
 1
 
 SWITCH
-280
-535
-385
-568
+15
+185
+120
+218
 vis-regn?
 vis-regn?
 0
@@ -1406,10 +1416,10 @@ vis-regn?
 -1000
 
 BUTTON
-115
-310
-185
-360
+1190
+195
+1260
+245
 Viskelæder
 erase-wall
 T
@@ -1423,10 +1433,10 @@ NIL
 1
 
 INPUTBOX
-10
-210
-110
-270
+1085
+95
+1185
+155
 Budget
 1000.0
 1
@@ -1434,10 +1444,10 @@ Budget
 Number
 
 MONITOR
-10
-270
-110
-315
+1085
+155
+1185
+200
 Beløb brugt
 money-spent
 17
@@ -1445,10 +1455,10 @@ money-spent
 11
 
 MONITOR
-10
-315
-110
-360
+1085
+200
+1185
+245
 Beløb tilbage
 money-left
 17
@@ -1456,10 +1466,10 @@ money-left
 11
 
 BUTTON
-5
-570
-255
-603
+15
+405
+265
+438
 Sæt hav-niveau / skab stormflod
 hæv-havet
 NIL
@@ -1473,90 +1483,90 @@ NIL
 1
 
 TEXTBOX
-80
-180
-240
-200
+1155
+65
+1315
+85
 Højvandsmure
 17
 0.0
 1
 
 TEXTBOX
-375
-430
-470
-451
+100
+80
+195
+101
 Nedbør
 17
 0.0
 1
 
 TEXTBOX
-90
-105
-220
-126
+615
+10
+745
+31
 Visualisering
 17
 0.0
 1
 
 TEXTBOX
-100
-430
-200
-451
+105
+270
+205
+291
 Jordtype
 17
 0.0
 1
 
 TEXTBOX
-40
-510
-290
-528
+50
+345
+300
+363
 Hav-vandstand/stormflod
 17
 0.0
 1
 
 TEXTBOX
-665
-430
-980
-455
+1380
+720
+1695
+745
 Indbyggernes utilfredshed
 17
 0.0
 1
 
 TEXTBOX
-1225
-170
-1545
-191
+1940
+460
+2260
+481
 Kør automatisk nedbørs-periode
 17
 0.0
 1
 
 CHOOSER
-1105
-245
-1400
-290
+1820
+535
+2115
+580
 periode
 periode
 "Maj 2010" "Maj 2021" "(indstil andre auto-perioder her)"
 2
 
 BUTTON
-1105
-385
-1605
-421
+1820
+675
+2320
+711
 Afspil periode med valgt hav-niveau (fjerner alt vand fra systemet først)
 run-period
 NIL
@@ -1570,10 +1580,10 @@ NIL
 1
 
 MONITOR
-1105
-195
-1760
-244
+1820
+485
+2475
+534
 NIL
 auto-interface
 17
@@ -1581,10 +1591,10 @@ auto-interface
 12
 
 SLIDER
-1415
-125
-1580
-158
+2130
+415
+2295
+448
 hav-stigning
 hav-stigning
 0
@@ -1596,20 +1606,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1105
-35
-1390
-71
+1820
+325
+2105
+361
 Hold musen over kortet for at tjekke terrænhøjde og vandstand forskellige steder.
 13
 0.0
 1
 
 MONITOR
-1105
-70
-1360
-115
+1820
+360
+2075
+405
  Type & højde
 patch-type-here
 17
@@ -1617,10 +1627,10 @@ patch-type-here
 11
 
 MONITOR
-1105
-115
-1360
-160
+1820
+405
+2075
+450
 Vandstand
 wl-here
 17
@@ -1628,30 +1638,30 @@ wl-here
 11
 
 TEXTBOX
-1165
-10
-1340
-31
+1880
+300
+2055
+321
 Tjek forhold
 17
 0.0
 1
 
 TEXTBOX
-1415
-40
-1605
-85
+2130
+330
+2320
+375
 Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
 12
 0.0
 1
 
 MONITOR
-820
-570
-960
-615
+1535
+860
+1675
+905
 Samlet utilfredshed
 samlet-utilfredshed
 17
@@ -1659,20 +1669,20 @@ samlet-utilfredshed
 11
 
 TEXTBOX
-1435
-15
-1585
-36
+2150
+305
+2300
+326
 Oversvømmelse
 17
 0.0
 1
 
 SLIDER
-1405
-255
-1605
-288
+2120
+545
+2320
+578
 %-ekstra-regn
 %-ekstra-regn
 0
@@ -1684,25 +1694,25 @@ SLIDER
 HORIZONTAL
 
 SLIDER
-5
-535
-255
-568
+15
+370
+265
+403
 hav-niveau
 hav-niveau
 0
 12
-0.0
+1.5
 .25
 1
 m
 HORIZONTAL
 
 BUTTON
-10
-365
-145
-410
+1085
+250
+1220
+295
 NIL
 get-more-money
 NIL
@@ -1716,10 +1726,10 @@ NIL
 1
 
 MONITOR
-150
-365
-260
-410
+1225
+250
+1335
+295
 NIL
 tax-money
 17
@@ -1727,10 +1737,10 @@ tax-money
 11
 
 PLOT
-555
-455
-820
-615
+1270
+745
+1535
+905
 Indbyggernes utilfredshed
 tid
 utilfredshed
@@ -1744,10 +1754,10 @@ false
 PENS
 
 INPUTBOX
-1365
-320
-1495
-380
+2080
+610
+2210
+670
 fra-dato
 2021-05-02
 1
@@ -1755,10 +1765,10 @@ fra-dato
 String
 
 INPUTBOX
-1500
-320
-1625
-380
+2215
+610
+2340
+670
 til-dato
 2021-05-17
 1
@@ -1766,20 +1776,20 @@ til-dato
 String
 
 TEXTBOX
-1185
-300
-1760
-331
+1900
+590
+2475
+621
 TIL ARTHUR til test: input i format YYYY-MM-DD (med bindestreger) (til-dato ikke inkluderet i perioden)
 12
 13.0
 1
 
 MONITOR
-1635
-335
-1792
-380
+2350
+625
+2507
+670
 NIL
 first table:keys auto-table
 17
@@ -1787,10 +1797,10 @@ first table:keys auto-table
 11
 
 MONITOR
-1635
-380
-1790
-425
+2350
+670
+2505
+715
 NIL
 last table:keys auto-table
 17
@@ -1798,10 +1808,10 @@ last table:keys auto-table
 11
 
 MONITOR
-1625
-150
-1682
-195
+2340
+440
+2397
+485
 NIL
 Måned
 17
@@ -1809,15 +1819,36 @@ Måned
 11
 
 MONITOR
-1680
-150
-1760
-195
+2395
+440
+2475
+485
 NIL
 År
 17
 1
 11
+
+MONITOR
+15
+220
+265
+265
+NIL
+regn-i-simulationen
+0
+1
+11
+
+TEXTBOX
+2585
+140
+2735
+241
+Vigtige pointer:\n1. Oversvømmelse på er ikke lineær med mængden af vand fra hav og luft\n2. Stormflod og nedbør interagerer
+12
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -2168,7 +2199,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
