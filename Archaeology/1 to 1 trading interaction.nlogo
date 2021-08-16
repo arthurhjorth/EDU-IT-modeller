@@ -378,23 +378,41 @@ to conversate
     ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
     ;@giver det mening at sætte information om supply/ demand her?
-    ask shared-talk1 [set plabel "this is the price"]
+    ask shared-talk1 [set plabel "this is the price" ] ;something something [set plabel "this is the price at which the difference between supply and demand is lowest"]
+
+
+    ;; something something refer to the plot on supply/ demand
   ]
 
 
   if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
-    ask c-talk1 [set plabel consumer-optimal-price]
-    ask m-talk1 [set plabel merchant-optimal-price]
-    ask shared-talk2  [set plabel "this will be the price" ]
-  ]
+    ask c-talk1 [set plabel "my ideal price is"]
+
+    ask patch pxcor-consumer 6 [set plabel consumer-optimal-price] ;temporary placeholder for patch
+    ask m-talk1 [set plabel "my ideal price is"]
+    ask patch pxcor-merchant 5 [set plabel consumer-optimal-price] ;temporary placeholder for patch
+    ;[set plabel merchant-optimal-price]
+    ask shared-talk2  [set plabel "we meet halfway. This will be the price"]
+    ask patch pxcor-shared -2 [set plabel price]
+    ]
 
 
  if price-setting = "random" [
-    if price-setting = "random" [
-      ask c-talk1 [set plabel "i want to trade at the rate (mrs)"]
-      ask m-talk1 [set plabel "i want to trade at the rate (mrs)"]
+      ask c-talk1 [set plabel "to me, one piece of tableware is worth x (mrs) money"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge"
+      ask m-talk1 [set plabel "to me, one piece of tableware is worth x (mrs) money"]
       ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
-    ]
+
+      ;;; tilføj quantity
+  ]
+
+
+  if price-setting = "negotiation" [
+        ask c-talk1 [set plabel "i bid my ideal price"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge" (er det mrs?)
+      ask m-talk1 [set plabel "to me, one piece of tableware is worth x (mrs) money"]
+      ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
+
+
+
 
 
     ;;;;;;; commands that are shared for all conditions ;;;;;;
@@ -406,7 +424,6 @@ to conversate
     ;utility
     ask c-talk3  [set plabel "utility changed by :)" ]
     ask m-talk3  [set plabel "utility changed by :)" ]
-
   ]
 
 end
@@ -716,7 +733,7 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
   ask initial-bidder [
 
    ;;;; round 1:
-    set price mrs ;sets price at their ideal (@alternative: Use from equilibrium. Currently gives funny numbers). Actually, yes, use equlibrium, because mrs is indifference
+    set price mrs ;sets price at their ideal (@Use from equilibrium. Currently gives funny numbers). Actually, yes, use equlibrium, because mrs is indifference
     decide-quantity
     ;possible to make an ifelse about deal here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
@@ -1047,8 +1064,8 @@ to update-price-list
 
 
 
-  ;when the active turtle-set has the trading-style market-clearing, save the agreed upon price in the list market-clearing-price-list
-  ;else:
+  ; when the active turtle-set has the trading-style market-clearing, save the agreed upon price in the list market-clearing-price-list
+  ; else:
   [
 
     ask active-consumer with [trading-style = "market-clearing"] ;no list for market-clearing-people: apparently they don't trade in this condition
@@ -1300,7 +1317,7 @@ INPUTBOX
 320
 259
 money-merchants
-50.0
+100.0
 1
 0
 Number
@@ -1378,7 +1395,7 @@ INPUTBOX
 448
 70
 stop-after-x-tick
-10.0
+50.0
 1
 0
 Number
@@ -1392,7 +1409,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.4
+0.5
 0.1
 1
 NIL
@@ -1474,7 +1491,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-0
+3
 
 MONITOR
 195
@@ -1582,7 +1599,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-1
+0
 1
 -1000
 
@@ -1639,7 +1656,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-0.1
+1.3
 0.1
 1
 NIL
@@ -1731,7 +1748,6 @@ PENS
 "latest random" 1.0 0 -14439633 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length random-price-list > 0 [\nplot item 0 random-price-list\n]\n;]"
 "latest equilibrium" 1.0 0 -4079321 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length equilibrium-price-list > 0 [\nplot item 0 equilibrium-price-list\n]\n;]"
 "latest market-clearing" 1.0 0 -5298144 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length market-clearing-price-list > 0 [\nplot item 0 market-clearing-price-list\n]\n;]"
-"latest succesful price" 1.0 0 -11221820 true "" "if price-setting != \"compare-all-price-settings\" [\nplot item 0 price-list\n]"
 "refused offer price" 1.0 2 -2139308 true "" "if recorded-time + 1 = ticks [\nplotxy recorded-time unsuccesful-price\n]\n;now just needs to be adjusted to plot alongside the current price\n; so xcor = ticks"
 
 SLIDER
@@ -1757,7 +1773,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
@@ -1884,7 +1900,7 @@ pxcor-merchant
 pxcor-merchant
 0
 16
-13.0
+8.0
 1
 1
 NIL
@@ -1897,9 +1913,9 @@ SLIDER
 453
 pxcor-shared
 pxcor-shared
--5
-5
-5.0
+-16
+16
+1.0
 1
 1
 NIL
@@ -1914,7 +1930,7 @@ pxcor-consumer
 pxcor-consumer
 -16
 0
-0.0
+-8.0
 1
 1
 NIL
