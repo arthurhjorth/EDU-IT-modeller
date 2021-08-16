@@ -1300,7 +1300,7 @@ INPUTBOX
 320
 259
 money-merchants
-200.0
+50.0
 1
 0
 Number
@@ -1311,7 +1311,7 @@ INPUTBOX
 460
 256
 money-consumers
-500.0
+50.0
 1
 0
 Number
@@ -1322,7 +1322,7 @@ INPUTBOX
 321
 323
 tableware-merchants
-100.0
+50.0
 1
 0
 Number
@@ -1333,7 +1333,7 @@ INPUTBOX
 462
 319
 tableware-consumers
-100.0
+50.0
 1
 0
 Number
@@ -1392,7 +1392,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.3
+0.4
 0.1
 1
 NIL
@@ -1407,7 +1407,7 @@ alpha-consumers
 alpha-consumers
 0
 0.9
-0.8
+0.9
 0.1
 1
 NIL
@@ -1474,7 +1474,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-1
+0
 
 MONITOR
 195
@@ -1971,10 +1971,10 @@ Demand and Supply Plot
 Price Temporary
 Tableware
 0.0
-10.0
-0.0
-10.0
-true
+3.0
+-30.0
+30.0
+false
 true
 "" ""
 PENS
