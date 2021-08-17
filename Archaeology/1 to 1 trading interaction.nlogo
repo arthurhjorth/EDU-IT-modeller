@@ -668,6 +668,20 @@ to clear-demand-supply-plot
 
 end
 
+;;testing price setting. @lisa: might be necessary to read up on this from the book.
+
+ to-report consumer-ideal-price
+  report [alpha * tableware ] of active-consumer / [ beta * money ] of active-consumer
+end
+
+
+to-report merchant-ideal-price
+   report [alpha * tableware ] of active-merchant / [ beta * money ] of active-merchant
+end
+
+
+
+
 to set-equilibrium-price
 
  ;;;;;;;;;;;;;;;; Equilibrium ;;;;;;;;;;;;;;;;;;
@@ -682,20 +696,25 @@ to set-equilibrium-price
   ]
 
 
-
    ;;;;;;;;;;;;;;;;;;;
   ;; output-prints ;;
   ;;;;;;;;;;;;;;;;;;;
 
   ask active-consumer [
-  set merchant-optimal-price ( alpha * tableware ) / ( beta * money )
-  set consumer-optimal-price ( [ alpha * tableware ] of partner / [ beta  * money ] of partner ) ;@lisa: passer det her virkelig? Skal lige kigges efter.
+  set consumer-optimal-price ( alpha * tableware ) / ( beta * money )
+  ]
+
+  ask active-merchant [
+  set merchant-optimal-price ( alpha * tableware / beta  * money )
+  ]
 
 
     output-print (word "Consumer price " precision consumer-optimal-price 2 ". " )
+ ; output-print (word "Consumer price (reporter) " precision consumer-ideal-price 2 ". " ) ;from reporter
     output-print (word "Merchant price " precision merchant-optimal-price 2 ". " )
+  ;    output-print (word "Merchant price (reporter) " precision merchant-ideal-price 2 ". " ) ;from reporter
     output-print (word "Midway meeting point " price ". " )
-  ]
+
 end
 
 
@@ -1317,7 +1336,7 @@ INPUTBOX
 320
 259
 money-merchants
-100.0
+50.0
 1
 0
 Number
@@ -1409,7 +1428,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.5
+0.1
 0.1
 1
 NIL
@@ -1491,7 +1510,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-3
+1
 
 MONITOR
 195
