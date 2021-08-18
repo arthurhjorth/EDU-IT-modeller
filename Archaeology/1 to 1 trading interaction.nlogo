@@ -18,9 +18,11 @@ globals [
   consumer-optimal-price
   unsuccesful-price
   recorded-time
+  price-offered-by
   ;temporary for bug fixing
   initial-bidder
   second-bidder
+
 ]
 
 
@@ -768,7 +770,13 @@ set-bidders
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
     ifelse deal > 0 [
       output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
-      stop ] ;if the bid is accepted, exit this function
+      set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by ;tracking who made the accepted offer in a list
+      stop  ;if the bid is accepted, exit this function
+    ]
+
+
+
+
 
     [
     ;;;; else, start round 2:
@@ -780,6 +788,7 @@ set-bidders
       check-utility-and-trade
       ifelse deal > 0 [
         output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+        set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
        stop]
 
       [
@@ -791,6 +800,7 @@ set-bidders
         check-utility-and-trade
         ifelse deal > 0 [
          output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+          set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
         stop]
 
         [
@@ -803,6 +813,7 @@ set-bidders
           check-utility-and-trade
           ifelse deal > 0 [
               output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
             stop]
 
           [
@@ -812,6 +823,7 @@ set-bidders
             check-utility-and-trade
             ifelse deal > 0 [
               output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
               stop]
 
             [
@@ -821,6 +833,7 @@ set-bidders
               decide-quantity
               check-utility-and-trade
               ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+                set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
              stop ]
 
 
@@ -832,9 +845,11 @@ set-bidders
                 decide-quantity
                 check-utility-and-trade
                 if deal > 0
-                [ output-print "Agents met halfway between their initial prices." ]
+                [ output-print "Agents met halfway between their initial prices."
+                set price-offered-by fput ( "met halfway" ) price-offered-by]
                 if deal = 0
-                [ output-print "Agents did not agree on a trading price." ]
+                [ output-print "Agents did not agree on a trading price."
+                set price-offered-by fput ( "no deal" ) price-offered-by]
 
                 ;the end
 
@@ -1082,6 +1097,8 @@ to create-price-lists
   set equilibrium-price-list []
   set random-price-list []
   set negotiation-price-list []
+  set price-offered-by []
+
 end
 
 
@@ -1097,7 +1114,6 @@ to update-price-list
   [
     set price-list fput price price-list
   ]
-
 
 
   ; when the active turtle-set has the trading-style market-clearing, save the agreed upon price in the list market-clearing-price-list
@@ -1531,7 +1547,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+3
 
 MONITOR
 195
@@ -1696,7 +1712,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-1.3
+0.9
 0.1
 1
 NIL
@@ -1711,7 +1727,7 @@ salary-daily
 salary-daily
 0
 20
-20.0
+3.0
 1
 1
 NIL
@@ -1789,7 +1805,7 @@ PENS
 "latest equilibrium" 1.0 0 -4079321 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length equilibrium-price-list > 0 [\nplot item 0 equilibrium-price-list\n]\n;]"
 "latest market-clearing" 1.0 0 -5298144 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length market-clearing-price-list > 0 [\nplot item 0 market-clearing-price-list\n]\n;]"
 "refused offer price" 1.0 2 -2139308 true "" "if recorded-time + 1 = ticks [\nplotxy recorded-time unsuccesful-price\n]\n;now just needs to be adjusted to plot alongside the current price\n; so xcor = ticks"
-"latest negotiation-price" 1.0 0 -7500403 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length random-price-list > 0 [\nplot item 0 negotiation-price-list\n]\n;]"
+"latest negotiation" 1.0 0 -7500403 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length negotiation-price-list > 0 [\nplot item 0 negotiation-price-list\n]\n;]"
 
 SLIDER
 205
@@ -1814,7 +1830,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
@@ -1843,7 +1859,7 @@ running-speed
 running-speed
 0
 1
-0.3
+0.0
 0.1
 1
 NIL
@@ -1941,7 +1957,7 @@ pxcor-merchant
 pxcor-merchant
 0
 16
-8.0
+16.0
 1
 1
 NIL
@@ -2059,6 +2075,25 @@ total-demand
 17
 1
 11
+
+PLOT
+255
+206
+455
+356
+plot 1
+ticks/ time
+price per item
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"pen-1" 1.0 0 -7500403 true "" "if item 0 price-offered-by = \"no deal\" [plot item 0 negotiation-price-list]"
+"pen-2" 1.0 0 -2674135 true "" ";if price-setting = \"negotiation\" [\n;plot item 0 price-list]"
 
 @#$#@#$#@
 ## WHAT IS IT?
