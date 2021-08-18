@@ -570,6 +570,46 @@ end
 
 
 
+to-report temporary-budget [n] ;
+  report ( tableware * n ) + money
+end
+
+to-report temporary-optimal [n]
+  report round ( temporary-budget n * alpha / n )
+end
+
+to-report temporary-demand [n]
+  let demandd (temporary-optimal n - tableware)
+  report ifelse-value demandd > 0 [demandd] [0]
+end
+
+to-report temporary-supply [n]
+  let supplyy (tableware - temporary-optimal n)
+  report ifelse-value supplyy > 0 [supplyy] [0]
+end
+
+to set-market-clearing-price2
+
+  ask turtles with[ trading-style = "market-clearing" ] [
+
+    let price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
+    ;n is price-temporary, i.e. each element of this price-list^^
+
+    let list-supply (map [n -> temporary-supply n] price-check-list)
+    show list-supply
+
+    let list-demand (map [n -> temporary-demand n] price-check-list)
+    show list-demand
+
+    ;lav ny liste med FORSKELLEN på de to
+
+  ]
+  ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
+  ;og gemme den pris (hvilken pris svarede det til i price-check-list?) (skal vi også gemme summen af supply-demand-forskel? eller gennemsnit?)
+
+
+end
+
 to set-market-clearing-price
 
   ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
@@ -585,17 +625,17 @@ repeat 200 [
       set demand 0 ;resetting demand and supply
       set supply 0
       set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
+      set optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget and alpha. Devided by price-temp as we then get it in tableware.
       ;if optimal-tableware < 1  [
       ; set optimal-tableware 1
       ;]
 
-      set demand ( optimal-tableware - tableware )
+      set demand ( optimal-tableware - tableware ) ;if alpha is low then we will more often have a lower demand for tableware
       if demand < 0 [
         set demand 0
     ]
 
-      set supply ( tableware - optimal-tableware )
+      set supply ( tableware - optimal-tableware ) ; if alpha is low then we will more often have a higher demand for tableware
       if supply < 0 [
         set supply 0
     ]
@@ -1482,7 +1522,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-3
+0
 
 MONITOR
 195
@@ -1793,7 +1833,7 @@ running-speed
 running-speed
 0
 1
-1.0
+0.5
 0.1
 1
 NIL
@@ -1978,7 +2018,7 @@ Demand and Supply Plot
 Price Temporary
 Tableware
 0.0
-3.0
+2.0
 -30.0
 30.0
 false
