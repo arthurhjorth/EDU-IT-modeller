@@ -7,6 +7,7 @@ globals [
   market-clearing-price-list
   equilibrium-price-list
   random-price-list
+  negotiation-price-list
   temp-closest-to-market-clearing
   total-demand
   total-supply
@@ -1080,6 +1081,7 @@ to create-price-lists
   set market-clearing-price-list []
   set equilibrium-price-list []
   set random-price-list []
+  set negotiation-price-list []
 end
 
 
@@ -1114,6 +1116,10 @@ to update-price-list
     ask active-consumer with [trading-style = "random"]
       [ set random-price-list fput price random-price-list ]
 
+  ]
+
+  ask active-consumer with [trading-style = "negotiation"]
+  [set negotiation-price-list fput price negotiation-price-list
   ]
 
 
@@ -1783,6 +1789,7 @@ PENS
 "latest equilibrium" 1.0 0 -4079321 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length equilibrium-price-list > 0 [\nplot item 0 equilibrium-price-list\n]\n;]"
 "latest market-clearing" 1.0 0 -5298144 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length market-clearing-price-list > 0 [\nplot item 0 market-clearing-price-list\n]\n;]"
 "refused offer price" 1.0 2 -2139308 true "" "if recorded-time + 1 = ticks [\nplotxy recorded-time unsuccesful-price\n]\n;now just needs to be adjusted to plot alongside the current price\n; so xcor = ticks"
+"latest negotiation-price" 1.0 0 -7500403 true "" "if price-setting = \"compare-all-price-settings\" [\n;if length random-price-list > 0 [\nplot item 0 negotiation-price-list\n]\n;]"
 
 SLIDER
 205
@@ -1807,7 +1814,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
