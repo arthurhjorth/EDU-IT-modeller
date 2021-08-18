@@ -17,6 +17,9 @@ globals [
   consumer-optimal-price
   unsuccesful-price
   recorded-time
+  ;temporary for bug fixing
+  initial-bidder
+  second-bidder
 ]
 
 
@@ -528,8 +531,6 @@ to trade ;this is now THE function. No more trade2!
 
 
   if price-setting = "compare-all-price-settings" [ ;just like the rest of them, but all of the above bundled together
-    ;@@@Lisa. I think we need to "set price" under another label than just price when compare-all is on...
-    ;@@@Lisa. Try to put on compare-all-price-settings and then press go. Every reporter is flickering, changing back and forth between values. Unsure why.
 
     activate-market-clearing-turtles
     set-market-clearing-price
@@ -742,12 +743,20 @@ To set-random-price
 
 End
 
+to set-bidders
+  set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set second-bidder [partner] of initial-bidder
+
+end
+
+
 
 to set-negotiation-price ;this is actually a full command - no need for extra decide-quantity and checking utility after this
   ;@ a loop can definitely be useful here. ;-)
 
-  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
-  let second-bidder [partner] of initial-bidder
+;  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+;  let second-bidder [partner] of initial-bidder
+set-bidders
 
   ask initial-bidder [
 
@@ -764,7 +773,8 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
     ;;;; else, start round 2:
       ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
 
-      set price [mrs] of partner
+      ;set price [mrs] of partner ;commenting for bug-fixing
+      set price [mrs] of second-bidder
       decide-quantity
       check-utility-and-trade
       ifelse deal > 0 [
@@ -785,7 +795,9 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
         [
           ;;;; else, start round 4:
           ; agent2 does the same
-          set price ( [mrs] of partner + mrs-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          set price ( [mrs] of second-bidder + mrs-difference * 0.2 )
+
           decide-quantity
           check-utility-and-trade
           ifelse deal > 0 [
@@ -803,7 +815,8 @@ to set-negotiation-price ;this is actually a full command - no need for extra de
 
             [
               ; round 6, agent2 does the same
-              set price ( [mrs] of partner + mrs-difference * 0.4 )
+              ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.4 )
+              set price ( [mrs] of second-bidder + mrs-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
               ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
@@ -1000,10 +1013,12 @@ if deal > 0 [
 
   ;save the prices suggested in interactions that didn't end with a trade
   ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccesful trade (x-coordinate = current tick and not x=1 -> x=2 osv)
-if deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
+
+  if deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
     set unsuccesful-price price
     set recorded-time ( ticks )
-  print "no deal made - tick recorded:" print recorded-time]
+  ;print "no deal made - tick recorded:" print recorded-time
+  ]
 
 end
 
@@ -1510,7 +1525,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-1
+4
 
 MONITOR
 195
@@ -1792,7 +1807,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
