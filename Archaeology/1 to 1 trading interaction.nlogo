@@ -590,6 +590,45 @@ to activate-negotiation-turtles
 end
 
 
+to-report temporary-budget [n] ;
+  report ( tableware * n ) + money
+end
+
+to-report temporary-optimal [n]
+  report round ( temporary-budget n * alpha / n )
+end
+
+to-report temporary-demand [n]
+  let demandd (temporary-optimal n - tableware)
+  report ifelse-value demandd > 0 [demandd] [0]
+end
+
+to-report temporary-supply [n]
+  let supplyy (tableware - temporary-optimal n)
+  report ifelse-value supplyy > 0 [supplyy] [0]
+end
+
+to set-market-clearing-price2
+
+  ask turtles with[ trading-style = "market-clearing" ] [
+
+    let price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
+    ;n is price-temporary, i.e. each element of this price-list^^
+
+    let list-supply (map [n -> temporary-supply n] price-check-list)
+    show list-supply
+
+    let list-demand (map [n -> temporary-demand n] price-check-list)
+    show list-demand
+
+    ;lav ny liste med FORSKELLEN på de to
+
+  ]
+  ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
+  ;og gemme den pris (hvilken pris svarede det til i price-check-list?) (skal vi også gemme summen af supply-demand-forskel? eller gennemsnit?)
+
+
+end
 
 to set-market-clearing-price
 
