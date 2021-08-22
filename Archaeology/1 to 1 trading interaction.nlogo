@@ -22,7 +22,7 @@ globals [
   ;temporary for bug fixing
   initial-bidder
   second-bidder
-
+  global-forskels-liste ;liste af lister - forskels-liste fra hver agent
 ]
 
 
@@ -610,26 +610,70 @@ to-report temporary-supply [n]
 end
 
 to set-market-clearing-price2
+  set global-forskels-liste [] ;clear, initiate
+  ;inititate demand-liste og supply-liste globals
 
-  ask turtles with[ trading-style = "market-clearing" ] [
-
-    let price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
+  let price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
     ;n is price-temporary, i.e. each element of this price-list^^
 
+  ask turtles with[ trading-style = "market-clearing" ] [
     let list-supply (map [n -> temporary-supply n] price-check-list)
-    show list-supply
+    ;gem global supply
 
     let list-demand (map [n -> temporary-demand n] price-check-list)
-    show list-demand
+    ;gem global demand liste (copy fra under)
 
-    ;lav ny liste med FORSKELLEN på de to
+    ;lav ny liste med FORSKELLEN på de to:
+    let list-forskel (map + list-supply list-demand)
 
-  ]
+    ifelse length global-forskels-liste > 0 [
+      set global-forskels-liste (map + list-forskel global-forskels-liste)
+    ]
+    [
+      set global-forskels-liste list-forskel ;den første turtle til at gøre det (kan ikke mappe på tom liste)
+    ]
+    ;set global-forskels-liste lput list-forskel global-forskels-liste
+
+  ] ;END of ask turtles
+  show global-forskels-liste
+
   ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
+
+  let min-forskel min global-forskels-liste
+  let nr-occurences frequency min-forskel global-forskels-liste ;bruger frequency funktion/reporter
+
+  let first-index position min-forskel global-forskels-liste ;index for første appearance af min i listen
+  let last-index first-index + nr-occurences
+
+
+  let min-differences sublist price-check-list first-index last-index
+  show min-differences
+  set price mean min-differences ;THIS IS WHAT WE WANT - gemmer mean pris (da der er flere occurences)
+
   ;og gemme den pris (hvilken pris svarede det til i price-check-list?) (skal vi også gemme summen af supply-demand-forskel? eller gennemsnit?)
 
 
 end
+
+;to plot-market-clearing
+;  ;brug global demand og supply lister
+;
+;  set-current-plot "plot name"
+;  set-current-plot-pen "supply"
+;  (foreach list1 list2
+;    [
+;      [price supply] ->
+;      plotxy price supply
+;
+;    ])
+;
+;
+;
+;  set-current-plot-pen "demand"
+;
+;
+;end
+
 
 to set-market-clearing-price
 
@@ -741,8 +785,8 @@ to set-equilibrium-price
   ]
 
 
-  alpha * tableware /
-  beta * money
+  ;alpha * tableware /
+  ;beta * money
 
 
    ;;;;;;;;;;;;;;;;;;;
@@ -1655,6 +1699,10 @@ end
 to-report total-tableware
 report ( nr-tableware-consumers + nr-tableware-merchants )
 end
+
+to-report frequency [an-item a-list]
+    report length (filter [ i -> i = an-item] a-list)
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 460
@@ -1781,7 +1829,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.1
+0.4
 0.1
 1
 NIL
