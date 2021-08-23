@@ -9,8 +9,6 @@ globals [
   random-price-list
   negotiation-price-list
   temp-closest-to-market-clearing
-  total-demand
-  total-supply
   active-merchant
   active-consumer
   active-turtles
@@ -22,7 +20,12 @@ globals [
   ;temporary for bug fixing
   initial-bidder
   second-bidder
-  global-forskels-liste ;liste af lister - forskels-liste fra hver agent
+  total-demand
+  total-supply
+  total-demand-list
+  total-supply-list
+  global-difference-list ;liste af lister - forskels-liste fra hver agent
+  price-check-list
 ]
 
 
@@ -504,7 +507,7 @@ to trade ;this is now THE function. No more trade2!
     set-market-clearing-price                ; step 2
     decide-quantity                          ; step 3
     check-utility-and-trade                  ; step 4
-    print-trade-details                      ;prints
+    print-trade-details                      ;prints @commented out
 
   ]
 
@@ -591,11 +594,12 @@ to activate-negotiation-turtles
 end
 
 
-to-report temporary-budget [n] ;
+
+to-report temporary-budget [n] ;total capital in money
   report ( tableware * n ) + money
 end
 
-to-report temporary-optimal [n]
+to-report temporary-optimal [n] ;Optimal holding of tableware
   report round ( temporary-budget n * alpha / n )
 end
 
@@ -609,40 +613,64 @@ to-report temporary-supply [n]
   report ifelse-value supplyy > 0 [supplyy] [0]
 end
 
-to set-market-clearing-price2
-  set global-forskels-liste [] ;clear, initiate
-  ;inititate demand-liste og supply-liste globals
+;      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+;      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
+;      ;if optimal-tableware < 1  [
+;      ; set optimal-tableware 1
 
-  let price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
+to set-market-clearing-price
+  set global-difference-list [] ;clear, initiate
+  set total-supply-list []
+  set total-demand-list []
+
+  set price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
     ;n is price-temporary, i.e. each element of this price-list^^
 
   ask turtles with[ trading-style = "market-clearing" ] [
+
     let list-supply (map [n -> temporary-supply n] price-check-list)
-    ;gem global supply
+    ;Save evert turtles supply list in a global / total list::
+        ifelse length total-supply-list > 0 [
+      set total-supply-list (map + list-supply total-supply-list)
+    ]
+    [
+      set total-supply-list list-supply ;First turtle cannot map as there is nothing in the tota-supply-list initially
+    ]
+
+
 
     let list-demand (map [n -> temporary-demand n] price-check-list)
-    ;gem global demand liste (copy fra under)
+    ;Save evert turtles demand list in a global / total list::
+        ifelse length total-demand-list > 0 [
+      set total-demand-list (map + list-demand total-demand-list)
+    ]
+    [
+      set total-demand-list list-demand ;First turtle cannot map as there is nothing in the tota-supply-list initially
+    ]
+
+    show list-supply
+    show list-demand
 
     ;lav ny liste med FORSKELLEN på de to:
     let list-forskel (map + list-supply list-demand)
 
-    ifelse length global-forskels-liste > 0 [
-      set global-forskels-liste (map + list-forskel global-forskels-liste)
+    ifelse length global-difference-list > 0 [
+      set global-difference-list (map - global-difference-list list-forskel) ;Minus, as we want to find where the difference is the lowest. HOWEVER, when there are more than 2 agents we need another solution @@@@@
     ]
     [
-      set global-forskels-liste list-forskel ;den første turtle til at gøre det (kan ikke mappe på tom liste)
+      set global-difference-list list-forskel ;den første turtle til at gøre det (kan ikke mappe på tom liste)
     ]
-    ;set global-forskels-liste lput list-forskel global-forskels-liste
-
   ] ;END of ask turtles
-  show global-forskels-liste
+
+  set global-difference-list (map abs global-difference-list)
+  show global-difference-list
 
   ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
 
-  let min-forskel min global-forskels-liste
-  let nr-occurences frequency min-forskel global-forskels-liste ;bruger frequency funktion/reporter
+  let min-forskel min global-difference-list
+  let nr-occurences frequency min-forskel global-difference-list ;bruger frequency funktion/reporter
 
-  let first-index position min-forskel global-forskels-liste ;index for første appearance af min i listen
+  let first-index position min-forskel global-difference-list ;index for første appearance af min i listen
   let last-index first-index + nr-occurences
 
 
@@ -652,109 +680,126 @@ to set-market-clearing-price2
 
   ;og gemme den pris (hvilken pris svarede det til i price-check-list?) (skal vi også gemme summen af supply-demand-forskel? eller gennemsnit?)
 
+  plot-market-clearing
 
 end
 
-;to plot-market-clearing
-;  ;brug global demand og supply lister
+to plot-market-clearing
+  ;brug global demand og supply lister
+
+  set-current-plot "Demand and Supply Plot"
+  clear-plot
+  create-temporary-plot-pen "supply"
+  set-current-plot-pen "supply"
+  set-plot-pen-color 15
+  set-plot-x-range 0.1 20
+  ;plotxy price-check-list total-supply-list
+
+  ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
+
+  (foreach price-check-list total-supply-list
+    [
+      [x y] ->
+      plotxy x y
+
+    ])
+
+  create-temporary-plot-pen "demand"
+  set-current-plot-pen "demand"
+  set-plot-pen-color 105
+   set-plot-x-range 0.1 20
+
+  (foreach price-check-list total-demand-list
+    [
+      [x y] ->
+      plotxy x y
+
+    ])
+
+
+end
+
+
+;to set-market-clearing-price
 ;
-;  set-current-plot "plot name"
-;  set-current-plot-pen "supply"
-;  (foreach list1 list2
-;    [
-;      [price supply] ->
-;      plotxy price supply
+;  ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
+;  ;;;;;;; The lowest possible shortage or surplus in the market
+;set price-temporary 0.1
+;set temp-closest-to-market-clearing total-tableware ; Simply to have some initial limiting factor for the later if-statement where we overwrite price-temporary and difference between supply and demand.
 ;
-;    ])
+;repeat 200 [
+;    set total-demand 0 ;resetting total-demand and supply
+;    set total-supply 0
+;
+;    ask turtles with [ trading-style = "market-clearing" ] [
+;      set demand 0 ;resetting demand and supply
+;      set supply 0
+;      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+;      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
+;      ;if optimal-tableware < 1  [
+;      ; set optimal-tableware 1
+;      ;]
+;
+;      set demand ( optimal-tableware - tableware )
+;;      if demand < 0 [
+;;        set demand 0
+;;    ]
+;
+;      set supply ( tableware - optimal-tableware )
+;;      if supply < 0 [
+;;        set supply 0
+;;    ]
 ;
 ;
 ;
-;  set-current-plot-pen "demand"
+;;      set demand ( optimal-tableware - tableware )
+;;      if demand < 0 [
+;;        set supply abs demand ;
+;;        set demand 0
+;;      ]
+;
+;    ] ;ask turtles end
+;
+;    set-total-demand-supply
+;
+;    ;set demand-supply-plot-list
+;
+;
+;    ;
+;    if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
+;    set temp-closest-to-market-clearing abs ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
+;    set price precision price-temporary 2
+;
+;    ] ;if end
+;
+;    set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
+;
+;  ] ;repeat 200 end
+;
+;
+;  ;;;;;;;;;;;;;;;;;;;
+;  ;; output-prints ;;
+;  ;;;;;;;;;;;;;;;;;;; @@@Lisa. For all output prints on for example "set-equilibrium-price". Do we need it to be only in the case of success?
+;
+;    output-print (word "Finding the lowest difference between supply and" )
+;    output-print (word "demand at prices between 0.1 and 20 for each tableware" )
+;    output-print (word "Lowest difference found at a price of " precision price 2 ". " )
+;
+;end
+;
+;to set-total-demand-supply
+;  ask turtles with [ trading-style = "market-clearing" ] [
+;   set total-demand total-demand + demand
+;   set total-supply total-supply + supply
+;  ]
+;end
+;
+;to clear-demand-supply-plot
+;    set-current-plot "Demand and Supply Plot" ;;the following manual plot commands will only be used on this plot
+;    clear-plot
 ;
 ;
 ;end
-
-
-to set-market-clearing-price
-
-  ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
-  ;;;;;;; The lowest possible shortage or surplus in the market
-set price-temporary 0.1
-set temp-closest-to-market-clearing total-tableware ; Simply to have some initial limiting factor for the later if-statement where we overwrite price-temporary and difference between supply and demand.
-
-repeat 200 [
-    set total-demand 0 ;resetting total-demand and supply
-    set total-supply 0
-
-    ask turtles with [ trading-style = "market-clearing" ] [
-      set demand 0 ;resetting demand and supply
-      set supply 0
-      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
-      ;if optimal-tableware < 1  [
-      ; set optimal-tableware 1
-      ;]
-
-      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set demand 0
-;    ]
-
-      set supply ( tableware - optimal-tableware )
-;      if supply < 0 [
-;        set supply 0
-;    ]
-
-
-
-;      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set supply abs demand ;
-;        set demand 0
-;      ]
-
-    ] ;ask turtles end
-
-    set-total-demand-supply
-
-    ;set demand-supply-plot-list
-
-
-    ;
-    if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
-    set temp-closest-to-market-clearing abs ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
-    set price precision price-temporary 2
-
-    ] ;if end
-
-    set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
-
-  ] ;repeat 200 end
-
-
-  ;;;;;;;;;;;;;;;;;;;
-  ;; output-prints ;;
-  ;;;;;;;;;;;;;;;;;;; @@@Lisa. For all output prints on for example "set-equilibrium-price". Do we need it to be only in the case of success?
-
-    output-print (word "Finding the lowest difference between supply and" )
-    output-print (word "demand at prices between 0.1 and 20 for each tableware" )
-    output-print (word "Lowest difference found at a price of " precision price 2 ". " )
-
-end
-
-to set-total-demand-supply
-  ask turtles with [ trading-style = "market-clearing" ] [
-   set total-demand total-demand + demand
-   set total-supply total-supply + supply
-  ]
-end
-
-to clear-demand-supply-plot
-    set-current-plot "Demand and Supply Plot" ;;the following manual plot commands will only be used on this plot
-    clear-plot
-
-
-end
 
 ;;testing price setting. @lisa: might be necessary to read up on this from the book.
 
@@ -1419,14 +1464,14 @@ to print-trade-details
     if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [ ;@@@Lisa. Forklar gerne lige her. Føler end bracket for denne burde være inden "if deal = 1
       ;; defining utility given 1x trade
 
-
       ask active-consumer [
       let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
-        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( [money] of partner + price ) ^ [beta] of partner ) ) 2
+        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ([money] of partner) + price ^ [beta] of partner ) ) 2
 
       let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
       let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
 
+        print "yAY"
 
 
       output-print (word "Unsuccesful. No trade was made." )
@@ -1447,6 +1492,7 @@ to print-trade-details
     ]
   ]
   ]
+  print "end"
 
 End
 
@@ -1829,7 +1875,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.4
+0.1
 0.1
 1
 NIL
@@ -1911,7 +1957,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-3
+0
 
 MONITOR
 195
@@ -2194,7 +2240,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
@@ -2411,12 +2457,10 @@ Tableware
 3.0
 -30.0
 30.0
-false
+true
 true
 "" ""
 PENS
-"Total demand" 1.0 0 -5298144 true "" "plotxy price-temporary total-demand"
-"Total supply" 1.0 0 -13345367 true "" "plotxy price-temporary total-supply"
 
 MONITOR
 1316
