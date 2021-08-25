@@ -9,8 +9,6 @@ globals [
   random-price-list
   negotiation-price-list
   temp-closest-to-market-clearing
-  total-demand
-  total-supply
   active-merchant
   active-consumer
   active-turtles
@@ -22,7 +20,12 @@ globals [
   ;temporary for bug fixing
   initial-bidder
   second-bidder
-
+  total-demand
+  total-supply
+  total-demand-list
+  total-supply-list
+  global-difference-list ;liste af lister - forskels-liste fra hver agent
+  price-check-list
 ]
 
 
@@ -82,6 +85,7 @@ to go
   earn-money
   update-mrs
   conversate
+  test-negotiation-price-loop
 
 
 
@@ -393,12 +397,12 @@ to conversate
 
 
   if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
-    ask c-talk1 [set plabel "my ideal price is"]
+    ask c-talk1 [set plabel "my ideal price is (consumer-optimal-price"]
 
-    ask patch pxcor-consumer 6 [set plabel consumer-optimal-price] ;temporary placeholder for patch
-    ask m-talk1 [set plabel "my ideal price is"]
-    ask patch pxcor-merchant 5 [set plabel consumer-optimal-price] ;temporary placeholder for patch
-    ;[set plabel merchant-optimal-price]
+
+    ask m-talk1 [set plabel "my ideal price is (merchant-optimal-price"]
+
+
     ask shared-talk2  [set plabel "we meet halfway. This will be the price"]
     ask patch pxcor-shared -2 [set plabel price]
     ]
@@ -504,7 +508,7 @@ to trade ;this is now THE function. No more trade2!
     set-market-clearing-price                ; step 2
     decide-quantity                          ; step 3
     check-utility-and-trade                  ; step 4
-    print-trade-details                      ;prints
+    print-trade-details                      ;prints @commented out
 
   ]
 
@@ -591,11 +595,12 @@ to activate-negotiation-turtles
 end
 
 
-to-report temporary-budget [n] ;
+
+to-report temporary-budget [n] ;total capital in money
   report ( tableware * n ) + money
 end
 
-to-report temporary-optimal [n]
+to-report temporary-optimal [n] ;Optimal holding of tableware
   report round ( temporary-budget n * alpha / n )
 end
 
@@ -609,108 +614,193 @@ to-report temporary-supply [n]
   report ifelse-value supplyy > 0 [supplyy] [0]
 end
 
-to set-market-clearing-price2
+;      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+;      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
+;      ;if optimal-tableware < 1  [
+;      ; set optimal-tableware 1
+
+to set-market-clearing-price
+  set global-difference-list [] ;clear, initiate
+  set total-supply-list []
+  set total-demand-list []
+
+  set price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
+    ;n is price-temporary, i.e. each element of this price-list^^
 
   ask turtles with[ trading-style = "market-clearing" ] [
 
-    let price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
-    ;n is price-temporary, i.e. each element of this price-list^^
-
     let list-supply (map [n -> temporary-supply n] price-check-list)
-    show list-supply
+    ;Save evert turtles supply list in a global / total list::
+        ifelse length total-supply-list > 0 [
+      set total-supply-list (map + list-supply total-supply-list)
+    ]
+    [
+      set total-supply-list list-supply ;First turtle cannot map as there is nothing in the tota-supply-list initially
+    ]
+
+
 
     let list-demand (map [n -> temporary-demand n] price-check-list)
+    ;Save evert turtles demand list in a global / total list::
+        ifelse length total-demand-list > 0 [
+      set total-demand-list (map + list-demand total-demand-list)
+    ]
+    [
+      set total-demand-list list-demand ;First turtle cannot map as there is nothing in the tota-supply-list initially
+    ]
+
+    show list-supply
     show list-demand
 
-    ;lav ny liste med FORSKELLEN på de to
+    ;lav ny liste med FORSKELLEN på de to:
+    let list-forskel (map + list-supply list-demand)
 
-  ]
+    ifelse length global-difference-list > 0 [
+      set global-difference-list (map - global-difference-list list-forskel) ;Minus, as we want to find where the difference is the lowest. HOWEVER, when there are more than 2 agents we need another solution @@@@@
+    ]
+    [
+      set global-difference-list list-forskel ;den første turtle til at gøre det (kan ikke mappe på tom liste)
+    ]
+  ] ;END of ask turtles
+
+  set global-difference-list (map abs global-difference-list)
+  show global-difference-list
+
   ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
+
+  let min-forskel min global-difference-list
+  let nr-occurences frequency min-forskel global-difference-list ;bruger frequency funktion/reporter
+
+  let first-index position min-forskel global-difference-list ;index for første appearance af min i listen
+  let last-index first-index + nr-occurences
+
+
+  let min-differences sublist price-check-list first-index last-index
+  show min-differences
+  set price mean min-differences ;THIS IS WHAT WE WANT - gemmer mean pris (da der er flere occurences)
+
   ;og gemme den pris (hvilken pris svarede det til i price-check-list?) (skal vi også gemme summen af supply-demand-forskel? eller gennemsnit?)
 
+  plot-market-clearing
 
 end
 
-to set-market-clearing-price
+to plot-market-clearing
+  ;brug global demand og supply lister
 
-  ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
-  ;;;;;;; The lowest possible shortage or surplus in the market
-set price-temporary 0.1
-set temp-closest-to-market-clearing total-tableware ; Simply to have some initial limiting factor for the later if-statement where we overwrite price-temporary and difference between supply and demand.
+  set-current-plot "Demand and Supply Plot"
+  clear-plot
+  create-temporary-plot-pen "supply"
+  set-current-plot-pen "supply"
+  set-plot-pen-color 15
+  set-plot-x-range 0.1 20
+  ;plotxy price-check-list total-supply-list
 
-repeat 200 [
-    set total-demand 0 ;resetting total-demand and supply
-    set total-supply 0
+  ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
 
-    ask turtles with [ trading-style = "market-clearing" ] [
-      set demand 0 ;resetting demand and supply
-      set supply 0
-      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
-      ;if optimal-tableware < 1  [
-      ; set optimal-tableware 1
-      ;]
+  (foreach price-check-list total-supply-list
+    [
+      [x y] ->
+      plotxy x y
 
-      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set demand 0
-;    ]
+    ])
 
-      set supply ( tableware - optimal-tableware )
-;      if supply < 0 [
-;        set supply 0
-;    ]
+  create-temporary-plot-pen "demand"
+  set-current-plot-pen "demand"
+  set-plot-pen-color 105
+   set-plot-x-range 0.1 20
+
+  (foreach price-check-list total-demand-list
+    [
+      [x y] ->
+      plotxy x y
+
+    ])
 
 
+end
 
+
+;to set-market-clearing-price
+;
+;  ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
+;  ;;;;;;; The lowest possible shortage or surplus in the market
+;set price-temporary 0.1
+;set temp-closest-to-market-clearing total-tableware ; Simply to have some initial limiting factor for the later if-statement where we overwrite price-temporary and difference between supply and demand.
+;
+;repeat 200 [
+;    set total-demand 0 ;resetting total-demand and supply
+;    set total-supply 0
+;
+;    ask turtles with [ trading-style = "market-clearing" ] [
+;      set demand 0 ;resetting demand and supply
+;      set supply 0
+;      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
+;      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
+;      ;if optimal-tableware < 1  [
+;      ; set optimal-tableware 1
+;      ;]
+;
 ;      set demand ( optimal-tableware - tableware )
-;      if demand < 0 [
-;        set supply abs demand ;
-;        set demand 0
-;      ]
-
-    ] ;ask turtles end
-
-    set-total-demand-supply
-
-    ;set demand-supply-plot-list
-
-
-    ;
-    if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
-    set temp-closest-to-market-clearing abs ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
-    set price precision price-temporary 2
-
-    ] ;if end
-
-    set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
-
-  ] ;repeat 200 end
-
-
-  ;;;;;;;;;;;;;;;;;;;
-  ;; output-prints ;;
-  ;;;;;;;;;;;;;;;;;;; @@@Lisa. For all output prints on for example "set-equilibrium-price". Do we need it to be only in the case of success?
-
-    output-print (word "Finding the lowest difference between supply and" )
-    output-print (word "demand at prices between 0.1 and 20 for each tableware" )
-    output-print (word "Lowest difference found at a price of " precision price 2 ". " )
-
-end
-
-to set-total-demand-supply
-  ask turtles with [ trading-style = "market-clearing" ] [
-   set total-demand total-demand + demand
-   set total-supply total-supply + supply
-  ]
-end
-
-to clear-demand-supply-plot
-    set-current-plot "Demand and Supply Plot" ;;the following manual plot commands will only be used on this plot
-    clear-plot
-
-
-end
+;;      if demand < 0 [
+;;        set demand 0
+;;    ]
+;
+;      set supply ( tableware - optimal-tableware )
+;;      if supply < 0 [
+;;        set supply 0
+;;    ]
+;
+;
+;
+;;      set demand ( optimal-tableware - tableware )
+;;      if demand < 0 [
+;;        set supply abs demand ;
+;;        set demand 0
+;;      ]
+;
+;    ] ;ask turtles end
+;
+;    set-total-demand-supply
+;
+;    ;set demand-supply-plot-list
+;
+;
+;    ;
+;    if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
+;    set temp-closest-to-market-clearing abs ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
+;    set price precision price-temporary 2
+;
+;    ] ;if end
+;
+;    set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
+;
+;  ] ;repeat 200 end
+;
+;
+;  ;;;;;;;;;;;;;;;;;;;
+;  ;; output-prints ;;
+;  ;;;;;;;;;;;;;;;;;;; @@@Lisa. For all output prints on for example "set-equilibrium-price". Do we need it to be only in the case of success?
+;
+;    output-print (word "Finding the lowest difference between supply and" )
+;    output-print (word "demand at prices between 0.1 and 20 for each tableware" )
+;    output-print (word "Lowest difference found at a price of " precision price 2 ". " )
+;
+;end
+;
+;to set-total-demand-supply
+;  ask turtles with [ trading-style = "market-clearing" ] [
+;   set total-demand total-demand + demand
+;   set total-supply total-supply + supply
+;  ]
+;end
+;
+;to clear-demand-supply-plot
+;    set-current-plot "Demand and Supply Plot" ;;the following manual plot commands will only be used on this plot
+;    clear-plot
+;
+;
+;end
 
 ;;testing price setting. @lisa: might be necessary to read up on this from the book.
 
@@ -736,8 +826,13 @@ to set-equilibrium-price
   ask active-consumer [
      set price  precision (
                            ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
-                           ( ( beta * money ) + [ beta  * money ] of partner ) )    2
+      ( ( beta * money ) + [ beta  * money ] of partner ) )    2
+
   ]
+
+
+  ;alpha * tableware /
+  ;beta * money
 
 
    ;;;;;;;;;;;;;;;;;;;
@@ -786,12 +881,12 @@ To set-random-price
 
 End
 
+
 to set-bidders
   set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
   set second-bidder [partner] of initial-bidder
-
-
 end
+
 
 to set-optimal-price
   ;Set optimal price
@@ -813,12 +908,156 @@ end
 
 
 
-to set-negotiation-price ;this is actually a full command - no need for extra decide-quantity and checking utility after this
+
+
+
+to set-negotiation-price ;this version runs with MRS while we haven't figured out "ideal" price-setting
+  ;@ a loop can definitely be useful here. ;-) (see test-negotiation-price-loop for starters)
+
+
+set-bidders ;make this LET?
+set-optimal-price
+
+  ask initial-bidder [
+
+   ;;;; round 1:
+    set price mrs
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop ] ;if the bid is accepted, exit this function
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      set price [mrs] of partner
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+       stop]
+
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let mrs-price-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price mrs + (mrs-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+             stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price mrs + mrs-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices." ]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price." ]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+end
+
+
+to test-negotiation-price-loop ;for now with MRS
+
+  ;;;setting optimal prices;;;;
+;      ask active-turtles [
+ ;   set optimal-price ( alpha * tableware ) / ( beta * money )
+ ; ]
+
+  ;;;set bidders;;;
+    set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set second-bidder [partner] of initial-bidder
+
+
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+
+; right now we don't distinguish which breed opens the negotiation
+  ;prices to run through loop
+  let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+
+
+  loop [
+   ask active-turtles [
+    set price potential-prices
+      print potential-prices
+    decide-quantity
+    check-utility-and-trade
+    if deal > 0 [stop]
+    ]
+  ]
+
+
+end
+
+
+
+to set-negotiation-price-optprice ;this is actually a full command - no need for extra decide-quantity and checking utility after this
   ;@ a loop can definitely be useful here. ;-)
 
-;  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
-;  let second-bidder [partner] of initial-bidder
-set-bidders
+
+
+
+set-bidders ;make this LET?
 set-optimal-price
 
   ask initial-bidder [
@@ -830,11 +1069,112 @@ set-optimal-price
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
     ifelse deal > 0 [
       output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop ] ;if the bid is accepted, exit this function
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      set price [optimal-price] of partner
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+       stop]
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let optimal-price-difference ( optimal-price - [optimal-price] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price optimal-price + (optimal-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [optimal-price] of partner + optimal-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price optimal-price + (optimal-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              set price ( [optimal-price] of partner + optimal-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+             stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price optimal-price + optimal-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices." ]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price." ]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+end
+
+
+
+to set-negotiation-price2 ;this is actually a full command - no need for extra decide-quantity and checking utility after this
+  ;@ a loop can definitely be useful here. ;-)
+
+;  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+;  let second-bidder [partner] of initial-bidder
+set-bidders ;make this LET?
+set-optimal-price
+
+
+  ;;;lisa: her kommer en MEGET klodset løsning. To kommandoer afhængig af hvem der er inital-bidder. Kan altid forbedres.
+
+
+  if [breed] of initial-bidder = "merchant" [
+
+    ;;;;; merchant as first-bidder ;;;;;
+
+    ask initial-bidder [
+
+   ;;;; round 1:
+    set price optimal-price
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
       set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by ;tracking who made the accepted offer in a list
       stop  ;if the bid is accepted, exit this function
     ]
-
-
 
 
 
@@ -854,20 +1194,18 @@ set-optimal-price
       [
       ;;;; else, start round 3:
       ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
-        let optimal-price-difference ( optimal-price - [optimal-price] of partner ) ;might be a positive or negative number - that is great for these calculations
-        set price optimal-price + (optimal-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        let optimal-price-difference abs ( optimal-price - [optimal-price] of partner ) ;now always an absolute value
+        set price optimal-price - (optimal-price-difference * 0.2 ) ; merchant is first bidder in this chunk of code; we can assume he sets the higher price of the two agents, and therefore to meet towards the middle, we subtract the difference from the optimal price
         decide-quantity
         check-utility-and-trade
         ifelse deal > 0 [
-         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.") ;we know for sure that this is merchant rn
           set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
         stop]
 
         [
           ;;;; else, start round 4:
           ; agent2 does the same
-          ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
-          ;@@@lisa @@@gus Er det her nødvendigt at kigge på=?^^^^
           set price ( [optimal-price] of second-bidder + optimal-price-difference * 0.2 )
 
           decide-quantity
@@ -879,7 +1217,7 @@ set-optimal-price
 
           [
             ;;; round 5, agent 1 with 40%
-            set price optimal-price + (optimal-pricers-difference * 0.4 )
+            set price optimal-price - (optimal-price-difference * 0.4 )
             decide-quantity
             check-utility-and-trade
             ifelse deal > 0 [
@@ -890,7 +1228,7 @@ set-optimal-price
             [
               ; round 6, agent2 does the same
               ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.4 )
-              set price ( [mrs] of second-bidder + mrs-difference * 0.4 )
+              set price ( [optimal-price] of second-bidder + optimal-price-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
               ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
@@ -902,7 +1240,105 @@ set-optimal-price
 
               [
                 ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
-                set price mrs + mrs-difference * 0.5
+                set price optimal-price + optimal-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices."
+                set price-offered-by fput ( "met halfway" ) price-offered-by]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price."
+                set price-offered-by fput ( "no deal" ) price-offered-by]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+        ;;;;; ELSE: consumer as first-bidder ;;;;;
+
+    ask initial-bidder [
+
+   ;;;; round 1:
+    set price optimal-price
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by ;tracking who made the accepted offer in a list
+      stop  ;if the bid is accepted, exit this function
+    ]
+
+
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      ;set price [mrs] of partner ;commenting for bug-fixing
+      set price [optimal-price] of second-bidder
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+        set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+       stop]
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let optimal-price-difference abs ( optimal-price - [optimal-price] of partner ) ;now always an absolute value
+        set price optimal-price + (optimal-price-difference * 0.2 ) ; consumer is first bidder in this chunk of code; we can assume he sets the lower price of the two agents, and therefore to meet towards the middle, we add the difference from the optimal price
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.") ;we know for sure that this is merchant rn
+          set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [optimal-price] of second-bidder - optimal-price-difference * 0.2 )
+
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price optimal-price + (optimal-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.4 )
+              set price ( [optimal-price] of second-bidder - optimal-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+                set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+             stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price optimal-price + optimal-price-difference * 0.5
                 decide-quantity
                 check-utility-and-trade
                 if deal > 0
@@ -922,6 +1358,9 @@ set-optimal-price
     ]
   ]
 
+
+
+  ]
 
 
 end
@@ -948,6 +1387,7 @@ calculate-utility
       let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
       let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
       set offer precision ( optimal - tableware ) 2  ;offer to buy the number of tableware optimal with current holding subtracted
+      if offer * price > money [set offer ( money / price ) ] ;ensures that the consumer never offers more money than she currently has.
     ]
   ]
 
@@ -999,7 +1439,6 @@ calculate-utility
   ]
 
 
-
 ;;;;; step 4: Finalizing quantity to trade and final prize
 ;;;;; A merchant cannot trade more tableware than they currently hold
   ;;;;;;@i think this is REDUDANT <3 #dealmoney and #dealtableware
@@ -1011,9 +1450,8 @@ calculate-utility
 ;    [set deal-tableware deal] ;or else, stick with the agreed upon quantity
 ;  ]
 ;
-;
-;  ask active-turtles
-;  [ set deal-money deal-tableware * price ] ;money exchange in deal
+
+
 
 end
 
@@ -1036,6 +1474,8 @@ end
 
 
   ;;;; step 1: calculating the change in utility for each agent given the planned trade
+;;; @lisa: there is some problematic calculations going on with the ^s. I tried to solve it, but for now without success.
+
 
 ask active-consumer [
    if deal-tableware > 0 [
@@ -1049,7 +1489,8 @@ ask active-merchant [
    if deal-tableware > 0 [
      set temp-tableware ( tableware - deal-tableware )
      set temp-money ( money + deal-money )
-     set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
+   ;  set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
+       set temp-utility ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) ;cobb-douglas utility function
     ]
   ]
 
@@ -1100,6 +1541,7 @@ if deal > 0 [
 end
 
 
+
 to print-trade-details
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1120,14 +1562,14 @@ to print-trade-details
     if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [ ;@@@Lisa. Forklar gerne lige her. Føler end bracket for denne burde være inden "if deal = 1
       ;; defining utility given 1x trade
 
-
       ask active-consumer [
       let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
-        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( [money] of partner + price ) ^ [beta] of partner ) ) 2
+        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ([money] of partner) + price ^ [beta] of partner ) ) 2
 
       let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
       let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
 
+        print "yAY"
 
 
       output-print (word "Unsuccesful. No trade was made." )
@@ -1148,6 +1590,7 @@ to print-trade-details
     ]
   ]
   ]
+  print "end"
 
 End
 
@@ -1400,6 +1843,10 @@ end
 to-report total-tableware
 report ( nr-tableware-consumers + nr-tableware-merchants )
 end
+
+to-report frequency [an-item a-list]
+    report length (filter [ i -> i = an-item] a-list)
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 460
@@ -1526,7 +1973,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.1
+0.6
 0.1
 1
 NIL
@@ -1716,7 +2163,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-0
+1
 1
 -1000
 
@@ -1773,7 +2220,7 @@ tableware-produced-per-tick
 tableware-produced-per-tick
 0
 20
-0.9
+1.2
 0.1
 1
 NIL
@@ -1891,7 +2338,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
@@ -1920,7 +2367,7 @@ running-speed
 running-speed
 0
 1
-0.4
+1.0
 0.1
 1
 NIL
@@ -2067,7 +2514,7 @@ temporary sliders to allocate plabels:
 MONITOR
 228
 364
-353
+384
 409
 NIL
 utility-merchants
@@ -2078,7 +2525,7 @@ utility-merchants
 MONITOR
 229
 411
-353
+382
 456
 NIL
 utility-consumers
@@ -2108,12 +2555,10 @@ Tableware
 3.0
 -30.0
 30.0
-false
+true
 true
 "" ""
 PENS
-"Total demand" 1.0 0 -5298144 true "" "plotxy price-temporary total-demand"
-"Total supply" 1.0 0 -13345367 true "" "plotxy price-temporary total-supply"
 
 MONITOR
 1316
