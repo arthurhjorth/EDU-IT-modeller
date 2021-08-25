@@ -84,7 +84,7 @@ to go
   break-tableware
   earn-money
   update-mrs
-  conversate
+  ;conversate ;;; now in check-utility-and-trade, as we want different text dependant on success or failed trade
 
 
 
@@ -359,10 +359,33 @@ to layout
 
 end
 
+to conversate-trade-failed
+    ;defining plabels
+  ;;; consumer talks
+  let c-talk1 patch pxcor-consumer 7 ;price
+  let c-talk2 patch pxcor-consumer 1 ;quantity
+  let c-talk3 patch pxcor-consumer -5 ;utility
 
-to conversate
+  ;;; merchant talks
+  let m-talk1 patch pxcor-merchant 6 ;price
+  let m-talk2 patch pxcor-merchant 0 ;quantity
+  let m-talk3 patch pxcor-merchant -5 ;utility
 
-  ;defining plabels
+  ;;; agreement talks
+
+
+      ;;;;;;; first commands are specific to condition ;;;;;;;
+  if price-setting = "market-clearing" [
+    let shared-talk1 patch pxcor-shared 5 ;price
+    let shared-talk2 patch pxcor-shared -1 ;utility
+    ;@giver det mening at sætte information om supply/ demand her?
+    ask shared-talk1 [set plabel "No agent benefits in utility from a trade with prices between 0.1 and 20"]
+  ]
+
+end
+
+to conversate-trade-success
+    ;defining plabels
   ;;; consumer talks
   let c-talk1 patch pxcor-consumer 7 ;price
   let c-talk2 patch pxcor-consumer 1 ;quantity
@@ -378,9 +401,6 @@ to conversate
   let shared-talk2 patch pxcor-shared -1 ;utility
 
 
-
-
-
 ;;;;;;;; samtale-output;;;;;;;
 ; for nu udkast
 ;@actual values still need to be added
@@ -388,7 +408,8 @@ to conversate
     ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
     ;@giver det mening at sætte information om supply/ demand her?
-    ask shared-talk1 [set plabel "this is the price" ] ;something something [set plabel "this is the price at which the difference between supply and demand is lowest"]
+    ask shared-talk1 [set plabel "this is the price"] ;something something [set plabel "this is the price at which the difference between supply and demand is lowest"]
+    ask shared-talk2 [set plabel "sup"]
 
 
     ;; something something refer to the plot on supply/ demand
@@ -693,6 +714,8 @@ to plot-market-clearing
   set-current-plot-pen "supply"
   set-plot-pen-color 15
   set-plot-x-range 0.1 20
+  let upper-bound ( money-merchants + money-consumers + tableware-merchants + tableware-consumers ) / 2
+  set-plot-y-range 0 upper-bound
   ;plotxy price-check-list total-supply-list
 
   ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
@@ -716,92 +739,7 @@ to plot-market-clearing
 
     ])
 
-
 end
-
-
-;to set-market-clearing-price
-;
-;  ;;;;;;; The price where quantity demanded is as equal as possible to the quantity supplied
-;  ;;;;;;; The lowest possible shortage or surplus in the market
-;set price-temporary 0.1
-;set temp-closest-to-market-clearing total-tableware ; Simply to have some initial limiting factor for the later if-statement where we overwrite price-temporary and difference between supply and demand.
-;
-;repeat 200 [
-;    set total-demand 0 ;resetting total-demand and supply
-;    set total-supply 0
-;
-;    ask turtles with [ trading-style = "market-clearing" ] [
-;      set demand 0 ;resetting demand and supply
-;      set supply 0
-;      set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
-;      set  optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
-;      ;if optimal-tableware < 1  [
-;      ; set optimal-tableware 1
-;      ;]
-;
-;      set demand ( optimal-tableware - tableware )
-;;      if demand < 0 [
-;;        set demand 0
-;;    ]
-;
-;      set supply ( tableware - optimal-tableware )
-;;      if supply < 0 [
-;;        set supply 0
-;;    ]
-;
-;
-;
-;;      set demand ( optimal-tableware - tableware )
-;;      if demand < 0 [
-;;        set supply abs demand ;
-;;        set demand 0
-;;      ]
-;
-;    ] ;ask turtles end
-;
-;    set-total-demand-supply
-;
-;    ;set demand-supply-plot-list
-;
-;
-;    ;
-;    if abs ( total-demand - total-supply ) < temp-closest-to-market-clearing [ ;On repeat 1 we initiate if statement when neither demand nor supply exceeds the total-tableware.
-;    set temp-closest-to-market-clearing abs ( total-demand - total-supply ) ;we update if we have a smaller total difference between supply and demand. in the end we will have the smallest possible difference (given constraints)
-;    set price precision price-temporary 2
-;
-;    ] ;if end
-;
-;    set price-temporary price-temporary + 0.1 ;if it takes a long time to run, we can update price inside the above if statement. However this seems to introduce a possible local minimum in difference btw supply and demand
-;
-;  ] ;repeat 200 end
-;
-;
-;  ;;;;;;;;;;;;;;;;;;;
-;  ;; output-prints ;;
-;  ;;;;;;;;;;;;;;;;;;; @@@Lisa. For all output prints on for example "set-equilibrium-price". Do we need it to be only in the case of success?
-;
-;    output-print (word "Finding the lowest difference between supply and" )
-;    output-print (word "demand at prices between 0.1 and 20 for each tableware" )
-;    output-print (word "Lowest difference found at a price of " precision price 2 ". " )
-;
-;end
-;
-;to set-total-demand-supply
-;  ask turtles with [ trading-style = "market-clearing" ] [
-;   set total-demand total-demand + demand
-;   set total-supply total-supply + supply
-;  ]
-;end
-;
-;to clear-demand-supply-plot
-;    set-current-plot "Demand and Supply Plot" ;;the following manual plot commands will only be used on this plot
-;    clear-plot
-;
-;
-;end
-
-;;testing price setting. @lisa: might be necessary to read up on this from the book.
 
  to-report consumer-ideal-price
   report [alpha * tableware ] of active-consumer / [ beta * money ] of active-consumer
@@ -1358,8 +1296,7 @@ calculate-utility
 end
 
 
-
-  to check-utility-and-trade
+to check-utility-and-trade
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;;;;;;; utilty-check ;;;;;;;;;
@@ -1427,6 +1364,7 @@ if deal > 0 [
        set succesful-trades succesful-trades + 1
       ]
 
+    conversate-trade-success
     update-price-list ;add price to list to save it, when trade is successful
     ]
 
@@ -1437,6 +1375,7 @@ if deal > 0 [
   if deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
     set unsuccesful-price price
     set recorded-time ( ticks )
+    conversate-trade-failed
   ;print "no deal made - tick recorded:" print recorded-time
   ]
 
@@ -1875,7 +1814,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.1
+0.4
 0.1
 1
 NIL
@@ -2454,10 +2393,10 @@ Demand and Supply Plot
 Price Temporary
 Tableware
 0.0
-3.0
--30.0
-30.0
-true
+0.0
+0.0
+0.0
+false
 true
 "" ""
 PENS
