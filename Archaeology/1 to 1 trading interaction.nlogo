@@ -784,11 +784,14 @@ to set-equilibrium-price
   set merchant-optimal-price ( alpha * tableware / beta  * money )
   ]
 
-
-    output-print (word "Consumer price " precision consumer-optimal-price 2 ". " )
+ output-print (word "Consumer price (here)." )
+   ; output-print (word "Consumer price " precision consumer-optimal-price 2 ". " )
  ; output-print (word "Consumer price (reporter) " precision consumer-ideal-price 2 ". " ) ;from reporter
-    output-print (word "Merchant price " precision merchant-optimal-price 2 ". " )
+
+  output-print (word "Merchant price (here). ")
+  ;    output-print (word "Merchant price " precision merchant-optimal-price 2 ". " )
   ;    output-print (word "Merchant price (reporter) " precision merchant-ideal-price 2 ". " ) ;from reporter
+
     output-print (word "Midway meeting point " price ". " )
 
 end
@@ -814,7 +817,7 @@ To set-random-price
 
   output-print (word "Lowest MRS " precision minMRS 2 ". " )
   output-print (word "Highest MRS " precision maxMRS 2 ". " ) ;is there a smarter way to change the line than putting a new command?
-  output-print (word "Random price in between " precision price 2 ". " )
+  output-print (word "Random price in between this round " precision price 2 ". " )
 
 End
 
@@ -1487,6 +1490,7 @@ to print-trade-details
   ;;; utility, success and quantity ;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  output-print (word "Price this round ended at " price ".")
 
   ;;; defining agents' change in utility given the ongoing trade
 
@@ -1497,7 +1501,7 @@ to print-trade-details
 
 ;;;; print-outputs depending on the success of the trade
     ;;;; if no trade happens, then calculate what the change in utility would've been given trade of 1x tableware
-    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [ ;@@@Lisa. Forklar gerne lige her. Føler end bracket for denne burde være inden "if deal = 1
+    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
       ;; defining utility given 1x trade
 
       ask active-consumer [
@@ -1507,13 +1511,16 @@ to print-trade-details
       let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
       let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
 
-        print "yAY"
+        print "Utility given potential trade of 1x of tableware calculated."
 
 
       output-print (word "Unsuccesful. No trade was made." )
       output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.") ;@måske indstil givet handel med 1x
       output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
     ]
+
+      ;herfra printer ikke. Kun når deal = 0.
+
 
     if deal = 1 [
       output-print (word "Successful trade! " deal "x of tableware was traded.")
@@ -1528,6 +1535,7 @@ to print-trade-details
     ]
   ]
   ]
+
   print "end"
 
 End
@@ -1993,7 +2001,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-0
+1
 
 MONITOR
 195
@@ -2276,7 +2284,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
