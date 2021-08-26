@@ -462,7 +462,7 @@ to conversate-trade-success
 
   if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
 
-    ask patch -8 7 [set plabel "my ideal price is:"]
+    ask patch -8 7 [set plabel (word "my ideal price is: " precision consumer-optimal-price 2) ]
     ask patch -6 6 [set plabel precision consumer-optimal-price 2 ]
 
   ;
@@ -2023,10 +2023,10 @@ ticks
 30.0
 
 INPUTBOX
-219
-199
-320
-259
+224
+261
+325
+321
 money-merchants
 50.0
 1
@@ -2034,10 +2034,10 @@ money-merchants
 Number
 
 INPUTBOX
-358
-196
-460
-256
+350
+261
+452
+321
 money-consumers
 50.0
 1
@@ -2045,10 +2045,10 @@ money-consumers
 Number
 
 INPUTBOX
-219
-263
-321
-323
+223
+199
+325
+259
 tableware-merchants
 50.0
 1
@@ -2056,12 +2056,12 @@ tableware-merchants
 Number
 
 INPUTBOX
-359
+349
+199
+452
 259
-462
-319
 tableware-consumers
-50.0
+120.0
 1
 0
 Number
@@ -2120,7 +2120,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.4
+0.1
 0.1
 1
 NIL
@@ -2310,7 +2310,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-1
+0
 1
 -1000
 
@@ -2321,7 +2321,7 @@ SWITCH
 576
 consumers-earn-money?
 consumers-earn-money?
-1
+0
 1
 -1000
 
@@ -2332,7 +2332,7 @@ SWITCH
 612
 tableware-production?
 tableware-production?
-1
+0
 1
 -1000
 
@@ -2343,15 +2343,15 @@ SWITCH
 651
 tableware-breakage?
 tableware-breakage?
-1
+0
 1
 -1000
 
 MONITOR
-1253
-215
-1338
-260
+1179
+166
+1264
+211
 total-tableware
 round ( total-tableware )
 17
@@ -2471,7 +2471,7 @@ tableware-broken-per-tick-consumers
 tableware-broken-per-tick-consumers
 0
 10
-0.0
+0.4
 0.1
 1
 NIL
