@@ -26,6 +26,8 @@ globals [
   total-supply-list
   global-difference-list ;liste af lister - forskels-liste fra hver agent
   price-check-list
+  consumer-mrs
+  merchant-mrs
 ]
 
 
@@ -359,6 +361,8 @@ to layout
 
 end
 
+
+
 to conversate-trade-failed
     ;defining plabels
   ;;; consumer talks
@@ -376,11 +380,47 @@ to conversate-trade-failed
 
       ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
-    let shared-talk1 patch pxcor-shared 5 ;price
-    let shared-talk2 patch pxcor-shared -1 ;utility
+    ;clearing conversate success plabels
+    let shared-talk1 patch pxcor-shared 5
+    ask shared-talk1 [set plabel " " ]
+
+    let shared-talk3 patch 6 5 ;price
+    let shared-talk4 patch 7 4 ;utility
     ;@giver det mening at sætte information om supply/ demand her?
-    ask shared-talk1 [set plabel "No agent benefits in utility from a trade with prices between 0.1 and 20"]
+    ask shared-talk3 [set plabel "No agent benefits in utility from a"]
+    ask shared-talk4 [set plabel "trade with prices between 0.1 and 20"]
   ]
+
+    if price-setting = "equilibrium" [
+    ;clearing conversate success plabels
+    ask patch -8 7 [ set plabel " " ]
+    ask patch -6 6 [ set plabel " " ]
+    ask patch 10 7 [set plabel ""]
+    ask patch 12 6 [set plabel " " ]
+    ask patch 6 0  [set plabel ""]
+    ask patch 8 -1 [set plabel " "]
+
+    ask patch 10 0 [ set plabel "Utility does not increase for both agents, no trade is made" ]
+
+  ]
+
+   if price-setting = "random" [
+      ask patch -5 7 [set plabel ""] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge"
+      ask patch -5 6 [set plabel ""]
+      ask patch -5 5 [set plabel ""]
+
+
+      ask patch 14 7 [set plabel ""]
+      ask patch 14 6 [set plabel ""]
+      ask patch 14 5 [set plabel ""]
+
+
+      ask patch 8 0  [set plabel "" ]
+      ask patch 8 -1  [set plabel ""]
+
+    ask patch 10 0 [ set plabel "Utility does not increase for both agents, no trade is made" ]
+  ]
+
 
 end
 
@@ -398,7 +438,7 @@ to conversate-trade-success
 
   ;;; agreement talks
   let shared-talk1 patch pxcor-shared 5 ;price
-  let shared-talk2 patch pxcor-shared -1 ;utility
+  let shared-talk2 patch 0 4 ;utility
 
 
 ;;;;;;;; samtale-output;;;;;;;
@@ -407,9 +447,13 @@ to conversate-trade-success
 
     ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
+      ;def plabels
+      let shared-talk-mc1 patch pxcor-shared 5 ;price
+      let shared-talk-mc2 patch 0 4 ;utility
+
     ;@giver det mening at sætte information om supply/ demand her?
-    ask shared-talk1 [set plabel "this is the price"] ;something something [set plabel "this is the price at which the difference between supply and demand is lowest"]
-    ask shared-talk2 [set plabel "sup"]
+    ask shared-talk-mc1 [set plabel "This is the price at which the difference between supply and demand is the lowest:"]
+    ask shared-talk-mc2 [set plabel precision price 2]
 
 
     ;; something something refer to the plot on supply/ demand
@@ -417,21 +461,35 @@ to conversate-trade-success
 
 
   if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
-;    ask c-talk1 [set plabel "my ideal price is (price)"] ;we don't have a such thing as "ideal price"
 
-   ; ask patch pxcor-consumer 6 [set plabel consumer-optimal-price] ;temporary placeholder for patch
-    ;ask m-talk1 [set plabel "my ideal price is (price)"]
-    ;ask patch pxcor-merchant 5 [set plabel consumer-optimal-price] ;temporary placeholder for patch
-    ;[set plabel merchant-optimal-price]
-    ask shared-talk2  [set plabel "the optimal price given both of our holdings and preferences is"]
-    ask patch pxcor-shared -2 [set plabel price]
+    ask patch -8 7 [set plabel "my ideal price is:"]
+    ask patch -6 6 [set plabel precision consumer-optimal-price 2 ]
+
+  ;
+
+    ask patch 10 7 [set plabel "my ideal price is:"]
+    ask patch 12 6 [set plabel precision merchant-optimal-price 2 ]
+
+
+    ;
+    ask patch 6 0  [set plabel "We meet halfway. This will be the price:"]
+    ask patch 8 -1 [set plabel precision price 2]
     ]
 
 
  if price-setting = "random" [
-      ask c-talk1 [set plabel "to me, one piece of tableware is worth x (mrs) money"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge"
-      ask m-talk1 [set plabel "to me, one piece of tableware is worth x (mrs) money"]
-      ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
+      ask patch -5 7 [set plabel "The price for tableware at which"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge"
+      ask patch -5 6 [set plabel "i am indifferent about trading is:"]
+      ask patch -5 5 [set plabel precision consumer-mrs 2]
+
+
+      ask patch 14 7 [set plabel "The price for tableware at which"]
+      ask patch 14 6 [set plabel "i am indifferent about trading is:"]
+      ask patch 14 5 [set plabel precision merchant-mrs 2]
+
+
+      ask patch 8 0  [set plabel "we pick a price at random between our mrs" ]
+      ask patch 8 -1  [set plabel precision price 2]
 
       ;;; tilføj quantity
   ]
@@ -799,8 +857,8 @@ To set-random-price
   ;;;; we establish which trading rates each agent would like, and then pick a price at random in this interval
   ;;;; the underlying assumption is that over time, the prices will even out that both agents get a fair price
   ;;; furthermore, the price will play a role in how many items are traded
-
-
+  set consumer-mrs item 0 [ mrs ] of active-consumer
+  set merchant-mrs item 0 [mrs ] of active-merchant
   let minMRS min [ mrs ] of active-turtles ;defining lowest MRS
    let maxMRS max [ mrs ] of active-turtles ;and highest MRS
     set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
