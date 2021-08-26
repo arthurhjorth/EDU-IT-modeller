@@ -448,7 +448,7 @@ to conversate-trade-success
     ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
       ;def plabels
-      let shared-talk-mc1 patch pxcor-shared 5 ;price
+      let shared-talk-mc1 patch 14 5 ;price
       let shared-talk-mc2 patch 0 4 ;utility
 
     ;@giver det mening at sætte information om supply/ demand her?
@@ -516,7 +516,6 @@ to conversate-trade-success
   ]
 
 end
-
 
 
 ;MRS beregninger med basis i bogen
@@ -2203,7 +2202,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+0
 
 MONITOR
 195
@@ -2515,7 +2514,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.5
 0.1
 1
 NIL
