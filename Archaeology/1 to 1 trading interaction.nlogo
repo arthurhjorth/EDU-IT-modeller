@@ -417,13 +417,13 @@ to conversate-trade-success
 
 
   if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
-    ask c-talk1 [set plabel "my ideal price is (price)"]
+;    ask c-talk1 [set plabel "my ideal price is (price)"] ;we don't have a such thing as "ideal price"
 
    ; ask patch pxcor-consumer 6 [set plabel consumer-optimal-price] ;temporary placeholder for patch
-    ask m-talk1 [set plabel "my ideal price is (price)"]
+    ;ask m-talk1 [set plabel "my ideal price is (price)"]
     ;ask patch pxcor-merchant 5 [set plabel consumer-optimal-price] ;temporary placeholder for patch
     ;[set plabel merchant-optimal-price]
-    ask shared-talk2  [set plabel "we meet halfway. This will be the price"]
+    ask shared-talk2  [set plabel "the optimal price given both of our holdings and preferences is"]
     ask patch pxcor-shared -2 [set plabel price]
     ]
 
@@ -2008,7 +2008,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+1
 
 MONITOR
 195
