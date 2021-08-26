@@ -417,11 +417,11 @@ to conversate-trade-success
 
 
   if price-setting = "equilibrium" [ ;@tilføj noget med "my ideal propertions are such and such, so my ideal price is x"
-    ask c-talk1 [set plabel "my ideal price is"]
+    ask c-talk1 [set plabel "my ideal price is (price)"]
 
-    ask patch pxcor-consumer 6 [set plabel consumer-optimal-price] ;temporary placeholder for patch
-    ask m-talk1 [set plabel "my ideal price is"]
-    ask patch pxcor-merchant 5 [set plabel consumer-optimal-price] ;temporary placeholder for patch
+   ; ask patch pxcor-consumer 6 [set plabel consumer-optimal-price] ;temporary placeholder for patch
+    ask m-talk1 [set plabel "my ideal price is (price)"]
+    ;ask patch pxcor-merchant 5 [set plabel consumer-optimal-price] ;temporary placeholder for patch
     ;[set plabel merchant-optimal-price]
     ask shared-talk2  [set plabel "we meet halfway. This will be the price"]
     ask patch pxcor-shared -2 [set plabel price]
@@ -1506,16 +1506,18 @@ to print-trade-details
 
       ask active-consumer [
       let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
-        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ([money] of partner) + price ^ [beta] of partner ) ) 2
+        print one-trade-utility-consumer
+        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( ([money] of partner) + price ) ^ [beta] of partner ) ) 2 ;der må være en fejl her
+        print one-trade-utility-merchant
 
       let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
       let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
 
-        print "Utility given potential trade of 1x of tableware calculated."
+        print "Utility given potential trade of 1x of tableware was calculated."
 
 
       output-print (word "Unsuccesful. No trade was made." )
-      output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.") ;@måske indstil givet handel med 1x
+      output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.")
       output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
     ]
 
@@ -2001,7 +2003,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-1
+2
 
 MONITOR
 195
@@ -2313,7 +2315,7 @@ running-speed
 running-speed
 0
 1
-0.4
+0.0
 0.1
 1
 NIL
