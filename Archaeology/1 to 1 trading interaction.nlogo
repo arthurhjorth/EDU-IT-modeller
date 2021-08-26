@@ -864,8 +864,10 @@ set-optimal-price
     ;possible to make an ifelse about deal here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
     ifelse deal > 0 [
+      if price-setting = "compare-all-price-settings" [stop]
       output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
       stop ] ;if the bid is accepted, exit this function
+
 
     [
     ;;;; else, start round 2:
@@ -875,6 +877,7 @@ set-optimal-price
       decide-quantity
       check-utility-and-trade
       ifelse deal > 0 [
+        if price-setting = "compare-all-price-settings" [stop]
         output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
        stop]
 
@@ -887,6 +890,7 @@ set-optimal-price
         decide-quantity
         check-utility-and-trade
         ifelse deal > 0 [
+          if price-setting = "compare-all-price-settings" [stop]
          output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
         stop]
 
@@ -897,6 +901,7 @@ set-optimal-price
           decide-quantity
           check-utility-and-trade
           ifelse deal > 0 [
+            if price-setting = "compare-all-price-settings" [stop]
               output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
             stop]
 
@@ -906,6 +911,7 @@ set-optimal-price
             decide-quantity
             check-utility-and-trade
             ifelse deal > 0 [
+              if price-setting = "compare-all-price-settings" [stop]
               output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
               stop]
 
@@ -914,7 +920,9 @@ set-optimal-price
               set price ( [mrs] of partner + mrs-price-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
-              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+              ifelse deal > 0 [
+                if price-setting = "compare-all-price-settings" [stop]
+                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
              stop ]
 
 
@@ -926,9 +934,11 @@ set-optimal-price
                 decide-quantity
                 check-utility-and-trade
                 if deal > 0
-                [ output-print "Agents met halfway between their initial prices." ]
+                [if price-setting = "compare-all-price-settings" [stop]
+                  output-print "Agents met halfway between their initial prices." ]
                 if deal = 0
-                [ output-print "Agents did not agree on a trading price." ]
+                [ if price-setting = "compare-all-price-settings" [stop]
+                  output-print "Agents did not agree on a trading price." ]
 
                 ;the end
 
@@ -1485,6 +1495,9 @@ end
 
 to print-trade-details
 
+  if price-setting = "compare-all-price-settings" [
+    stop]
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;; output-prints ;;;;;;;;;;;;
   ;;; utility, success and quantity ;;;
@@ -1506,14 +1519,11 @@ to print-trade-details
 
       ask active-consumer [
       let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
-        print one-trade-utility-consumer
         let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( ([money] of partner) + price ) ^ [beta] of partner ) ) 2 ;der må være en fejl her
-        print one-trade-utility-merchant
 
       let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
       let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
 
-        print "Utility given potential trade of 1x of tableware was calculated."
 
 
       output-print (word "Unsuccesful. No trade was made." )
@@ -1537,7 +1547,6 @@ to print-trade-details
     ]
   ]
 
-  ;print "end"
 
 End
 
@@ -2002,7 +2011,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-2
+4
 
 MONITOR
 195
