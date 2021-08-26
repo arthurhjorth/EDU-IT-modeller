@@ -1520,10 +1520,10 @@ to print-trade-details
       output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.")
       output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
     ]
+    ]
 
-      ;herfra printer ikke. Kun når deal = 0.
 
-
+    ;herfra printer ikke. Kun når deal = 0.
     if deal = 1 [
       output-print (word "Successful trade! " deal "x of tableware was traded.")
       output-print (word "Consumer utility improved by " precision consumer-utility-difference 2 ". ")
@@ -1536,9 +1536,8 @@ to print-trade-details
       output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
     ]
   ]
-  ]
 
-  print "end"
+  ;print "end"
 
 End
 
@@ -2315,7 +2314,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.4
 0.1
 1
 NIL
