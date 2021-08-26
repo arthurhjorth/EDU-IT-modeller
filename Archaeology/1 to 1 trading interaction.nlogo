@@ -767,22 +767,19 @@ to set-equilibrium-price
 
   ]
 
-
-  ;alpha * tableware /
-  ;beta * money
-
-
    ;;;;;;;;;;;;;;;;;;;
   ;; output-prints ;;
   ;;;;;;;;;;;;;;;;;;;
 
   ask active-consumer [
-  set consumer-optimal-price ( alpha * tableware ) / ( beta * money )
+  set consumer-optimal-price ( alpha * tableware ) / ( beta * money ) ;disse passer ikke
   ]
 
   ask active-merchant [
   set merchant-optimal-price ( alpha * tableware / beta  * money )
   ]
+
+  if price-setting = "compare-all-price-settings" [stop]
 
  output-print (word "Consumer price (here)." )
    ; output-print (word "Consumer price " precision consumer-optimal-price 2 ". " )
@@ -814,7 +811,7 @@ To set-random-price
   ;; output-prints ;;
   ;;;;;;;;;;;;;;;;;;;
 
-
+  if price-setting = "compare-all-price-settings" [stop]
   output-print (word "Lowest MRS " precision minMRS 2 ". " )
   output-print (word "Highest MRS " precision maxMRS 2 ". " ) ;is there a smarter way to change the line than putting a new command?
   output-print (word "Random price in between this round " precision price 2 ". " )
