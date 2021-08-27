@@ -554,12 +554,13 @@ end
 
 to set-partner
   ask consumers [
-    set partner one-of merchants with [ trading-style = [ trading-style ] of self ] ] ; partner skal have samme trading-style som mig selv
+    let my-style trading-style
+    let me self
+    set partner one-of merchants with [ trading-style = my-style]
+    ;set partner one-of other merchants with [ trading-style = [ trading-style ] of self ]  ; partner skal have samme trading-style som mig selv
 
-
-  ask consumers [
    ask partner [
-      set partner myself
+      set partner me
     ]
   ]
 end
@@ -635,8 +636,8 @@ to trade ;this is now THE function. No more trade2!
     check-utility-and-trade
 
 
-   ; activate-negotiation-turtles
-   ; set-negotiation-price
+    activate-negotiation-turtles
+    set-negotiation-price
 
    ]
 
@@ -879,6 +880,7 @@ End
 to set-bidders
   set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
   set second-bidder [partner] of initial-bidder
+
 end
 
 
@@ -904,7 +906,8 @@ to set-negotiation-price ; simple version for getting rid of error
 
 
   set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
-  set second-bidder [partner] of initial-bidder
+
+  set second-bidder [partner] of initial-bidder ;nogengange problem med at definere second-bidder. Hvorfor?
 
 
 
@@ -915,7 +918,8 @@ to set-negotiation-price ; simple version for getting rid of error
     decide-quantity
     ;possible to make an ifelse about deal here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
-    ifelse deal > 0 [
+
+        ifelse deal > 0 [
       if price-setting = "compare-all-price-settings" [stop]
       output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
       stop ] ;if the bid is accepted, exit this function
@@ -925,13 +929,16 @@ to set-negotiation-price ; simple version for getting rid of error
     ;;;; else, start round 2:
       ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
 
-      set price [mrs] of partner
+      set price [mrs] of second-bidder
       decide-quantity
       check-utility-and-trade
-      ifelse deal > 0 [
-        if price-setting = "compare-all-price-settings" [stop]
-        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
-       stop]
+    ]
+  ]
+;
+;      ifelse deal > 0 [
+;        if price-setting = "compare-all-price-settings" [stop]
+;        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+;       stop]
 
 
 ;      [
@@ -980,24 +987,24 @@ to set-negotiation-price ; simple version for getting rid of error
 ;
 ;
 
-              [
-                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
-                ;set price mrs + mrs-price-difference * 0.5
-        set price mrs * 0.5
-                decide-quantity
-                check-utility-and-trade
-                if deal > 0
-                [if price-setting = "compare-all-price-settings" [stop]
-                  output-print "Agents met halfway between their initial prices." ]
-                if deal = 0
-                [ if price-setting = "compare-all-price-settings" [stop]
-                  output-print "Agents did not agree on a trading price." ]
+;              [
+;                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+;                ;set price mrs + mrs-price-difference * 0.5
+;        set price mrs * 0.5
+;                decide-quantity
+;                check-utility-and-trade
+;                if deal > 0
+;                [if price-setting = "compare-all-price-settings" [stop]
+;                  output-print "Agents met halfway between their initial prices." ]
+;                if deal = 0
+;                [ if price-setting = "compare-all-price-settings" [stop]
+;                  output-print "Agents did not agree on a trading price." ]
 
                 ;the end
 
-              ]
-            ]
-          ]
+              ;]
+            ;]
+          ;]
 ;        ]
  ;     ]
   ;  ]
@@ -1152,7 +1159,7 @@ to test-negotiation-price-loop ;for now with MRS
  ; ]
 
   ;;;set bidders;;;
-    set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
   set second-bidder [partner] of initial-bidder
 
 
@@ -1188,6 +1195,55 @@ to test-negotiation-price-loop ;for now with MRS
 
 end
 
+to loop-di-doop
+
+
+
+  set-bidders
+
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+    let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+  let negotiating-turtles (turtle-set initial-bidder second-bidder)
+
+let deal? false
+
+  while not deal? [
+  foreach potential-prices [
+  p ->
+
+    set price p
+    ask initial-bidder [
+      decide-quantity
+      check-utility-and-trade
+
+    ]
+    if deal > 0 [set deal? true]
+
+]
+]
+
+;   [
+;              ; round 6, agent2 does the same
+;              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+;              decide-quantity
+;              check-utility-and-trade
+;              ifelse deal > 0 [
+;                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+;             stop ]
+
+end
 
 
 
@@ -2009,8 +2065,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -2202,7 +2258,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-0
+4
 
 MONITOR
 195
@@ -2310,7 +2366,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-0
+1
 1
 -1000
 
@@ -2321,7 +2377,7 @@ SWITCH
 576
 consumers-earn-money?
 consumers-earn-money?
-0
+1
 1
 -1000
 
@@ -2332,7 +2388,7 @@ SWITCH
 612
 tableware-production?
 tableware-production?
-0
+1
 1
 -1000
 
@@ -2343,7 +2399,7 @@ SWITCH
 651
 tableware-breakage?
 tableware-breakage?
-0
+1
 1
 -1000
 
@@ -2514,7 +2570,7 @@ running-speed
 running-speed
 0
 1
-0.5
+0.0
 0.1
 1
 NIL
