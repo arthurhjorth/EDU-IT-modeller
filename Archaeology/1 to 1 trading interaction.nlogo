@@ -14,7 +14,7 @@ globals [
   active-turtles
   merchant-optimal-price
   consumer-optimal-price
-  unsuccesful-price
+  unsuccessful-price
   recorded-time
   price-offered-by
   ;temporary for bug fixing
@@ -28,6 +28,8 @@ globals [
   price-check-list
   consumer-mrs
   merchant-mrs
+
+  success-this-tick?
 ]
 
 
@@ -75,6 +77,7 @@ to setup
   set-initial-utility
   create-price-lists
 
+  initiate-price-plot
 
 end
 
@@ -88,9 +91,11 @@ to go
   update-mrs
   ;conversate ;;; now in check-utility-and-trade, as we want different text dependant on success or failed trade
 
-
-
+  update-price-plot
   tick
+
+
+
 
   if ticks = stop-after-x-tick [
     stop
@@ -100,6 +105,89 @@ wait running-speed ;just to make the output better readable @@lisa: alternativ: 
 end
 
 
+to initiate-price-plot
+  set-current-plot "Price plot"
+  set-plot-y-range 0 3
+
+  ;create the plot pens to use:
+  ifelse price-setting = "compare-all-price-settings" [
+
+    ;@plot latest or mean? (for quantity)
+    create-temporary-plot-pen "Market-clearing success"
+    set-plot-pen-color brown
+    create-temporary-plot-pen "Equilibrium success"
+    set-plot-pen-color black
+    create-temporary-plot-pen "Random success"
+    set-plot-pen-color violet
+    create-temporary-plot-pen "Negotiation success"
+    set-plot-pen-color pink
+
+  ]
+  [
+    create-temporary-plot-pen "Price trade successful"
+    set-plot-pen-color green
+    set-plot-pen-mode 2
+
+    ;@FIGURE OUT HOW TO BEST VISUALISE - LINES, DOTS, ETC !!! (change dot size???)
+
+    create-temporary-plot-pen "Price trade unsuccessful"
+    set-plot-pen-color red
+    set-plot-pen-mode 2 ;point mode
+
+    create-temporary-plot-pen "Mean price successful trades" ;kvantitet?
+    set-plot-pen-color blue
+  ]
+end
+
+to update-price-plot
+  ;@ADD: make a dot every time, either red or green (change size?) (instead of plot lines?)
+
+  set-current-plot "Price plot"
+
+
+  ifelse price-setting = "compare-all-price-settings" [
+    ;
+  ]
+  [ ;if not compare all:
+    if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
+
+
+    ifelse success-this-tick? [
+      set-current-plot-pen "Price trade successful"
+      plot-pen-down
+      plotxy ticks (first price-list)
+      plot-pen-up
+    ]
+    [
+      set-current-plot-pen "Price trade unsuccessful"
+      plotxy ticks unsuccessful-price
+    ]
+
+
+
+    ;plot mean:
+    set-current-plot-pen "Mean price successful trades"
+    if mean-price != "no price list" [plotxy ticks mean-price]
+
+  ]
+
+
+
+
+  ;2 i 1 approach:
+  ;    set-current-plot-pen "Price trade"
+;    ifelse success-this-tick? [
+;      set-plot-pen-color green
+;      plotxy ticks (first price-list) ;plot latest successful price
+;    ]
+;    [
+;      set-plot-pen-color red
+;      plotxy ticks unsuccessful-price
+;    ]
+
+
+
+end
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -586,7 +674,7 @@ to trade ;this is now THE function. No more trade2!
     set-market-clearing-price                ; step 2
     decide-quantity                          ; step 3
     check-utility-and-trade                  ; step 4
-    print-trade-details                      ;prints @commented out
+    print-trade-details                      ;prints @commented out ;@FIX THIS ERROR MESSAGE!!!
 
   ]
 
@@ -1219,7 +1307,7 @@ to loop-di-doop
 
 let deal? false
 
-  while not deal? [
+  while [not deal?] [
   foreach potential-prices [
   p ->
 
@@ -1727,13 +1815,19 @@ if deal > 0 [
 
 
   ;save the prices suggested in interactions that didn't end with a trade
-  ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccesful trade (x-coordinate = current tick and not x=1 -> x=2 osv)
+  ;@ i want this for a plot. It still needs to be laid out so that it isn't plotted at every tick, but only when it's changed, ie. a new unsuccessful trade (x-coordinate = current tick and not x=1 -> x=2 osv)
 
-  if deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
-    set unsuccesful-price price
+  ifelse deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
+    set unsuccessful-price price
     set recorded-time ( ticks )
     conversate-trade-failed
+
+    if price-setting != "compare-all-price-settings" [ set success-this-tick? false ]
+
   ;print "no deal made - tick recorded:" print recorded-time
+  ]
+  [ ;if the deal went through:
+    if price-setting != "compare-all-price-settings" [ set success-this-tick? true ]
   ]
 
 end
@@ -1773,7 +1867,7 @@ to print-trade-details
 
 
 
-      output-print (word "Unsuccesful. No trade was made." )
+      output-print (word "unsuccessful. No trade was made." )
       output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.")
       output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
     ]
@@ -2000,10 +2094,12 @@ end
 
 
 to-report mean-price
-  if length price-list > 0 [
+  ifelse length price-list > 0 [
 report ( ( sum price-list ) / ( length price-list ) )
   ]
-
+  [
+    report "no price list"
+  ]
 end
 
 
@@ -2117,7 +2213,7 @@ INPUTBOX
 452
 259
 tableware-consumers
-120.0
+50.0
 1
 0
 Number
@@ -2258,7 +2354,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+2
 
 MONITOR
 195
@@ -2496,11 +2592,11 @@ Most recent price of tableware
 1
 
 PLOT
-897
-440
-1283
-651
-price/tableware
+1288
+389
+1548
+509
+Price/tableware
 Ticks/ time
 price per item
 0.0
@@ -2570,7 +2666,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.4
 0.1
 1
 NIL
@@ -2803,6 +2899,23 @@ false
 PENS
 "pen-1" 1.0 0 -7500403 true "" "if item 0 price-offered-by = \"no deal\" [plot item 0 negotiation-price-list]"
 "pen-2" 1.0 0 -2674135 true "" ";if price-setting = \"negotiation\" [\n;plot item 0 price-list]"
+
+PLOT
+914
+328
+1459
+614
+Price plot
+ticks
+price per item
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
 
 @#$#@#$#@
 ## WHAT IS IT?
