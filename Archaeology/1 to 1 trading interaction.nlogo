@@ -84,6 +84,8 @@ end
 
 to go
 
+  every running-speed [ ;go runs every running-speed ;)
+
   trade
   produce-tableware
   break-tableware
@@ -100,8 +102,8 @@ to go
   if ticks = stop-after-x-tick [
     stop
   ]
-wait running-speed ;just to make the output better readable @@lisa: alternativ: every
 
+  ] ;every
 end
 
 
@@ -2515,7 +2517,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+3
 
 MONITOR
 195
