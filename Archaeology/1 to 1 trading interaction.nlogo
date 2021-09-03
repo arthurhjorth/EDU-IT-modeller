@@ -114,13 +114,13 @@ to initiate-price-plot
 
     ;@plot latest or mean? (for quantity)
     create-temporary-plot-pen "Market-clearing success"
-    set-plot-pen-color brown
+    set-plot-pen-color red
     create-temporary-plot-pen "Equilibrium success"
-    set-plot-pen-color black
+    set-plot-pen-color yellow
     create-temporary-plot-pen "Random success"
-    set-plot-pen-color violet
+    set-plot-pen-color green
     create-temporary-plot-pen "Negotiation success"
-    set-plot-pen-color pink
+    set-plot-pen-color violet
 
   ]
   [
@@ -146,11 +146,34 @@ to update-price-plot
 
 
   ifelse price-setting = "compare-all-price-settings" [
-    ;
+
+    if length market-clearing-price-list > 0 [
+      set-current-plot-pen "Market-clearing success"
+      plotxy ticks (mean market-clearing-price-list)
+    ]
+
+    if length equilibrium-price-list > 0 [
+      set-current-plot-pen "Equilibrium success"
+      plotxy ticks (mean equilibrium-price-list)
+    ]
+
+
+    if length random-price-list > 0 [
+      set-current-plot-pen "Random success"
+      plotxy ticks (mean random-price-list)
+    ]
+
+    if length negotiation-price-list > 0 [
+      set-current-plot-pen "Negotiation success"
+      plotxy ticks (mean negotiation-price-list)
+    ]
+
+
   ]
   [ ;if not compare all:
-    if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
-
+    if length price-list > 0 [ ;if it even exists
+      if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
+    ]
 
     ifelse success-this-tick? [
       set-current-plot-pen "Price trade successful"
@@ -2272,7 +2295,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.1
+0.6
 0.1
 1
 NIL
@@ -2354,7 +2377,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-2
+3
 
 MONITOR
 195
@@ -2637,7 +2660,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
@@ -2882,29 +2905,10 @@ total-demand
 11
 
 PLOT
-1289
-27
-1489
-177
-plot 1
-ticks/ time
-price per item
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"pen-1" 1.0 0 -7500403 true "" "if item 0 price-offered-by = \"no deal\" [plot item 0 negotiation-price-list]"
-"pen-2" 1.0 0 -2674135 true "" ";if price-setting = \"negotiation\" [\n;plot item 0 price-list]"
-
-PLOT
-914
-328
-1459
-614
+900
+236
+1515
+619
 Price plot
 ticks
 price per item
