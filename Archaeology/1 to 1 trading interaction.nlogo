@@ -115,12 +115,27 @@ to initiate-price-plot
     ;@plot latest or mean? (for quantity)
     create-temporary-plot-pen "Market-clearing success"
     set-plot-pen-color red
+    create-temporary-plot-pen "Market-clearing success2"
+    set-plot-pen-color red
+    set-plot-pen-mode 2
+
     create-temporary-plot-pen "Equilibrium success"
     set-plot-pen-color yellow
+    create-temporary-plot-pen "Equilibrium success2"
+    set-plot-pen-color yellow
+    set-plot-pen-mode 2
+
     create-temporary-plot-pen "Random success"
     set-plot-pen-color green
+    create-temporary-plot-pen "Random success2"
+    set-plot-pen-color green
+    set-plot-pen-mode 2
+
     create-temporary-plot-pen "Negotiation success"
     set-plot-pen-color violet
+    create-temporary-plot-pen "Negotiation success2"
+    set-plot-pen-color violet
+    set-plot-pen-mode 2
 
   ]
   [
@@ -148,24 +163,40 @@ to update-price-plot
   ifelse price-setting = "compare-all-price-settings" [
 
     if length market-clearing-price-list > 0 [
-      set-current-plot-pen "Market-clearing success"
+      set-current-plot-pen "Market-clearing success" ;;@@;;@@ Change names for mean if we choose for mean to be the best representation.
+      ;set-plot-pen-mode 1
       plotxy ticks (mean market-clearing-price-list)
+
+      set-current-plot-pen "Market-clearing success2"
+      ;set-plot-pen-mode 2
+      plotxy ticks ( first market-clearing-price-list )
     ]
 
     if length equilibrium-price-list > 0 [
       set-current-plot-pen "Equilibrium success"
+      ;set-plot-pen-mode 1
       plotxy ticks (mean equilibrium-price-list)
+
+      set-current-plot-pen "Equilibrium success2"
+      ;set-plot-pen-mode 2
+      plotxy ticks ( first equilibrium-price-list )
     ]
 
 
     if length random-price-list > 0 [
       set-current-plot-pen "Random success"
       plotxy ticks (mean random-price-list)
+
+      set-current-plot-pen "Random success2"
+      plotxy ticks (first random-price-list)
     ]
 
     if length negotiation-price-list > 0 [
       set-current-plot-pen "Negotiation success"
       plotxy ticks (mean negotiation-price-list)
+
+      set-current-plot-pen "Negotiation success2"
+      plotxy ticks (first negotiation-price-list)
     ]
 
 
@@ -175,18 +206,130 @@ to update-price-plot
       if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
     ]
 
+
+    if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
+
+
     ifelse success-this-tick? [
       set-current-plot-pen "Price trade successful"
-      plot-pen-down
-      plotxy ticks (first price-list)
-      plot-pen-up
+      ;plot-pen-down
+      let dot1 first price-list
+      plotxy ticks dot1                 ;;;;All other plotxy in successful trades are for making the points bigger
+
+      plotxy ticks ( dot1 + 0.02 )
+      plotxy ticks ( dot1 - 0.02 )
+      plotxy ( ticks + 0.02 ) dot1
+      plotxy ( ticks - 0.02 ) dot1
+
+      plotxy ( ticks + 0.01 ) ( dot1 + 0.01 )
+      plotxy ( ticks - 0.01 ) ( dot1 - 0.01 )
+      plotxy ( ticks - 0.01 ) ( dot1 + 0.01 )
+      plotxy ( ticks + 0.01 ) ( dot1 - 0.01 )
+
+      plotxy ( ticks + 0.01 ) ( dot1 - 0.02 )
+      plotxy ( ticks - 0.01 ) ( dot1 + 0.02 )
+      plotxy ( ticks + 0.02 ) ( dot1 - 0.01 )
+      plotxy ( ticks - 0.02 ) ( dot1 + 0.01 )
+      plotxy ( ticks - 0.01 ) ( dot1 - 0.02 )
+      plotxy ( ticks + 0.01 ) ( dot1 + 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot1 - 0.01 )
+      plotxy ( ticks + 0.02 ) ( dot1 + 0.01 )
+
+
+      plotxy ( ticks + 0.02 ) ( dot1 + 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot1 - 0.02 )
+      plotxy ( ticks + 0.02 ) ( dot1 - 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot1 + 0.02 )
+
+
+      plotxy ( ticks + 0.02 ) ( dot1 - 0.03 )
+      plotxy ( ticks - 0.02 ) ( dot1 + 0.03 )
+      plotxy ( ticks + 0.03 ) ( dot1 - 0.02 )
+      plotxy ( ticks - 0.03 ) ( dot1 + 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot1 - 0.03 )
+      plotxy ( ticks + 0.02 ) ( dot1 + 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot1 - 0.02 )
+      plotxy ( ticks + 0.03 ) ( dot1 + 0.02 )
+
+      plotxy ( ticks + 0.03 ) ( dot1 + 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot1 - 0.03 )
+      plotxy ( ticks + 0.03 ) ( dot1 - 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot1 + 0.03 )
+
+
+      plotxy ( ticks + 0.03 ) ( dot1 - 0.04 )
+      plotxy ( ticks - 0.03 ) ( dot1 + 0.04 )
+      plotxy ( ticks + 0.04 ) ( dot1 - 0.03 )
+      plotxy ( ticks - 0.04 ) ( dot1 + 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot1 - 0.04 )
+      plotxy ( ticks + 0.03 ) ( dot1 + 0.04 )
+      plotxy ( ticks - 0.04 ) ( dot1 - 0.03 )
+      plotxy ( ticks + 0.04 ) ( dot1 + 0.03 )
+
+      plotxy ( ticks + 0.04 ) ( dot1 + 0.04 )
+      plotxy ( ticks - 0.04 ) ( dot1 - 0.04 )
+      plotxy ( ticks + 0.04 ) ( dot1 - 0.04 )
+      plotxy ( ticks - 0.04 ) ( dot1 + 0.04 )
     ]
     [
       set-current-plot-pen "Price trade unsuccessful"
-      plotxy ticks unsuccessful-price
+      let dot2 unsuccessful-price
+      plotxy ticks dot2
+      plotxy ticks ( dot2 + 0.02 )
+      plotxy ticks ( dot2 - 0.02 )
+      plotxy ( ticks + 0.02 ) dot2
+      plotxy ( ticks - 0.02 ) dot2
+
+      plotxy ( ticks + 0.01 ) ( dot2 + 0.01 )
+      plotxy ( ticks - 0.01 ) ( dot2 - 0.01 )
+      plotxy ( ticks - 0.01 ) ( dot2 + 0.01 )
+      plotxy ( ticks + 0.01 ) ( dot2 - 0.01 )
+
+      plotxy ( ticks + 0.01 ) ( dot2 - 0.02 )
+      plotxy ( ticks - 0.01 ) ( dot2 + 0.02 )
+      plotxy ( ticks + 0.02 ) ( dot2 - 0.01 )
+      plotxy ( ticks - 0.02 ) ( dot2 + 0.01 )
+      plotxy ( ticks - 0.01 ) ( dot2 - 0.02 )
+      plotxy ( ticks + 0.01 ) ( dot2 + 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot2 - 0.01 )
+      plotxy ( ticks + 0.02 ) ( dot2 + 0.01 )
+
+
+      plotxy ( ticks + 0.02 ) ( dot2 + 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot2 - 0.02 )
+      plotxy ( ticks + 0.02 ) ( dot2 - 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot2 + 0.02 )
+
+
+      plotxy ( ticks + 0.02 ) ( dot2 - 0.03 )
+      plotxy ( ticks - 0.02 ) ( dot2 + 0.03 )
+      plotxy ( ticks + 0.03 ) ( dot2 - 0.02 )
+      plotxy ( ticks - 0.03 ) ( dot2 + 0.02 )
+      plotxy ( ticks - 0.02 ) ( dot2 - 0.03 )
+      plotxy ( ticks + 0.02 ) ( dot2 + 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot2 - 0.02 )
+      plotxy ( ticks + 0.03 ) ( dot2 + 0.02 )
+
+      plotxy ( ticks + 0.03 ) ( dot2 + 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot2 - 0.03 )
+      plotxy ( ticks + 0.03 ) ( dot2 - 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot2 + 0.03 )
+
+
+      plotxy ( ticks + 0.03 ) ( dot2 - 0.04 )
+      plotxy ( ticks - 0.03 ) ( dot2 + 0.04 )
+      plotxy ( ticks + 0.04 ) ( dot2 - 0.03 )
+      plotxy ( ticks - 0.04 ) ( dot2 + 0.03 )
+      plotxy ( ticks - 0.03 ) ( dot2 - 0.04 )
+      plotxy ( ticks + 0.03 ) ( dot2 + 0.04 )
+      plotxy ( ticks - 0.04 ) ( dot2 - 0.03 )
+      plotxy ( ticks + 0.04 ) ( dot2 + 0.03 )
+
+      plotxy ( ticks + 0.04 ) ( dot2 + 0.04 )
+      plotxy ( ticks - 0.04 ) ( dot2 - 0.04 )
+      plotxy ( ticks + 0.04 ) ( dot2 - 0.04 )
+      plotxy ( ticks - 0.04 ) ( dot2 + 0.04 )
     ]
-
-
 
     ;plot mean:
     set-current-plot-pen "Mean price successful trades"
@@ -2480,7 +2623,7 @@ SWITCH
 519
 dynamics?
 dynamics?
-1
+0
 1
 -1000
 
@@ -2684,7 +2827,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.4
 0.1
 1
 NIL
