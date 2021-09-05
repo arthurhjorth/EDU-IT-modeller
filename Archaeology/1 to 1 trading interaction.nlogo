@@ -172,7 +172,7 @@ to update-price-plot
 
       set-current-plot-pen "Market-clearing success2"
       ;set-plot-pen-mode 2
-      plotxy ticks ( first market-clearing-price-list )
+      plot-big-dot ticks ( first market-clearing-price-list )
     ]
 
     if length equilibrium-price-list > 0 [
@@ -182,7 +182,7 @@ to update-price-plot
 
       set-current-plot-pen "Equilibrium success2"
       ;set-plot-pen-mode 2
-      plotxy ticks ( first equilibrium-price-list )
+      plot-big-dot ticks ( first equilibrium-price-list )
     ]
 
 
@@ -191,7 +191,7 @@ to update-price-plot
       plotxy ticks (mean random-price-list)
 
       set-current-plot-pen "Random success2"
-      plotxy ticks (first random-price-list)
+      plot-big-dot ticks (first random-price-list)
     ]
 
     if length negotiation-price-list > 0 [
@@ -199,7 +199,7 @@ to update-price-plot
       plotxy ticks (mean negotiation-price-list)
 
       set-current-plot-pen "Negotiation success2"
-      plotxy ticks (first negotiation-price-list)
+      plot-big-dot ticks (first negotiation-price-list)
     ]
 
 
@@ -216,122 +216,11 @@ to update-price-plot
     ifelse success-this-tick? [
       set-current-plot-pen "Price trade successful"
       ;plot-pen-down
-      let dot1 first price-list
-      plotxy ticks dot1                 ;;;;All other plotxy in successful trades are for making the points bigger
-
-      plotxy ticks ( dot1 + 0.02 )
-      plotxy ticks ( dot1 - 0.02 )
-      plotxy ( ticks + 0.02 ) dot1
-      plotxy ( ticks - 0.02 ) dot1
-
-      plotxy ( ticks + 0.01 ) ( dot1 + 0.01 )
-      plotxy ( ticks - 0.01 ) ( dot1 - 0.01 )
-      plotxy ( ticks - 0.01 ) ( dot1 + 0.01 )
-      plotxy ( ticks + 0.01 ) ( dot1 - 0.01 )
-
-      plotxy ( ticks + 0.01 ) ( dot1 - 0.02 )
-      plotxy ( ticks - 0.01 ) ( dot1 + 0.02 )
-      plotxy ( ticks + 0.02 ) ( dot1 - 0.01 )
-      plotxy ( ticks - 0.02 ) ( dot1 + 0.01 )
-      plotxy ( ticks - 0.01 ) ( dot1 - 0.02 )
-      plotxy ( ticks + 0.01 ) ( dot1 + 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot1 - 0.01 )
-      plotxy ( ticks + 0.02 ) ( dot1 + 0.01 )
-
-
-      plotxy ( ticks + 0.02 ) ( dot1 + 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot1 - 0.02 )
-      plotxy ( ticks + 0.02 ) ( dot1 - 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot1 + 0.02 )
-
-
-      plotxy ( ticks + 0.02 ) ( dot1 - 0.03 )
-      plotxy ( ticks - 0.02 ) ( dot1 + 0.03 )
-      plotxy ( ticks + 0.03 ) ( dot1 - 0.02 )
-      plotxy ( ticks - 0.03 ) ( dot1 + 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot1 - 0.03 )
-      plotxy ( ticks + 0.02 ) ( dot1 + 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot1 - 0.02 )
-      plotxy ( ticks + 0.03 ) ( dot1 + 0.02 )
-
-      plotxy ( ticks + 0.03 ) ( dot1 + 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot1 - 0.03 )
-      plotxy ( ticks + 0.03 ) ( dot1 - 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot1 + 0.03 )
-
-
-      plotxy ( ticks + 0.03 ) ( dot1 - 0.04 )
-      plotxy ( ticks - 0.03 ) ( dot1 + 0.04 )
-      plotxy ( ticks + 0.04 ) ( dot1 - 0.03 )
-      plotxy ( ticks - 0.04 ) ( dot1 + 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot1 - 0.04 )
-      plotxy ( ticks + 0.03 ) ( dot1 + 0.04 )
-      plotxy ( ticks - 0.04 ) ( dot1 - 0.03 )
-      plotxy ( ticks + 0.04 ) ( dot1 + 0.03 )
-
-      plotxy ( ticks + 0.04 ) ( dot1 + 0.04 )
-      plotxy ( ticks - 0.04 ) ( dot1 - 0.04 )
-      plotxy ( ticks + 0.04 ) ( dot1 - 0.04 )
-      plotxy ( ticks - 0.04 ) ( dot1 + 0.04 )
+      plot-big-dot ticks (first price-list) ;x and y, using custom function for big dots
     ]
     [
       set-current-plot-pen "Price trade unsuccessful"
-      let dot2 unsuccessful-price
-      plotxy ticks dot2
-      plotxy ticks ( dot2 + 0.02 )
-      plotxy ticks ( dot2 - 0.02 )
-      plotxy ( ticks + 0.02 ) dot2
-      plotxy ( ticks - 0.02 ) dot2
-
-      plotxy ( ticks + 0.01 ) ( dot2 + 0.01 )
-      plotxy ( ticks - 0.01 ) ( dot2 - 0.01 )
-      plotxy ( ticks - 0.01 ) ( dot2 + 0.01 )
-      plotxy ( ticks + 0.01 ) ( dot2 - 0.01 )
-
-      plotxy ( ticks + 0.01 ) ( dot2 - 0.02 )
-      plotxy ( ticks - 0.01 ) ( dot2 + 0.02 )
-      plotxy ( ticks + 0.02 ) ( dot2 - 0.01 )
-      plotxy ( ticks - 0.02 ) ( dot2 + 0.01 )
-      plotxy ( ticks - 0.01 ) ( dot2 - 0.02 )
-      plotxy ( ticks + 0.01 ) ( dot2 + 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot2 - 0.01 )
-      plotxy ( ticks + 0.02 ) ( dot2 + 0.01 )
-
-
-      plotxy ( ticks + 0.02 ) ( dot2 + 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot2 - 0.02 )
-      plotxy ( ticks + 0.02 ) ( dot2 - 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot2 + 0.02 )
-
-
-      plotxy ( ticks + 0.02 ) ( dot2 - 0.03 )
-      plotxy ( ticks - 0.02 ) ( dot2 + 0.03 )
-      plotxy ( ticks + 0.03 ) ( dot2 - 0.02 )
-      plotxy ( ticks - 0.03 ) ( dot2 + 0.02 )
-      plotxy ( ticks - 0.02 ) ( dot2 - 0.03 )
-      plotxy ( ticks + 0.02 ) ( dot2 + 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot2 - 0.02 )
-      plotxy ( ticks + 0.03 ) ( dot2 + 0.02 )
-
-      plotxy ( ticks + 0.03 ) ( dot2 + 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot2 - 0.03 )
-      plotxy ( ticks + 0.03 ) ( dot2 - 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot2 + 0.03 )
-
-
-      plotxy ( ticks + 0.03 ) ( dot2 - 0.04 )
-      plotxy ( ticks - 0.03 ) ( dot2 + 0.04 )
-      plotxy ( ticks + 0.04 ) ( dot2 - 0.03 )
-      plotxy ( ticks - 0.04 ) ( dot2 + 0.03 )
-      plotxy ( ticks - 0.03 ) ( dot2 - 0.04 )
-      plotxy ( ticks + 0.03 ) ( dot2 + 0.04 )
-      plotxy ( ticks - 0.04 ) ( dot2 - 0.03 )
-      plotxy ( ticks + 0.04 ) ( dot2 + 0.03 )
-
-      plotxy ( ticks + 0.04 ) ( dot2 + 0.04 )
-      plotxy ( ticks - 0.04 ) ( dot2 - 0.04 )
-      plotxy ( ticks + 0.04 ) ( dot2 - 0.04 )
-      plotxy ( ticks - 0.04 ) ( dot2 + 0.04 )
+      plot-big-dot ticks unsuccessful-price ;x and y
     ]
 
     ;plot mean:
@@ -2335,6 +2224,25 @@ end
 to-report frequency [an-item a-list]
     report length (filter [ i -> i = an-item] a-list)
 end
+
+;;;;;;;;;;;;;;;;;
+;;PLOT FUNCTION;;
+;;;;;;;;;;;;;;;;;
+to plot-big-dot [x y] ;takes x and y coordinate as input (so used just like plotxy)
+  ;can tweak this to make it nicer looking
+  set-plot-pen-mode 2 ;point mode
+  foreach (range -0.05 0.05 0.01) [
+    n ->
+    plotxy (x + n) (y + n)
+    plotxy (x + n) (y - n)
+    plotxy (x - n) (y + n)
+    plotxy (x - n) (y - n)
+    plotxy (y + n) (x + n)
+    plotxy (y + n) (x - n)
+    plotxy (y - n) (x + n)
+    plotxy (y - n) (x - n)
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 460
@@ -3034,7 +2942,7 @@ TEXTBOX
 PLOT
 897
 275
-1308
+1284
 446
 Demand and Supply Plot
 Price Temporary
@@ -3071,10 +2979,10 @@ total-demand
 11
 
 PLOT
-900
-264
-1515
-619
+895
+449
+1285
+633
 Price plot
 ticks
 price per item
