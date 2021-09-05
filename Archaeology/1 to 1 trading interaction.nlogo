@@ -156,6 +156,7 @@ to initiate-price-plot
   ]
 end
 
+
 to update-price-plot
   ;@ADD: make a dot every time, either red or green (change size?) (instead of plot lines?)
 
@@ -842,7 +843,7 @@ to trade ;this is now THE function. No more trade2!
     set-market-clearing-price                ; step 2
     decide-quantity                          ; step 3
     check-utility-and-trade                  ; step 4
-    ;print-trade-details                      ;prints @commented out ;@FIX THIS ERROR MESSAGE!!!
+    print-trade-details                      ;prints
 
   ]
 
@@ -1899,6 +1900,26 @@ calculate-utility
 
 
 
+
+  ;;; step 4: making sure nobody trades more than they have
+
+
+;;;;; A merchant cannot trade more tableware than they currently hold
+  ;;;;; a consumer cannot spend more money than they have
+
+
+  ask active-turtles [
+    if tableware - deal < 0 [ ;if the deal supersedes the current holding of tableware
+      set deal tableware] ;set the quantity to current holding of tableware, which is max possible to trade
+
+
+  if ( price * deal ) > money [ ;if the price for the current trade excedes the current holding of money
+    set deal ( money / price )
+      set deal floor ( deal ) ;set the trade to fit the amount of money in holding
+  ]
+  ]
+
+
 end
 
 
@@ -2022,6 +2043,10 @@ to print-trade-details
       ;; defining utility given 1x trade
 
       ask active-consumer [
+;;;;        if money > 0 and tableware > 0  and [money] of partner > 0 and [tableware] of partner > 0 [ ;runs only when holdings are above 0 - otherwise illegal calculations
+        ;beware, the following calculations shouldn't happpen if the holdings of money and tableware is a negative
+
+
       let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
         let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( ([money] of partner) + price ) ^ [beta] of partner ) ) 2 ;der må være en fejl her
 
@@ -2050,6 +2075,7 @@ to print-trade-details
       output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
     ]
   ]
+
 
 
 End
@@ -2435,7 +2461,7 @@ alpha-merchants
 alpha-merchants
 0
 0.9
-0.3
+0.1
 0.1
 1
 NIL
@@ -2517,7 +2543,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-3
+0
 
 MONITOR
 195
@@ -2800,7 +2826,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
@@ -2829,7 +2855,7 @@ running-speed
 running-speed
 0
 1
-0.4
+0.0
 0.1
 1
 NIL
