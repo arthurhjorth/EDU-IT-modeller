@@ -160,7 +160,6 @@ to update-price-plot
 
   set-current-plot "Price plot"
 
-
   ifelse price-setting = "compare-all-price-settings" [
 
     if length market-clearing-price-list > 0 [
@@ -170,7 +169,7 @@ to update-price-plot
 
       set-current-plot-pen "Market-clearing success2"
       ;set-plot-pen-mode 2
-      plot-big-dot ticks ( first market-clearing-price-list )
+      plotxy ticks ( first market-clearing-price-list )
     ]
 
     if length equilibrium-price-list > 0 [
@@ -180,7 +179,7 @@ to update-price-plot
 
       set-current-plot-pen "Equilibrium success2"
       ;set-plot-pen-mode 2
-      plot-big-dot ticks ( first equilibrium-price-list )
+      plotxy ticks ( first equilibrium-price-list )
     ]
 
 
@@ -189,7 +188,7 @@ to update-price-plot
       plotxy ticks (mean random-price-list)
 
       set-current-plot-pen "Random success2"
-      plot-big-dot ticks (first random-price-list)
+      plotxy ticks (first random-price-list)
     ]
 
     if length negotiation-price-list > 0 [
@@ -197,7 +196,7 @@ to update-price-plot
       plotxy ticks (mean negotiation-price-list)
 
       set-current-plot-pen "Negotiation success2"
-      plot-big-dot ticks (first negotiation-price-list)
+      plotxy ticks (first negotiation-price-list)
     ]
 
 
@@ -214,11 +213,11 @@ to update-price-plot
     ifelse success-this-tick? [
       set-current-plot-pen "Price trade successful"
       ;plot-pen-down
-      plot-big-dot ticks (first price-list) ;x and y, using custom function for big dots
+      plotxy ticks (first price-list) ;x and y, using custom function for big dots
     ]
     [
       set-current-plot-pen "Price trade unsuccessful"
-      plot-big-dot ticks unsuccessful-price ;x and y
+      plotxy ticks unsuccessful-price ;x and y
     ]
 
     ;plot mean:
@@ -572,16 +571,12 @@ to conversate-trade-success
     ;defining plabels
   ;;; consumer talks
   let c-talk1 patch -2 7 ;price
-  ask patches with [pycor = 7 and pxcor < -1] [set pcolor 126.5] ; color background
   let c-talk2 patch -2 0 ;quantity
-  ask patches with [pycor = 0 and pxcor < -1] [set pcolor 126.5]
   let c-talk3 patch (pxcor-consumer + 2) -4 ;utility
 
   ;;; merchant talks
   let m-talk1 patch 16 5 ;price
-  ask patches with [pycor = 5 and pxcor > -5] [set pcolor 124] ;color background
   let m-talk2 patch 15 -1 ;quantity
-  ask patches with [pycor = -1 and pxcor > 0] [set pcolor 124]
   let m-talk3 patch (pxcor-merchant - 2) -4 ;utility
 
   ;;; agreement talks
@@ -644,6 +639,12 @@ to conversate-trade-success
 
 
   if price-setting = "negotiation" [
+    ;color background of speech lines:
+    ask patches with [pycor = 7 and pxcor < -1] [set pcolor 126.5] ; color background
+    ask patches with [pycor = 0 and pxcor < -1] [set pcolor 126.5]
+    ask patches with [pycor = 5 and pxcor > -5] [set pcolor 124] ;color background
+    ask patches with [pycor = -1 and pxcor > 0] [set pcolor 124]
+
       ask c-talk1 [set plabel "I bid my ideal price: *IDEAL PRICE*"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge" (er det mrs?)
       ask m-talk1 [set plabel "To me, 1 tableware is worth *X (MRS) MONEY*"]
       ask shared-talk1  [set plabel "We pick a price at random between our mrs: *PRICE???*" ]
@@ -3003,10 +3004,10 @@ true
 PENS
 
 PLOT
-895
-449
-1285
-633
+898
+445
+1288
+629
 Price plot
 ticks
 price per item
