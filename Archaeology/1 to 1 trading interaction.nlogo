@@ -489,7 +489,7 @@ to layout
 
 
     ; putting a visual tag to show the condition
-    ask patch 1 -16 [set plabel price-setting set pcolor blue]
+    ask patch 1 -15 [set plabel price-setting set pcolor blue]
     ask patches with [pycor < -14] [set pcolor blue - 2 ]
 
 
@@ -571,18 +571,22 @@ end
 to conversate-trade-success
     ;defining plabels
   ;;; consumer talks
-  let c-talk1 patch pxcor-consumer 7 ;price
-  let c-talk2 patch pxcor-consumer 1 ;quantity
-  let c-talk3 patch pxcor-consumer -5 ;utility
+  let c-talk1 patch -2 7 ;price
+  ask patches with [pycor = 7 and pxcor < -1] [set pcolor 126.5] ; color background
+  let c-talk2 patch -2 0 ;quantity
+  ask patches with [pycor = 0 and pxcor < -1] [set pcolor 126.5]
+  let c-talk3 patch (pxcor-consumer + 2) -4 ;utility
 
   ;;; merchant talks
-  let m-talk1 patch pxcor-merchant 6 ;price
-  let m-talk2 patch pxcor-merchant 0 ;quantity
-  let m-talk3 patch pxcor-merchant -5 ;utility
+  let m-talk1 patch 16 5 ;price
+  ask patches with [pycor = 5 and pxcor > -5] [set pcolor 124] ;color background
+  let m-talk2 patch 15 -1 ;quantity
+  ask patches with [pycor = -1 and pxcor > 0] [set pcolor 124]
+  let m-talk3 patch (pxcor-merchant - 2) -4 ;utility
 
   ;;; agreement talks
-  let shared-talk1 patch pxcor-shared 5 ;price
-  let shared-talk2 patch 0 4 ;utility
+  let shared-talk1 patch 11 3 ;price
+  let shared-talk2 patch 6 -9 ;utility
 
 
 ;;;;;;;; samtale-output;;;;;;;
@@ -640,23 +644,20 @@ to conversate-trade-success
 
 
   if price-setting = "negotiation" [
-        ask c-talk1 [set plabel "i bid my ideal price"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge" (er det mrs?)
-      ask m-talk1 [set plabel "to me, one piece of tableware is worth x (mrs) money"]
-      ask shared-talk2  [set plabel "we pick a price at random between our mrs" ]
-
-
-
+      ask c-talk1 [set plabel "I bid my ideal price: *IDEAL PRICE*"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge" (er det mrs?)
+      ask m-talk1 [set plabel "To me, 1 tableware is worth *X (MRS) MONEY*"]
+      ask shared-talk1  [set plabel "We pick a price at random between our mrs: *PRICE???*" ]
 
 
     ;;;;;;; commands that are shared for all conditions ;;;;;;
     ;quantity
-    ask c-talk2  [set plabel "i want to buy this amount" ]
-    ask m-talk2  [set plabel "i want to sell this amount" ]
-    ask shared-talk2  [set plabel "we trade this amount" ]
+    ask c-talk2  [set plabel "I want to buy this amount: *NR*" ]
+    ask m-talk2  [set plabel "I want to sell this amount: *NR*" ]
+    ask shared-talk2  [set plabel "We trade this amount: *NR*?" ]
 
     ;utility
-    ask c-talk3  [set plabel "utility changed by :)" ]
-    ask m-talk3  [set plabel "utility changed by :)" ]
+    ask c-talk3  [set plabel "Utility changed by : *?*" ]
+    ask m-talk3  [set plabel "Utility changed by : *?*" ]
   ]
 
 end
@@ -2300,7 +2301,7 @@ GRAPHICS-WINDOW
 -1
 13.0
 1
-10
+12
 1
 1
 1
@@ -2498,7 +2499,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-4
+3
 
 MONITOR
 195
@@ -2781,7 +2782,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-0
+1
 
 MONITOR
 889
