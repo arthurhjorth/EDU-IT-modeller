@@ -20,8 +20,6 @@ globals [
   ;temporary for bug fixing
   initial-bidder
   second-bidder
-  total-demand
-  total-supply
   total-demand-list
   total-supply-list
   global-difference-list ;liste af lister - forskels-liste fra hver agent
@@ -2087,28 +2085,58 @@ end
 
 
 to-report nr-tableware-merchants
+  ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report item 0 [ tableware ] of merchants
+ ]
 end
 
 to-report nr-money-merchants
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report precision ( item 0 [ money ] of merchants ) 2 ;simply rounding to 2 decimals
+  ]
 end
 
 to-report nr-tableware-consumers
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report item 0 [ tableware ] of consumers
+  ]
 end
 
 
 to-report nr-money-consumers
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report precision ( item 0 [ money ] of consumers ) 2
+  ]
 end
 
 to-report utility-merchants
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report [ utility ] of merchants
+  ]
 end
 
 to-report utility-consumers
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report [ utility ] of consumers
+  ]
 end
 
 
@@ -2118,27 +2146,35 @@ end
 
 
 to-report report-offer-consumers
-  ifelse ticks > 0
+  ifelse ticks > 0 [
 
 ;;; reporter section ;;;
-  [
-  let quantity-offer floor ( item 0 [offer] of consumers )
+      ifelse price-setting = "compare-all-price-settings" [
+    report "NA"
+    ]
+    [
+    let quantity-offer floor ( item 0 [offer] of consumers )
 
 
  ifelse willing-to-trade?
   [report quantity-offer]
   [report "0   (not interested in buying)"]  ;only positive quantities are reported; if not, there is no chance of trading
   ; should the quantity value be added even when negative?
-  ]
+    ]
+    ]
 
   ;;;; if the model has just been set up, keep this monitor blank
   [report " "] ;at the beginning, keep the monitor blank
 end
 
 to-report report-offer-merchants
-  ifelse ticks > 0
+  ifelse ticks > 0 [
 
-  [
+    ifelse price-setting = "compare-all-price-settings" [
+    report "NA"
+    ]
+    [
+      ;when price-setting != compare all:
   let quantity-offer floor ( item 0 [ offer ] of merchants )
 
 
@@ -2146,6 +2182,7 @@ to-report report-offer-merchants
   [report quantity-offer]
   [report "0   (not interested in selling)"]
   ]
+  ] ;else from ticks
 
   [report " "]
 end
@@ -2155,11 +2192,21 @@ to-report report-price
 end
 
 to-report report-mrs-merchants
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report item 0 [ mrs ] of merchants
+  ]
 end
 
 to-report report-mrs-consumers
+    ifelse price-setting = "compare-all-price-settings" [
+  report "NA"
+  ]
+  [
   report item 0 [ mrs ] of consumers
+  ]
 end
 
 to-report report-beta-merchants
@@ -2451,7 +2498,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-0
+4
 
 MONITOR
 195
@@ -2763,7 +2810,7 @@ running-speed
 running-speed
 0
 1
-0.0
+0.4
 0.1
 1
 NIL
@@ -2955,28 +3002,6 @@ false
 true
 "" ""
 PENS
-
-MONITOR
-1316
-295
-1399
-340
-NIL
-total-supply
-17
-1
-11
-
-MONITOR
-1315
-341
-1402
-386
-NIL
-total-demand
-17
-1
-11
 
 PLOT
 895
