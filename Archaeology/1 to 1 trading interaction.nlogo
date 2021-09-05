@@ -945,7 +945,8 @@ to plot-market-clearing
 end
 
  to-report consumer-ideal-price
-  report [alpha * tableware ] of active-consumer / [ beta * money ] of active-consumer
+  report ( [alpha * tableware ] of active-consumer / [ beta * money ] of active-consumer )
+
 end
 
 
@@ -1035,6 +1036,8 @@ to set-optimal-price
     set optimal-price ( alpha * tableware ) / ( beta * money )
 
   ]
+
+
 
 ;    set temp-budget ( tableware * price-temporary ) + money ;essentially how much your total capital (tableware and money) is worth in money.
 ;    set optimal-tableware round ( temp-budget * alpha / price-temporary ) ; how much tableware you want given your budget, alpha and the current price
@@ -1257,132 +1260,6 @@ set-optimal-price
 
 
 end
-
-
-to test-loop
-  ;;;set bidders;;;
-    set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
-  set second-bidder [partner] of initial-bidder
-
-
-  let mrs1 [mrs] of initial-bidder
-  let mrs2 [mrs] of second-bidder
-  let mrs-difference (abs ( mrs1 - mrs2 ) )
-
-
-; right now we don't distinguish which breed opens the negotiation
-  ;prices to run through loop
-  let potential-prices ( list
-    mrs1
-    mrs2
-   ( mrs1 - mrs-difference * 0.2 )
-   ( mrs2 + mrs-difference * 0.2 )
-   ( mrs1 - mrs-difference * 0.4 )
-   ( mrs2 + mrs-difference * 0.4 )
-   ( mrs1 - mrs-difference * 0.5 )
-  )
-
-
-
-
-
-end
-
-
-to test-negotiation-price-loop ;for now with MRS
-
-  ;;;setting optimal prices;;;;
-;      ask active-turtles [
- ;   set optimal-price ( alpha * tableware ) / ( beta * money )
- ; ]
-
-  ;;;set bidders;;;
-  set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
-  set second-bidder [partner] of initial-bidder
-
-
-  let mrs1 [mrs] of initial-bidder
-  let mrs2 [mrs] of second-bidder
-  let mrs-difference (abs ( mrs1 - mrs2 ) )
-
-
-; right now we don't distinguish which breed opens the negotiation
-  ;prices to run through loop
-  let potential-prices ( list
-    mrs1
-    mrs2
-   ( mrs1 - mrs-difference * 0.2 )
-   ( mrs2 + mrs-difference * 0.2 )
-   ( mrs1 - mrs-difference * 0.4 )
-   ( mrs2 + mrs-difference * 0.4 )
-   ( mrs1 - mrs-difference * 0.5 )
-  )
-
-
-
-  loop [
-   ask active-turtles [
-      set price potential-prices ;something something [item v + 1] in potential-prices. Ét item ad gangen.
-      print potential-prices
-    decide-quantity
-    check-utility-and-trade
-    if deal > 0 [stop]
-    ]
-  ]
-
-
-end
-
-to loop-di-doop
-
-
-
-  set-bidders
-
-  let mrs1 [mrs] of initial-bidder
-  let mrs2 [mrs] of second-bidder
-  let mrs-difference (abs ( mrs1 - mrs2 ) )
-
-    let potential-prices ( list
-    mrs1
-    mrs2
-   ( mrs1 - mrs-difference * 0.2 )
-   ( mrs2 + mrs-difference * 0.2 )
-   ( mrs1 - mrs-difference * 0.4 )
-   ( mrs2 + mrs-difference * 0.4 )
-   ( mrs1 - mrs-difference * 0.5 )
-  )
-
-  let negotiating-turtles (turtle-set initial-bidder second-bidder)
-
-let deal? false
-
-  while [not deal?] [
-  foreach potential-prices [
-  p ->
-
-    set price p
-    ask initial-bidder [
-      decide-quantity
-      check-utility-and-trade
-
-    ]
-    if deal > 0 [set deal? true]
-
-]
-]
-
-;   [
-;              ; round 6, agent2 does the same
-;              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
-;              decide-quantity
-;              check-utility-and-trade
-;              ifelse deal > 0 [
-;                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
-;             stop ]
-
-end
-
 
 
 to set-negotiation-price-optprice ;this is actually a full command - no need for extra decide-quantity and checking utility after this
@@ -1701,8 +1578,129 @@ set-optimal-price
 end
 
 
+to test-loop
+  ;;;set bidders;;;
+    set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set second-bidder [partner] of initial-bidder
 
 
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+
+; right now we don't distinguish which breed opens the negotiation
+  ;prices to run through loop
+  let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+
+
+
+
+end
+
+
+to test-negotiation-price-loop ;for now with MRS
+
+  ;;;setting optimal prices;;;;
+;      ask active-turtles [
+ ;   set optimal-price ( alpha * tableware ) / ( beta * money )
+ ; ]
+
+  ;;;set bidders;;;
+  set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set second-bidder [partner] of initial-bidder
+
+
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+
+; right now we don't distinguish which breed opens the negotiation
+  ;prices to run through loop
+  let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+
+
+  loop [
+   ask active-turtles [
+      set price potential-prices ;something something [item v + 1] in potential-prices. Ét item ad gangen.
+      print potential-prices
+    decide-quantity
+    check-utility-and-trade
+    if deal > 0 [stop]
+    ]
+  ]
+
+
+end
+
+to loop-di-doop
+
+
+
+  set-bidders
+
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+    let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+  let negotiating-turtles (turtle-set initial-bidder second-bidder)
+
+let deal? false
+
+  while [not deal?] [
+  foreach potential-prices [
+  p ->
+
+    set price p
+    ask initial-bidder [
+      decide-quantity
+      check-utility-and-trade
+
+    ]
+    if deal > 0 [set deal? true]
+
+]
+]
+
+;   [
+;              ; round 6, agent2 does the same
+;              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+;              decide-quantity
+;              check-utility-and-trade
+;              ifelse deal > 0 [
+;                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+;             stop ]
+
+end
 
 To decide-quantity
 
@@ -2175,7 +2173,7 @@ to-report report-offer-merchants
     report "NA"
     ]
     [
-      ;when price-setting != compare all:
+      ;when price-setting != compare all:ideal-
   let quantity-offer floor ( item 0 [ offer ] of merchants )
 
 
@@ -3020,6 +3018,17 @@ true
 true
 "" ""
 PENS
+
+MONITOR
+1355
+220
+1482
+265
+NIL
+consumer-ideal-price
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
