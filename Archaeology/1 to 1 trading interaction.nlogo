@@ -28,6 +28,8 @@ globals [
   merchant-mrs
 
   success-this-tick?
+  m-utility-change ;for interface
+  c-utility-change
 ]
 
 
@@ -60,6 +62,7 @@ turtles-own [
   optimal-price
  ]
 
+patches-own [ base-color ]
 
 
 to setup
@@ -81,25 +84,19 @@ end
 
 
 to go
-
   every running-speed [ ;go runs every running-speed ;)
 
-  trade
-  produce-tableware
-  break-tableware
-  earn-money
-  update-mrs
-  ;conversate ;;; now in check-utility-and-trade, as we want different text dependant on success or failed trade
+    trade
+    produce-tableware
+    break-tableware
+    earn-money
+    update-mrs
+    ;conversate ;;; now in check-utility-and-trade, as we want different text dependant on success or failed trade
 
-  update-price-plot
-  tick
+    update-price-plot
+    tick
 
-
-
-
-  if ticks = stop-after-x-tick [
-    stop
-  ]
+    if ticks = stop-after-x-tick [ stop ]
 
   ] ;every
 end
@@ -488,7 +485,7 @@ to layout
 
 
     ; putting a visual tag to show the condition
-    ask patch 1 -15 [set plabel price-setting set pcolor blue]
+    ask patch 2 -15 [set plabel price-setting set pcolor blue]
     ask patches with [pycor < -14] [set pcolor blue - 2 ]
 
 
@@ -502,29 +499,64 @@ to layout
 
   ]
 
+  ask patches [set base-color pcolor] ;saving it for later
 end
 
 
+;LAV REPORTERS TIL TEXT PATCHES:
+to-report pxcor-consumer
+  report -1
+end
+to-report pxcor-merchant
+  report 15
+end
+to-report pxcor-shared
+  report 16
+end
+to-report c-talk1
+  report patch (pxcor-consumer - 2) 7 ;price
+end
+to-report c-talk2
+  report patch (pxcor-consumer - 1) 0 ;quantity
+end
+to-report c-talk3
+  report patch (pxcor-consumer - 4) -4 ;utility
+end
+to-report m-talk1
+  report patch pxcor-merchant 5 ;price
+end
+to-report m-talk2
+  report patch pxcor-merchant -1 ;quantity
+end
+to-report m-talk3
+  report patch pxcor-merchant -4 ;utility
+end
+to-report shared-talk1
+  report patch 11 3 ;price
+end
+to-report shared-talk2
+  report patch 6 -9 ;utility
+end
+to-report shared-talk-mc1
+  report patch 15 5 ;price line
+end
+to-report shared-talk-mc2
+  report patch 2 3 ;the price
+end
+
 
 to conversate-trade-failed
-    ;defining plabels
-  ;;; consumer talks
-  let c-talk1 patch pxcor-consumer 7 ;price
-  let c-talk2 patch pxcor-consumer 1 ;quantity
-  let c-talk3 patch pxcor-consumer -5 ;utility
+  ask patches with [pycor > -17] [set plabel ""] ;clear (only keeping the stupid >-17 since otherwise a turtle can't ask all patches...)
+  ask patches with [pycor > -17] [set pcolor base-color] ;clear
+  ask patch 2 -15 [set plabel price-setting] ;keeping this
 
-  ;;; merchant talks
-  let m-talk1 patch pxcor-merchant 6 ;price
-  let m-talk2 patch pxcor-merchant 0 ;quantity
-  let m-talk3 patch pxcor-merchant -5 ;utility
+  color-speech-background ;function
 
   ;;; agreement talks
-
 
       ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
     ;clearing conversate success plabels
-    let shared-talk1 patch pxcor-shared 5
     ask shared-talk1 [set plabel " " ]
 
     let shared-talk3 patch 6 5 ;price
@@ -564,42 +596,30 @@ to conversate-trade-failed
     ask patch 10 0 [ set plabel "Utility does not increase for both agents, no trade is made" ]
   ]
 
+  ;SHARED FOR ALL CONDITIONS:
+  ask shared-talk2 [set plabel "We do not trade anything!"]
 
 end
 
 to conversate-trade-success
-    ;defining plabels
-  ;;; consumer talks
-  let c-talk1 patch -2 7 ;price
-  let c-talk2 patch -2 0 ;quantity
-  let c-talk3 patch (pxcor-consumer + 2) -4 ;utility
+  ask patches with [pycor > -17] [set plabel ""] ;clear (only keeping the stupid >-100 since otherwise a turtle can't ask all patches...)
+  ask patches with [pycor > -17] [set pcolor base-color] ;clear
+  ask patch 2 -15 [set plabel price-setting] ;keeping this
 
-  ;;; merchant talks
-  let m-talk1 patch 16 5 ;price
-  let m-talk2 patch 15 -1 ;quantity
-  let m-talk3 patch (pxcor-merchant - 2) -4 ;utility
-
-  ;;; agreement talks
-  let shared-talk1 patch 11 3 ;price
-  let shared-talk2 patch 6 -9 ;utility
+  color-speech-background ;function
 
 
 ;;;;;;;; samtale-output;;;;;;;
-; for nu udkast
 ;@actual values still need to be added
 
     ;;;;;;; first commands are specific to condition ;;;;;;;
   if price-setting = "market-clearing" [
-      ;def plabels
-      let shared-talk-mc1 patch 14 5 ;price
-      let shared-talk-mc2 patch 0 4 ;utility
-
     ;@giver det mening at sætte information om supply/ demand her?
-    ask shared-talk-mc1 [set plabel "This is the price at which the difference between supply and demand is the lowest:"]
-    ask shared-talk-mc2 [set plabel precision price 2]
+    ask shared-talk-mc1 [set plabel "Price where the difference between supply and demand is the lowest:"]
+    ask shared-talk-mc2 [set plabel (word (precision price 2) " (per item)" )]
 
 
-    ;; something something refer to the plot on supply/ demand
+    ;; @something something refer to the plot on supply/ demand
   ]
 
 
@@ -639,28 +659,44 @@ to conversate-trade-success
 
 
   if price-setting = "negotiation" [
-    ;color background of speech lines:
-    ask patches with [pycor = 7 and pxcor < -1] [set pcolor 126.5] ; color background
-    ask patches with [pycor = 0 and pxcor < -1] [set pcolor 126.5]
-    ask patches with [pycor = 5 and pxcor > -5] [set pcolor 124] ;color background
-    ask patches with [pycor = -1 and pxcor > 0] [set pcolor 124]
 
-      ask c-talk1 [set plabel "I bid my ideal price: *IDEAL PRICE*"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge" (er det mrs?)
+      ask c-talk1 [set plabel "I bid (SOMETHING): *PRICE*"] ;;sæt fokus på indifference: "for mig er én tableware det samme værd som x penge" (er det mrs?)
       ask m-talk1 [set plabel "To me, 1 tableware is worth *X (MRS) MONEY*"]
-      ask shared-talk1  [set plabel "We pick a price at random between our mrs: *PRICE???*" ]
+      ask shared-talk1  [set plabel (word "We pick a price at random between our mrs: " precision price 2) ]
 
 
     ;;;;;;; commands that are shared for all conditions ;;;;;;
     ;quantity
     ask c-talk2  [set plabel "I want to buy this amount: *NR*" ]
     ask m-talk2  [set plabel "I want to sell this amount: *NR*" ]
-    ask shared-talk2  [set plabel "We trade this amount: *NR*?" ]
 
-    ;utility
-    ask c-talk3  [set plabel "Utility changed by : *?*" ]
-    ask m-talk3  [set plabel "Utility changed by : *?*" ]
   ]
 
+  ;SHARED FOR ALL CONDITIONS (except compare-all):
+  ;amount:
+  ask shared-talk2  [set plabel (word "We trade this amount: " deal) ]
+  ;utility:
+    ask c-talk3  [set plabel (word "Utility changed by : " precision c-utility-change 2) ]
+    ask m-talk3  [set plabel (word "Utility changed by : " precision m-utility-change 2) ]
+
+end
+
+to color-speech-background
+  if price-setting = "negotiation" [
+    ;color background of speech lines:
+    ask patches with [pycor = 7 and pxcor < -1] [set pcolor 126.5] ; color background
+    ask patches with [pycor = 0 and pxcor < -1] [set pcolor 126.5]
+    ask patches with [pycor = 5 and pxcor > -6] [set pcolor 124] ;color background
+    ask patches with [pycor = -1 and pxcor > 0] [set pcolor 124]
+  ]
+
+  ;shared for all:
+  ifelse success-this-tick? [
+    ask patches with [(pycor = -8 or pycor = -9 or pycor = -10) and pxcor > -6 and pxcor < 7] [set pcolor 63] ;green
+  ]
+  [ ;not success:
+    ask patches with [(pycor = -8 or pycor = -9 or pycor = -10) and pxcor > -6 and pxcor < 7] [set pcolor 14] ;red
+  ]
 end
 
 
@@ -1051,6 +1087,110 @@ to set-optimal-price
 ;
 end
 
+to set-negotiation-price1 ; simple version for getting rid of error
+
+
+  set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+
+  set second-bidder [partner] of initial-bidder ;nogengange problem med at definere second-bidder. Hvorfor?
+
+
+
+  ask initial-bidder [
+
+   ;;;; round 1:
+    set price mrs
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+
+        ifelse deal > 0 [
+      if price-setting = "compare-all-price-settings" [stop]
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop ] ;if the bid is accepted, exit this function
+
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      set price [mrs] of second-bidder
+      decide-quantity
+      check-utility-and-trade
+    ]
+  ]
+
+      ifelse deal > 0 [
+        if price-setting = "compare-all-price-settings" [stop]
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+       stop]
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let mrs-price-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+          if price-setting = "compare-all-price-settings" [stop]
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+            if price-setting = "compare-all-price-settings" [stop]
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price mrs + (mrs-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              if price-setting = "compare-all-price-settings" [stop]
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [
+                if price-setting = "compare-all-price-settings" [stop]
+                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+             stop ]
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                ;set price mrs + mrs-price-difference * 0.5
+        set price mrs * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [if price-setting = "compare-all-price-settings" [stop]
+                  output-print "Agents met halfway between their initial prices." ]
+                if deal = 0
+                [ if price-setting = "compare-all-price-settings" [stop]
+                  output-print "Agents did not agree on a trading price." ]
+                ;the end
+              ]
+            ]
+          ]
+        ]
+      ]
+
+
+end
+
 
 
 to set-negotiation-price ;this version runs with MRS while we haven't figured out "ideal" price-setting
@@ -1154,11 +1294,403 @@ set-optimal-price
       ]
     ]
   ]
+
+
+end
+
+
+to set-negotiation-price-optprice ;this is actually a full command - no need for extra decide-quantity and checking utility after this
+  ;@ a loop can definitely be useful here. ;-)
+
+
+
+
+set-bidders ;make this LET?
+set-optimal-price
+
+  ask initial-bidder [
+
+   ;;;; round 1:
+    set price optimal-price
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop ] ;if the bid is accepted, exit this function
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      set price [optimal-price] of partner
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+       stop]
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let optimal-price-difference ( optimal-price - [optimal-price] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price optimal-price + (optimal-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [optimal-price] of partner + optimal-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price optimal-price + (optimal-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              set price ( [optimal-price] of partner + optimal-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+             stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price optimal-price + optimal-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices." ]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price." ]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
 end
 
 
 
-to loop-di-doop ;loopy version w. ida and lisa (not in use)
+
+to set-negotiation-price2 ;this is actually a full command - no need for extra decide-quantity and checking utility after this
+  ;@ a loop can definitely be useful here. ;-)
+
+;  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+;  let second-bidder [partner] of initial-bidder
+set-bidders ;make this LET?
+set-optimal-price
+
+
+  ;;;lisa: her kommer en MEGET klodset løsning. To kommandoer afhængig af hvem der er inital-bidder. Kan altid forbedres.
+
+
+  if [breed] of initial-bidder = "merchant" [
+
+    ;;;;; merchant as first-bidder ;;;;;
+
+    ask initial-bidder [
+
+   ;;;; round 1:
+    set price optimal-price
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by ;tracking who made the accepted offer in a list
+      stop  ;if the bid is accepted, exit this function
+    ]
+
+
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      ;set price [mrs] of partner ;commenting for bug-fixing
+      set price [optimal-price] of second-bidder
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+        set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+       stop]
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let optimal-price-difference abs ( optimal-price - [optimal-price] of partner ) ;now always an absolute value
+        set price optimal-price - (optimal-price-difference * 0.2 ) ; merchant is first bidder in this chunk of code; we can assume he sets the higher price of the two agents, and therefore to meet towards the middle, we subtract the difference from the optimal price
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.") ;we know for sure that this is merchant rn
+          set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [optimal-price] of second-bidder + optimal-price-difference * 0.2 )
+
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price optimal-price - (optimal-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.4 )
+              set price ( [optimal-price] of second-bidder + optimal-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+                set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+             stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price optimal-price + optimal-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices."
+                set price-offered-by fput ( "met halfway" ) price-offered-by]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price."
+                set price-offered-by fput ( "no deal" ) price-offered-by]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+        ;;;;; ELSE: consumer as first-bidder ;;;;;
+
+    ask initial-bidder [
+
+   ;;;; round 1:
+    set price optimal-price
+    decide-quantity
+    ;possible to make an ifelse about deal here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+    ifelse deal > 0 [
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by ;tracking who made the accepted offer in a list
+      stop  ;if the bid is accepted, exit this function
+    ]
+
+
+
+    [
+    ;;;; else, start round 2:
+      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      ;set price [mrs] of partner ;commenting for bug-fixing
+      set price [optimal-price] of second-bidder
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal > 0 [
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+        set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+       stop]
+
+      [
+      ;;;; else, start round 3:
+      ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let optimal-price-difference abs ( optimal-price - [optimal-price] of partner ) ;now always an absolute value
+        set price optimal-price + (optimal-price-difference * 0.2 ) ; consumer is first bidder in this chunk of code; we can assume he sets the lower price of the two agents, and therefore to meet towards the middle, we add the difference from the optimal price
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal > 0 [
+         output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.") ;we know for sure that this is merchant rn
+          set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
+        stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [optimal-price] of second-bidder - optimal-price-difference * 0.2 )
+
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal > 0 [
+              output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price optimal-price + (optimal-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal > 0 [
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              set price-offered-by fput ( [breed] of initial-bidder ) price-offered-by
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              ;buggy-fixy: set price ( [mrs] of partner + mrs-difference * 0.4 )
+              set price ( [optimal-price] of second-bidder - optimal-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal > 0 [ output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+                set price-offered-by fput ( [breed] of second-bidder ) price-offered-by
+             stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price optimal-price + optimal-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal > 0
+                [ output-print "Agents met halfway between their initial prices."
+                set price-offered-by fput ( "met halfway" ) price-offered-by]
+                if deal = 0
+                [ output-print "Agents did not agree on a trading price."
+                set price-offered-by fput ( "no deal" ) price-offered-by]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+
+
+  ]
+
+
+end
+
+
+to test-loop
+  ;;;set bidders;;;
+    set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set second-bidder [partner] of initial-bidder
+
+
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+
+; right now we don't distinguish which breed opens the negotiation
+  ;prices to run through loop
+  let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+
+
+
+
+end
+
+
+to test-negotiation-price-loop ;for now with MRS
+
+  ;;;setting optimal prices;;;;
+;      ask active-turtles [
+ ;   set optimal-price ( alpha * tableware ) / ( beta * money )
+ ; ]
+
+  ;;;set bidders;;;
+  set initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  set second-bidder [partner] of initial-bidder
+
+
+  let mrs1 [mrs] of initial-bidder
+  let mrs2 [mrs] of second-bidder
+  let mrs-difference (abs ( mrs1 - mrs2 ) )
+
+
+; right now we don't distinguish which breed opens the negotiation
+  ;prices to run through loop
+  let potential-prices ( list
+    mrs1
+    mrs2
+   ( mrs1 - mrs-difference * 0.2 )
+   ( mrs2 + mrs-difference * 0.2 )
+   ( mrs1 - mrs-difference * 0.4 )
+   ( mrs2 + mrs-difference * 0.4 )
+   ( mrs1 - mrs-difference * 0.5 )
+  )
+
+
+
+  loop [
+   ask active-turtles [
+      set price potential-prices ;something something [item v + 1] in potential-prices. Ét item ad gangen.
+      print potential-prices
+    decide-quantity
+    check-utility-and-trade
+    if deal > 0 [stop]
+    ]
+  ]
+
+
+end
+
+to loop-di-doop
+
 
 
   set-bidders
@@ -1338,9 +1870,7 @@ ask active-consumer [
    if deal-tableware > 0 [
      set temp-tableware ( tableware + deal-tableware )
      set temp-money ( money - deal-money )
-      print "step 1"
      set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility function
-      print "step 2"
     ]
   ]
 
@@ -1383,8 +1913,6 @@ if deal > 0 [
        set money temp-money
        set succesful-trades succesful-trades + 1
       ]
-
-    conversate-trade-success
     update-price-list ;add price to list to save it, when trade is successful
     ]
 
@@ -1395,14 +1923,14 @@ if deal > 0 [
   ifelse deal = 0 [ ;@ this needs to be redone so that the set-negotiation-price doesn't run it all the time
     set unsuccessful-price price
     set recorded-time ( ticks )
-    conversate-trade-failed
-
     if price-setting != "compare-all-price-settings" [ set success-this-tick? false ]
+    conversate-trade-failed
 
   ;print "no deal made - tick recorded:" print recorded-time
   ]
   [ ;if the deal went through:
     if price-setting != "compare-all-price-settings" [ set success-this-tick? true ]
+    conversate-trade-success
   ]
 
 end
@@ -1411,8 +1939,7 @@ end
 
 to print-trade-details
 
-  if price-setting = "compare-all-price-settings" [
-    stop]
+  if price-setting = "compare-all-price-settings" [ stop ]
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;;;;;;; output-prints ;;;;;;;;;;;;
@@ -1425,14 +1952,16 @@ to print-trade-details
 
   ask active-consumer [
   let consumer-utility-difference ( temp-utility - utility )
+    set c-utility-change consumer-utility-difference ;for interface
     let merchant-utility-difference ( [temp-utility] of partner - [utility] of partner )
+    set m-utility-change merchant-utility-difference ;for interface
 
 
 ;;;; print-outputs depending on the success of the trade
     ;;;; if no trade happens, then calculate what the change in utility would've been given trade of 1x tableware
     if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
       ;; defining utility given 1x trade
-
+      set success-this-tick? false
       ask active-consumer [
 ;;;;        if money > 0 and tableware > 0  and [money] of partner > 0 and [tableware] of partner > 0 [ ;runs only when holdings are above 0 - otherwise illegal calculations
         ;beware, the following calculations shouldn't happpen if the holdings of money and tableware is a negative
@@ -1455,12 +1984,14 @@ to print-trade-details
 
     ;herfra printer ikke. Kun når deal = 0.
     if deal = 1 [
+      set success-this-tick? true
       output-print (word "Successful trade! " deal "x of tableware was traded.")
       output-print (word "Consumer utility improved by " precision consumer-utility-difference 2 ". ")
       output-print (word "Merchant utility improved by "  precision merchant-utility-difference 2 ". ")
     ]
 
     if deal > 1 [
+      set success-this-tick? true
       output-print (word "Successful trade! " deal "x of tableware were traded.")
       output-print (word "Consumer utility improved by  " precision consumer-utility-difference 2 ". ")
       output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
@@ -1797,14 +2328,14 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 460
-10
-897
-448
+2
+928
+471
 -1
 -1
-13.0
+13.94
 1
-12
+14
 1
 1
 1
@@ -1834,10 +2365,10 @@ money-merchants
 Number
 
 INPUTBOX
-350
-261
-452
-321
+340
+265
+442
+325
 money-consumers
 50.0
 1
@@ -1856,10 +2387,10 @@ tableware-merchants
 Number
 
 INPUTBOX
-349
-199
-452
-259
+339
+203
+442
+263
 tableware-consumers
 50.0
 1
@@ -1868,9 +2399,9 @@ Number
 
 BUTTON
 11
-87
+55
 74
-120
+125
 NIL
 setup
 NIL
@@ -1884,10 +2415,10 @@ NIL
 1
 
 BUTTON
-77
-87
-140
-120
+80
+90
+145
+123
 NIL
 go
 T
@@ -1927,10 +2458,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-336
-110
-463
-143
+326
+114
+453
+147
 alpha-consumers
 alpha-consumers
 0
@@ -1962,10 +2493,10 @@ Variables for the consumer breed\n
 1
 
 MONITOR
-844
-452
-894
-497
+850
+490
+900
+535
 price
 precision report-price 2
 17
@@ -1973,10 +2504,10 @@ precision report-price 2
 11
 
 MONITOR
-1074
-83
-1230
-128
+1115
+70
+1271
+115
 NIL
 report-mrs-merchants
 17
@@ -1984,10 +2515,10 @@ report-mrs-merchants
 11
 
 MONITOR
-920
-82
-1075
-127
+961
+69
+1116
+114
 NIL
 report-mrs-consumers
 17
@@ -2002,7 +2533,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-3
+0
 
 MONITOR
 195
@@ -2016,10 +2547,10 @@ report-beta-merchants
 11
 
 MONITOR
-336
-147
-462
-192
+326
+151
+452
+196
 Beta for consumers
 report-beta-consumers
 17
@@ -2027,10 +2558,10 @@ report-beta-consumers
 11
 
 MONITOR
-1081
-22
-1245
-67
+1122
+9
+1286
+54
 NIL
 report-offer-merchants
 17
@@ -2038,10 +2569,10 @@ report-offer-merchants
 11
 
 MONITOR
-903
-24
-1079
-69
+944
+11
+1120
+56
 NIL
 report-offer-consumers
 17
@@ -2049,10 +2580,10 @@ report-offer-consumers
 11
 
 MONITOR
-934
-164
-1046
-209
+975
+151
+1087
+196
 merchant-tableware
 round ( nr-tableware-merchants )
 17
@@ -2060,10 +2591,10 @@ round ( nr-tableware-merchants )
 11
 
 MONITOR
-951
-210
-1046
-255
+992
+197
+1087
+242
 merchant-money
 nr-money-merchants
 17
@@ -2071,10 +2602,10 @@ nr-money-merchants
 11
 
 MONITOR
-1047
-163
-1168
-208
+1088
+150
+1209
+195
 consumer-tableware
 round ( nr-tableware-consumers )
 17
@@ -2082,10 +2613,10 @@ round ( nr-tableware-consumers )
 11
 
 MONITOR
-1048
-211
-1153
-256
+1089
+198
+1194
+243
 consumer-money
 nr-money-consumers
 17
@@ -2093,10 +2624,10 @@ nr-money-consumers
 11
 
 MONITOR
-718
-452
-840
-497
+724
+490
+846
+535
 NIL
 nr-succesful-trades
 17
@@ -2148,10 +2679,10 @@ tableware-breakage?
 -1000
 
 MONITOR
-1179
-166
-1264
-211
+1220
+153
+1305
+198
 total-tableware
 round ( total-tableware )
 17
@@ -2189,10 +2720,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-1182
-215
-1251
-260
+1223
+202
+1292
+247
 total-money
 round ( total-money )
 17
@@ -2200,50 +2731,50 @@ round ( total-money )
 11
 
 TEXTBOX
-997
-150
-1101
-168
+1038
+137
+1142
+155
 CURRENT HOLDINGS
 11
 0.0
 1
 
 TEXTBOX
-966
-10
-1186
-38
+1007
+-3
+1227
+25
 Most recent offer (quantity to buy/ sell)
 11
 0.0
 1
 
 TEXTBOX
-961
-69
-1197
-97
+1002
+56
+1238
+84
 Current marginal rate of substitution (MRS)
 11
 0.0
 1
 
 TEXTBOX
-732
-532
-908
-560
+780
+540
+956
+568
 Most recent price of tableware
 11
 0.0
 1
 
 PLOT
-1288
-389
-1548
-509
+1325
+330
+1585
+450
 Price/tableware
 Ticks/ time
 price per item
@@ -2285,7 +2816,7 @@ CHOOSER
 quantity-options
 quantity-options
 "standard" "one tableware at a time"
-1
+0
 
 MONITOR
 889
@@ -2299,17 +2830,17 @@ precision mean-market-clearing-price 2
 11
 
 OUTPUT
-455
-502
-892
-619
+442
+537
+937
+672
 13
 
 SLIDER
-459
-448
-583
-481
+465
+486
+589
+519
 running-speed
 running-speed
 0
@@ -2363,10 +2894,10 @@ precision mean-random-price 2
 11
 
 PLOT
-898
-278
-1268
-438
+939
+265
+1309
+425
 Current holdings
 NIL
 NIL
@@ -2384,76 +2915,21 @@ PENS
 "merchants money" 1.0 0 -1184463 true "" "plot nr-money-merchants"
 
 TEXTBOX
-1137
-149
-1201
-168
+1178
+136
+1242
+155
 Consumer
 11
 0.0
 1
 
 TEXTBOX
-911
-149
-984
-167
+952
+136
+1025
+154
 Merchant
-11
-0.0
-1
-
-SLIDER
-5
-385
-177
-418
-pxcor-merchant
-pxcor-merchant
-0
-16
-16.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-7
-420
-179
-453
-pxcor-shared
-pxcor-shared
--16
-16
-1.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-5
-350
-177
-383
-pxcor-consumer
-pxcor-consumer
--16
-0
--8.0
-1
-1
-NIL
-HORIZONTAL
-
-TEXTBOX
-24
-316
-174
-344
-temporary sliders to allocate plabels:
 11
 0.0
 1
@@ -2481,20 +2957,20 @@ utility-consumers
 11
 
 TEXTBOX
-1239
-91
-1389
-168
+1270
+83
+1420
+160
 @question: nicer to have mrs in the other direction for merchants? ie. tableware for money. More easily comparable/ possible to see from beginning, if the wishes of the two agents match
 9
 0.0
 1
 
 PLOT
-897
-275
-1284
-446
+938
+262
+1325
+433
 Demand and Supply Plot
 Price Temporary
 Tableware
@@ -2508,10 +2984,10 @@ true
 PENS
 
 PLOT
-898
-445
-1288
-629
+939
+432
+1329
+616
 Price plot
 ticks
 price per item
@@ -2525,12 +3001,40 @@ true
 PENS
 
 MONITOR
-1355
-220
-1482
-265
+1386
+212
+1513
+257
 NIL
 consumer-ideal-price
+17
+1
+11
+
+BUTTON
+80
+55
+145
+88
+go once
+go
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+170
+25
+277
+70
+NIL
+success-this-tick?
 17
 1
 11
@@ -2937,5 +3441,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@
