@@ -1952,38 +1952,16 @@ to print-trade-details
 
   ask active-consumer [
   let consumer-utility-difference ( temp-utility - utility )
-    set c-utility-change consumer-utility-difference ;for interface
+    ;set c-utility-change consumer-utility-difference ;for interface
     let merchant-utility-difference ( [temp-utility] of partner - [utility] of partner )
-    set m-utility-change merchant-utility-difference ;for interface
+    ;set m-utility-change merchant-utility-difference ;for interface
 
 
 ;;;; print-outputs depending on the success of the trade
-    ;;;; if no trade happens, then calculate what the change in utility would've been given trade of 1x tableware
-    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [
-      ;; defining utility given 1x trade
-      set success-this-tick? false
-      ask active-consumer [
-;;;;        if money > 0 and tableware > 0  and [money] of partner > 0 and [tableware] of partner > 0 [ ;runs only when holdings are above 0 - otherwise illegal calculations
-        ;beware, the following calculations shouldn't happpen if the holdings of money and tableware is a negative
 
+    ;;;; step 1: succesful trades
 
-      let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
-        let one-trade-utility-merchant precision ( (  ( [tableware] of partner - 1 ) ^ [alpha] of partner ) * ( ( ([money] of partner) + price ) ^ [beta] of partner ) ) 2 ;der må være en fejl her
-
-      let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
-      let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of partner - [utility] of partner ) 2
-
-
-
-      output-print (word "unsuccessful. No trade was made." )
-      output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.")
-      output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
-    ]
-    ]
-
-
-    ;herfra printer ikke. Kun når deal = 0.
-    if deal = 1 [
+     if deal = 1 [
       set success-this-tick? true
       output-print (word "Successful trade! " deal "x of tableware was traded.")
       output-print (word "Consumer utility improved by " precision consumer-utility-difference 2 ". ")
@@ -1996,11 +1974,60 @@ to print-trade-details
       output-print (word "Consumer utility improved by  " precision consumer-utility-difference 2 ". ")
       output-print (word "Merchant utility improved by  "  precision merchant-utility-difference 2 ". ")
     ]
+
   ]
 
-
+;    ;;;@lisa: jeg har kommenteret denne del ud for nu. Der bikses endnu. Det er ikke så clear-cut, som jeg troede!
+;
+;    ;;;; step 2: unsuccesful trades. If no trade happens, then calculate what the change in utility would've been given trade of 1x tableware
+;
+;    if consumer-utility-difference < 0 or merchant-utility-difference < 0 or deal = 0 [ ;question: necessary with utility? isn't deal = 0 enough?
+;      ;; defining utility given 1x trade
+;      set success-this-tick? false
+;
+;      ifelse any-holdings? [ ;if the holdings of any item of any of the agents is 0
+;      output-print (word "Unsuccessful. No trade was made." )
+;        output-print (word "One of both agents have no items left to trade.") ] ;print that nothing is left to be traded
+;
+;
+;      ;else, calculate utility given trade with 1 item
+;      [
+;        ask active-consumer [
+;
+;
+;      let one-trade-utility-consumer precision ( (  ( tableware + 1 ) ^ alpha ) * ( ( money - price ) ^ beta ) ) 2    ;a simple utility calculation given trade of 1x tableware
+;       let one-trade-utility-merchant precision ( (  ( unlist [tableware] of active-merchant - 1 ) ^ unlist [alpha] of active-merchant ) * ( ( ( unlist [money] of active-merchant) + price ) ^ unlist [beta] of active-merchant ) ) 2 ;der må være en fejl her
+;
+;
+;
+;
+;
+;      let one-trade-utility-difference-consumer precision ( one-trade-utility-consumer - utility ) 2
+;      let one-trade-utility-difference-merchant precision ( [one-trade-utility-merchant] of active-merchant - [utility] of active-merchant ) 2
+;
+;
+;
+;      output-print (word "Unsuccessful. No trade was made." )
+;      output-print (word "Consumer utility would have changed with " ( one-trade-utility-difference-consumer ) " given trade with 1x of tableware.")
+;      output-print (word "Merchant utility would have changed with " ( one-trade-utility-difference-merchant ) " given trade with 1x of tableware.")
+;    ]
+;    ]
+;    ]
+;  ]
 
 End
+
+to-report any-holdings?
+  ;@lisa: hvordan kan vi definere
+  ifelse unlist [money] of active-consumer = 0 or unlist [tableware] of active-consumer = 0 or unlist [money] of active-merchant = 0 or unlist [tableware] of active-merchant [ report true ] [ report false ]
+end
+
+
+to-report unlist [x]
+  report item 0 x
+
+
+end
 
 
 to create-price-lists
@@ -2533,7 +2560,7 @@ CHOOSER
 price-setting
 price-setting
 "market-clearing" "equilibrium" "random" "negotiation" "compare-all-price-settings"
-0
+2
 
 MONITOR
 195
