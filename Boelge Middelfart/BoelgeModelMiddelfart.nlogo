@@ -1,7 +1,11 @@
-extensions [csv table profiler]
+extensions [csv table ]
 
 globals [
+  budget
   regn-i-simulationen
+
+  water-pen
+
 
   start-wave ;; for drawing a wave
   end-wave ;; for drawing a wave, not sure we need it
@@ -54,7 +58,7 @@ globals [
   samlet-wall-utilfredshed
   tax-utilfredshed
 
-  tax-money
+  skatte-penge
 ]
 
 breed [ drops drop] ;for rain animation
@@ -86,15 +90,23 @@ patches-own [
 breed [momentums momentum]
 momentums-own [force nearby-momentums forces-next-turn]
 
-to profile
-  setup                  ; set up the model
-  profiler:start         ; start profiling
-  ;start-rain ;start the rain (with interface settings) before the go to get some water in the system
-  run-period              ;start auto-raining period to get water in the system
-  repeat 100 [ go ]       ; run something you want to measure
-  profiler:stop          ; stop profiling
-  print profiler:report  ; view the results
-  profiler:reset         ; clear the data
+;to profile
+;  setup                  ; set up the model
+;  profiler:start         ; start profiling
+;  ;start-rain ;start the rain (with interface settings) before the go to get some water in the system
+;  run-period              ;start auto-raining period to get water in the system
+;  repeat 100 [ go ]       ; run something you want to measure
+;  profiler:stop          ; stop profiling
+;  print profiler:report  ; view the results
+;  profiler:reset         ; clear the data
+;end
+
+to setup-1
+  set mm-per-15-min 5
+  set nedbør-varighed 8
+  set jordtype "Fint jord"
+  set hav-niveau 0
+
 end
 
 to setup
@@ -124,8 +136,9 @@ to setup-variables
   ]
   set wall-patches no-patches set mid-wall-patches no-patches
   set running-month? false
-  set colors-left [105 65 15 44 134 25 34 4 125 115 black black black black black black] ;used for plot pens
+  set colors-left base-colors ;[105 65 15 44 134 25 34 4 125 115 black black black black black black] ;used for plot pens
   set short-months ["04" "06" "09" "11"] ;months with 30 days, used in update-time
+  set budget 1000
 end
 
 
@@ -662,7 +675,7 @@ end
 ;--MONEY STUFF:
 
 to get-more-money ;button in interface
-  set tax-money tax-money + 2000 ;@tweak how much money they get
+  set skatte-penge skatte-penge + 2000 ;@tweak how much money they get
 
   update-tax-utilfredshed ;people get angry :(
   update-samlet-utilfredshed
@@ -673,7 +686,7 @@ to-report money-spent
 end
 
 to-report money-left
-  report (Budget + tax-money) - money-spent
+  report (Budget + skatte-penge) - money-spent
 end
 
 to-report any-money-left?
@@ -925,8 +938,46 @@ to-report get-hour [date-time] ;for the format "YYYY-MM-DD TT:TT"
   report substring date-time 11 13 ;always two digits
 end
 
+to-report date-check?
+  let f substring fra-dato 0 4
+  let t substring til-dato 0 4
+  ; is it before 2020 or after june 2021?
+  if not (f = "2020" or f = "2021") and (t = "2020" or t = "2021") [user-message "Datoen skal være efter 2020." report false]
+  set f runresult substring fra-dato 5 7
+  set t runresult substring til-dato 5 7
+  ; is it a real month?
+  if f > 12 or t > 12 [report false]
+  let fdato runresult substring fra-dato 8 10
+  let tdato runresult substring til-dato 8 10
+  ; is it a day in the month?
+  if fdato > max-month-day f or tdato > max-month-day t [user-message "Dette er ikke et rigtigt tal for dag i denne måned." report false]
+  ; is the to-date later than from-date?
+  let fromdate-number run-result (word substring fra-dato 0 4 substring fra-dato 5 7 substring fra-dato 8 10)
+  let todate-number run-result (word substring til-dato 0 4 substring til-dato 5 7 substring til-dato 8 10)
+  if todate-number < fromdate-number [user-message "Til-dato er før fra-dato." report false]
+  report true
+end
+
+to-report max-month-day [month-no]
+  if month-no = 1 [report 31]
+  if month-no = 2 [report 28]
+  if month-no = 3 [report 31]
+  if month-no = 4 [report 30]
+  if month-no = 5 [report 31]
+  if month-no = 6 [report 30]
+  if month-no = 7 [report 31]
+  if month-no = 8 [report 31]
+  if month-no = 9 [report 30]
+  if month-no = 10 [report 31]
+  if month-no = 11 [report 30]
+  if month-no = 12 [report 31]
+end
 
 to run-period
+  if not date-check? [
+    stop
+  ]
+  reset-ticks
   ask patches [set water-level 0] ;reset, alt vand i systemet fjernes
   hæv-havet ;hav-niveauet sættes til det valgte
   ;let data import-month-old periode ;import month data from csv. periode is the interface chooser
@@ -943,6 +994,7 @@ to run-period
   let first-rain-day "none" let first-rain-hour "none" let last-rain-day-and-time "none"
   let reached-startpoint? false let reached-endpoint? false
   set auto-table table:make ;initialize empty table
+  show 1
 
   foreach all-data [ ;each entry is in the form ["2010-01-11 21:00" 1.1] ;liste med dato + nedbør per time (i mm)
     x ->
@@ -971,12 +1023,14 @@ to run-period
       ]
     ]
   ] ;end of loop
+  show 2
 
   ;byg en 'stopklods' ind i tabellen kvarteret efter det sidste regn-entry:
   let stop-day-and-time but-last but-last last-rain-day-and-time ;removing "00"
   set stop-day-and-time (word stop-day-and-time "15") ;changing it to a quarter past the last rain key, e.g. "2010-12-29 23:15"
   table:put auto-table stop-day-and-time "stop" ;indbygget stopklods (tjekkes i go)
 
+  show 3
   ;reset time to the first rain occurence for that period:
   if first first-rain-day = "0" [set first-rain-day but-first first-rain-day] ;e.g. "06" becomes "6"
   if first first-rain-hour = "0" [set first-rain-hour but-first first-rain-hour]
@@ -1021,6 +1075,20 @@ end
 
 
 ;---PLOT
+to setup-plot-pen2 ;run in run-period (so new line starts plotting every time it's run)
+  set-current-plot "Gennemsnitlig vandstand på land"
+  let pen-name (word regn-i-simulationen ", " jordtype ", " hav-niveau " m hav")
+  set water-pen pen-name
+  create-temporary-plot-pen pen-name
+  set-plot-pen-color first colors-left
+  set-current-plot "Indbyggernes utilfredshed"
+  create-temporary-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
+  set-plot-pen-color first colors-left
+  set colors-left but-first colors-left
+end
+
+
+;---PLOT
 to setup-plot-pen ;run in run-period (so new line starts plotting every time it's run)
   set-current-plot "Gennemsnitlig vandstand på land"
   create-temporary-plot-pen (word periode-valgt " " %-valgt " % og havvandstand " hav-niveau-valgt)
@@ -1052,7 +1120,7 @@ to update-plot ;run in go
   ]
   [ ;if not auto-running month:
     set-current-plot "Gennemsnitlig vandstand på land"
-    create-temporary-plot-pen "Vandstand" ;if it already exists, it just sets it as the current one
+    create-temporary-plot-pen water-pen ;if it already exists, it just sets it as the current one
     plotxy ticks (mean [water-level] of land-patches)
 
     set-current-plot "Indbyggernes utilfredshed"
@@ -1105,10 +1173,10 @@ to old-make-wave
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-280
-70
-1078
-484
+275
+45
+1073
+459
 -1
 -1
 4.18
@@ -1133,12 +1201,12 @@ ticks
 
 BUTTON
 15
-445
-265
-485
-START/STOP
-go\n
-T
+410
+262
+446
+Simuler 48 timer
+if ticks >= 192 [reset-ticks]\nif ticks = 0 [\nask patches [set water-level 0] \nhæv-havet\nstart-rain\nsetup-plot-pen2 \n]\nrepeat 192 [go]\n
+NIL
 1
 T
 OBSERVER
@@ -1151,10 +1219,10 @@ NIL
 BUTTON
 30
 30
-240
-70
-OPSÆT / NULSTIL SIMULATIONEN
-setup\n
+257
+66
+(Gen)Start Opgave 1
+setup\nsetup-1
 NIL
 1
 T
@@ -1173,45 +1241,28 @@ CHOOSER
 Jordtype
 Jordtype
 "Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
-5
-
-BUTTON
-125
-185
-265
-216
-Tilføj Nedbør
-start-rain
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+2
 
 SLIDER
-1820
-640
-2070
-673
+1080
+255
+1365
+288
 hav-niveau
 hav-niveau
 0
 12
-1.5
-.25
+1.4
+.1
 1
 m
 HORIZONTAL
 
 MONITOR
-665
-75
-720
-120
+660
+50
+715
+95
 Tid
 str-time
 17
@@ -1238,7 +1289,7 @@ mm-per-15-min
 mm-per-15-min
 0
 25
-6.0
+24.0
 .5
 1
 mm
@@ -1253,29 +1304,29 @@ nedbør-varighed
 nedbør-varighed
 0
 24
-1.5
+4.0
 .25
 1
 timer
 HORIZONTAL
 
 MONITOR
-610
-75
-665
-120
-Dag
-day
+535
+50
+660
+95
+Dag i Simulationen
+1 + round (ticks / (24 * 4))
 17
 1
 11
 
 BUTTON
-1190
-135
-1335
-190
-BYG EN HØJVANDSMUR
+1390
+210
+1655
+243
+Byg Mur
 build-wall
 T
 1
@@ -1288,10 +1339,10 @@ NIL
 1
 
 BUTTON
-620
-35
-710
-68
+615
+10
+705
+43
 Vis højdekort
 clear-drawing\nimport-drawing \"mf-heightline-ref-alpha55.png\"
 NIL
@@ -1305,10 +1356,10 @@ NIL
 1
 
 BUTTON
-715
-35
-795
-68
+710
+10
+790
+43
 Skjul kort
 clear-drawing
 NIL
@@ -1322,10 +1373,10 @@ NIL
 1
 
 BUTTON
-535
-35
-615
-68
+530
+10
+610
+43
 Vis bykort
 clear-drawing\nimport-drawing \"mf-map-kystfix-alpha55.png\"
 NIL
@@ -1339,26 +1390,26 @@ NIL
 1
 
 SLIDER
-1190
-95
-1335
-128
+1390
+130
+1655
+163
 mur-højde
 mur-højde
 0.5
 4
-4.0
+2.5
 0.5
 1
 m
 HORIZONTAL
 
 BUTTON
-1265
-195
-1335
+1520
 245
-Fjern alle
+1655
+278
+Fjern Alle Mure
 remove-all-walls
 NIL
 1
@@ -1371,10 +1422,10 @@ NIL
 1
 
 PLOT
-1820
-715
-2471
-945
+275
+460
+1075
+735
 Gennemsnitlig vandstand på land
 tid
 Gns Oversvømmelse (m)
@@ -1388,10 +1439,10 @@ true
 PENS
 
 BUTTON
-2130
-380
-2295
-413
+10
+655
+175
+688
 Vis oversvømmelse
 oversvøm
 T
@@ -1416,11 +1467,11 @@ vis-regn?
 -1000
 
 BUTTON
-1190
-195
-1260
+1390
 245
-Viskelæder
+1520
+278
+Fjern Mure
 erase-wall
 T
 1
@@ -1432,22 +1483,11 @@ NIL
 NIL
 1
 
-INPUTBOX
-1085
-95
-1185
-155
-Budget
-1000.0
-1
-0
-Number
-
 MONITOR
-1085
-155
-1185
-200
+1390
+165
+1470
+210
 Beløb brugt
 money-spent
 17
@@ -1455,59 +1495,32 @@ money-spent
 11
 
 MONITOR
-1085
-200
-1185
-245
+1470
+165
+1560
+210
 Beløb tilbage
 money-left
 17
 1
 11
 
-BUTTON
-15
-405
-265
-438
-Sæt hav-niveau / skab stormflod
-hæv-havet
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 TEXTBOX
-1155
-65
-1315
-85
-Højvandsmure
+1390
+70
+1550
+125
+Opg 3: Højvandsmure
 17
 0.0
 1
 
 TEXTBOX
-100
+75
 80
-195
-101
-Nedbør
-17
-0.0
-1
-
-TEXTBOX
-615
-10
-745
-31
-Visualisering
+220
+100
+Opg 1: Nedbør
 17
 0.0
 1
@@ -1533,42 +1546,32 @@ Hav-vandstand/stormflod
 1
 
 TEXTBOX
-1380
-720
-1695
-745
+1405
+495
+1650
+515
 Indbyggernes utilfredshed
 17
 0.0
 1
 
 TEXTBOX
-1940
-460
-2260
-481
-Kør automatisk nedbørs-periode
+1080
+95
+1400
+131
+Opg 2: Kør automatisk nedbørs-periode
 17
 0.0
 1
 
-CHOOSER
-1820
-535
-2115
-580
-periode
-periode
-"Maj 2010" "Maj 2021" "(indstil andre auto-perioder her)"
-2
-
 BUTTON
-1820
-675
-2320
-711
-Afspil periode med valgt hav-niveau (fjerner alt vand fra systemet først)
-run-period
+1080
+290
+1365
+360
+1. Sæt Periode
+run-period\nask patches [set water-level 0]\n
 NIL
 1
 T
@@ -1579,22 +1582,11 @@ NIL
 NIL
 1
 
-MONITOR
-1820
-485
-2475
-534
-NIL
-auto-interface
-17
-1
-12
-
 SLIDER
-2130
-415
-2295
-448
+10
+690
+175
+723
 hav-stigning
 hav-stigning
 0
@@ -1606,20 +1598,20 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-1820
-325
-2105
-361
+20
+565
+305
+601
 Hold musen over kortet for at tjekke terrænhøjde og vandstand forskellige steder.
 13
 0.0
 1
 
 MONITOR
-1820
-360
-2075
-405
+15
+470
+270
+515
  Type & højde
 patch-type-here
 17
@@ -1627,10 +1619,10 @@ patch-type-here
 11
 
 MONITOR
-1820
-405
-2075
-450
+15
+515
+270
+560
 Vandstand
 wl-here
 17
@@ -1638,30 +1630,20 @@ wl-here
 11
 
 TEXTBOX
-1880
-300
-2055
-321
+20
+445
+195
+466
 Tjek forhold
 17
 0.0
 1
 
-TEXTBOX
-2130
-330
-2320
-375
-Tjek først, at simulationen er pauset (START/STOP er ikke trykket ned).
-12
-0.0
-1
-
 MONITOR
-1535
-860
-1675
-905
+1400
+645
+1665
+690
 Samlet utilfredshed
 samlet-utilfredshed
 17
@@ -1669,24 +1651,24 @@ samlet-utilfredshed
 11
 
 TEXTBOX
-2150
-305
-2300
-326
+15
+630
+165
+651
 Oversvømmelse
 17
 0.0
 1
 
 SLIDER
-2120
-545
-2320
-578
+1080
+220
+1365
+253
 %-ekstra-regn
 %-ekstra-regn
 0
-100
+1000
 0.0
 5
 1
@@ -1701,19 +1683,19 @@ SLIDER
 hav-niveau
 hav-niveau
 0
-12
-1.5
-.25
+2.5
+1.4
+.1
 1
 m
 HORIZONTAL
 
 BUTTON
-1085
-250
-1220
-295
-NIL
+1390
+280
+1655
+321
+Opkræv Ekstra Skatter til Mur
 get-more-money
 NIL
 1
@@ -1726,21 +1708,21 @@ NIL
 1
 
 MONITOR
-1225
-250
-1335
-295
+1560
+165
+1655
+210
 NIL
-tax-money
-17
+skatte-penge
+0
 1
 11
 
 PLOT
-1270
-745
-1535
-905
+1400
+525
+1665
+650
 Indbyggernes utilfredshed
 tid
 utilfredshed
@@ -1754,64 +1736,32 @@ false
 PENS
 
 INPUTBOX
-2080
-610
-2210
-670
+1080
+160
+1210
+220
 fra-dato
-2021-05-02
+2020-06-04
 1
 0
 String
 
 INPUTBOX
-2215
-610
-2340
-670
+1215
+160
+1365
+220
 til-dato
-2021-05-17
+2020-06-05
 1
 0
 String
 
-TEXTBOX
-1900
-590
-2475
-621
-TIL ARTHUR til test: input i format YYYY-MM-DD (med bindestreger) (til-dato ikke inkluderet i perioden)
-12
-13.0
-1
-
 MONITOR
-2350
-625
-2507
-670
-NIL
-first table:keys auto-table
-17
-1
-11
-
-MONITOR
-2350
-670
-2505
-715
-NIL
-last table:keys auto-table
-17
-1
-11
-
-MONITOR
-2340
-440
-2397
-485
+1200
+435
+1257
+480
 NIL
 Måned
 17
@@ -1819,10 +1769,10 @@ Måned
 11
 
 MONITOR
-2395
-440
-2475
-485
+1255
+435
+1335
+480
 NIL
 År
 17
@@ -1849,6 +1799,133 @@ Vigtige pointer:\n1. Oversvømmelse på er ikke lineær med mængden af vand fra
 12
 0.0
 1
+
+BUTTON
+1080
+30
+1365
+63
+(Gen)Start Opgave 2
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1080
+360
+1365
+435
+2. Kør Periode
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+1145
+435
+1202
+480
+NIL
+str-day
+0
+1
+11
+
+TEXTBOX
+1120
+140
+1280
+158
+Datoformat: åååå-mm-dd
+12
+0.0
+1
+
+BUTTON
+1385
+30
+1655
+63
+(Gen)Start opgave 3
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+1395
+330
+1655
+363
+mm-per-15-min
+mm-per-15-min
+0
+25
+24.0
+.5
+1
+mm
+HORIZONTAL
+
+SLIDER
+1395
+365
+1655
+398
+nedbør-varighed
+nedbør-varighed
+0
+24
+4.0
+.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1395
+400
+1655
+433
+hav-niveau
+hav-niveau
+0
+2.5
+1.4
+.1
+1
+m
+HORIZONTAL
+
+CHOOSER
+1395
+435
+1655
+480
+Jordtype
+Jordtype
+"Groft sand" "Fint sand" "Fint jord" "Sandet ler" "Siltet ler" "Asfalt"
+2
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -2199,7 +2276,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
