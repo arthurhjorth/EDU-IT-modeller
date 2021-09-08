@@ -6,8 +6,16 @@ globals [
 
 
 to setup
-  clear-all
+   clear-all
 
+
+  if network-structures = "preferential attachment" [
+    nw:load-graphml "pref-net.graphml" ]
+    if network-structures = "small world" [
+    nw:load-graphml "smallworld.graphml" ]
+
+
+  reset-ticks
 
 end
 
@@ -32,8 +40,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -63,10 +71,10 @@ NIL
 1
 
 BUTTON
-114
-46
-195
-79
+110
+45
+191
+78
 go once
 go
 NIL
@@ -80,9 +88,9 @@ NIL
 1
 
 BUTTON
-39
+40
 85
-102
+103
 118
 NIL
 go
@@ -97,10 +105,10 @@ NIL
 1
 
 CHOOSER
-34
-146
-301
-191
+35
+135
+302
+180
 mechanisms-for-spreading
 mechanisms-for-spreading
 "% chance for each tick" "if more than 30% around me i adopt"
@@ -114,7 +122,7 @@ CHOOSER
 network-structures
 network-structures
 "lattice" "small world" "preferential attachment"
-0
+2
 
 PLOT
 983
@@ -157,9 +165,9 @@ local-conformity?
 
 CHOOSER
 930
-81
+75
 1182
-126
+120
 network-structures-for-competition
 network-structures-for-competition
 "question 1" "question 2" "question 3"
@@ -524,5 +532,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@
