@@ -1,4 +1,22 @@
+extensions [ nw ]
 
+globals [
+
+]
+
+
+to setup
+  clear-all
+
+
+end
+
+
+to go
+
+
+  tick
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 374
@@ -49,8 +67,8 @@ BUTTON
 46
 195
 79
-NIL
 go once
+go
 NIL
 1
 T
@@ -77,6 +95,75 @@ NIL
 NIL
 NIL
 1
+
+CHOOSER
+34
+146
+301
+191
+mechanisms-for-spreading
+mechanisms-for-spreading
+"% chance for each tick" "if more than 30% around me i adopt"
+0
+
+CHOOSER
+930
+24
+1123
+69
+network-structures
+network-structures
+"lattice" "small world" "preferential attachment"
+0
+
+PLOT
+983
+293
+1183
+443
+plot
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+TEXTBOX
+162
+300
+309
+411
+visualisering:\n\n- hvornår en node tog innovation til sig\n\n- i interface: hvor mange gange hørt/ taget til sig\n
+11
+0.0
+1
+
+SWITCH
+21
+453
+218
+486
+local-conformity?
+local-conformity?
+1
+1
+-1000
+
+CHOOSER
+930
+81
+1182
+126
+network-structures-for-competition
+network-structures-for-competition
+"question 1" "question 2" "question 3"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
