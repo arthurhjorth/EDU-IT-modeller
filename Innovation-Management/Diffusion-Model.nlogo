@@ -4,15 +4,23 @@ globals [
 
 ]
 
+turtles-own [
+first-exposed
+first-adopted
+
+times-exposed
+times-adopted
+times-dropped
+
+adopted?
+
+]
 
 to setup
    clear-all
 
-
-  if network-structures = "preferential attachment" [
-    nw:load-graphml "pref-net.graphml" ]
-    if network-structures = "small world" [
-    nw:load-graphml "smallworld.graphml" ]
+  import-network-structure
+  setup-turtles
 
 
   reset-ticks
@@ -23,8 +31,81 @@ end
 to go
 
 
+spread
+
   tick
+  if ticks = stop-at-tick [stop]
+
 end
+
+
+to import-network-structure
+
+  if network-structures = "preferential attachment" [
+    nw:load-graphml "pref-net.graphml" ]
+    if network-structures = "small world" [
+    nw:load-graphml "smallworld.graphml" ]
+
+end
+
+
+to setup-turtles
+
+  ask turtles [
+  set adopted? false
+    set color green
+  ]
+
+  if activate-turtle1? [
+    ask turtle 1 [
+      set adopted? true
+      set color red
+    ]
+  ]
+
+end
+
+
+
+to recolor
+  ask turtles [
+  if adopted? [set color red]
+  ]
+end
+
+to spread
+  if mechanism-for-spreading = "% chance for each tick" [
+    ask turtles with [adopted?] [
+      ask link-neighbors [
+
+        if random-float 100 < probability-of-transfer [
+
+          set adopted? true
+          set color red]
+      ]
+    ]
+
+  ]
+
+
+  if mechanism-for-spreading = "if more than x% around me i adopt" [
+;    ask turtles with [ adopted? = false ] [
+;
+;      let percentage-neighbors-adopted ( count link-neighbors with [ adopted? ] / count link-neighbors ) * 100
+;
+;      if percentage-neighbors-adopted > conformity-before-transfer [
+;        set adopted? true
+;        set color red]
+;
+;    ]
+
+    ]
+
+
+
+end
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 374
@@ -106,13 +187,13 @@ NIL
 
 CHOOSER
 35
-135
+175
 302
-180
-mechanisms-for-spreading
-mechanisms-for-spreading
-"% chance for each tick" "if more than 30% around me i adopt"
-0
+220
+mechanism-for-spreading
+mechanism-for-spreading
+"% chance for each tick" "if more than x% around me i adopt"
+1
 
 CHOOSER
 930
@@ -129,7 +210,7 @@ PLOT
 293
 1183
 443
-plot
+plot, quantity adopted
 NIL
 NIL
 0.0
@@ -143,10 +224,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
 
 TEXTBOX
-162
-300
-309
-411
+220
+325
+367
+436
 visualisering:\n\n- hvornår en node tog innovation til sig\n\n- i interface: hvor mange gange hørt/ taget til sig\n
 11
 0.0
@@ -157,8 +238,8 @@ SWITCH
 453
 218
 486
-local-conformity?
-local-conformity?
+drop-out?
+drop-out?
 1
 1
 -1000
@@ -172,6 +253,105 @@ network-structures-for-competition
 network-structures-for-competition
 "question 1" "question 2" "question 3"
 0
+
+SLIDER
+40
+225
+247
+258
+probability-of-transfer
+probability-of-transfer
+0
+100
+10.0
+1
+1
+%
+HORIZONTAL
+
+SLIDER
+40
+265
+272
+298
+conformity-before-transfer
+conformity-before-transfer
+0
+100
+21.0
+1
+1
+%
+HORIZONTAL
+
+SLIDER
+20
+490
+212
+523
+%-conformity-dropout
+%-conformity-dropout
+0
+100
+30.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+20
+530
+207
+563
+ticks-before-dropout
+ticks-before-dropout
+0
+10
+5.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+40
+125
+237
+158
+NIL
+plant-innovation-w-mouse
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+INPUTBOX
+605
+580
+752
+640
+stop-at-tick
+20.0
+1
+0
+Number
+
+SWITCH
+940
+180
+1097
+213
+activate-turtle1?
+activate-turtle1?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
