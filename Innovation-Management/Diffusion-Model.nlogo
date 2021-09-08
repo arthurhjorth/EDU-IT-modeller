@@ -89,22 +89,14 @@ to spread
 
 
   if mechanism-for-spreading = "if more than x% around me i adopt" [
-;    ask turtles with [ adopted? = false ] [
-;
-;      let percentage-neighbors-adopted ( count link-neighbors with [ adopted? ] / count link-neighbors ) * 100
-;
-;      if percentage-neighbors-adopted > conformity-before-transfer [
-;        set adopted? true
-;        set color red]
-;
-;    ]
+
+
 
     ]
 
 
 
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
