@@ -104,8 +104,20 @@ to spread
       ]
     ]
   ]
+end
 
 
+to plant-innovation-w-mouse
+  if mouse-down? [
+    ask patch mouse-xcor mouse-ycor [
+      if any? turtles-here [
+        ask one-of turtles-here [
+          set adopted? true
+          set color red
+        ]
+      ]
+    ]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -204,7 +216,7 @@ CHOOSER
 network-structures
 network-structures
 "lattice" "small world" "preferential attachment"
-2
+1
 
 PLOT
 983
