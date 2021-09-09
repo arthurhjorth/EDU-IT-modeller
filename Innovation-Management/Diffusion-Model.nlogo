@@ -14,6 +14,8 @@ times-dropped
 
 adopted?
 
+percentage-links-adopted
+
 ]
 
 to setup
@@ -90,14 +92,21 @@ to spread
 
   if mechanism-for-spreading = "if more than x% around me i adopt" [
 
-
-
+    ask turtles [
+      let links-adopted ( count in-link-neighbors with [adopted?] )
+      set percentage-links-adopted ( links-adopted / ( count in-link-neighbors ) * 100  ) ;first, all turtles update this variable
     ]
 
+    ask turtles [
+      if percentage-links-adopted > conformity-before-transfer [
+        set adopted? true
+        set color red
+      ]
+    ]
+  ]
 
 
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 374
@@ -270,7 +279,7 @@ conformity-before-transfer
 conformity-before-transfer
 0
 100
-21.0
+15.0
 1
 1
 %
