@@ -25,6 +25,7 @@ to setup
   setup-turtles
 
 
+  initiate-quantity-adopted-plot
   reset-ticks
 
 end
@@ -37,6 +38,7 @@ spread
 
   tick
   if ticks = stop-at-tick [stop]
+  update-quantity-adopted-plot
 
 end
 
@@ -47,6 +49,8 @@ to import-network-structure
     nw:load-graphml "pref-net.graphml" ]
     if network-structures = "small world" [
     nw:load-graphml "smallworld.graphml" ]
+  if network-structures = "lattice" [
+  nw:load-graphml "lattice.graphml" ]
 
 end
 
@@ -119,6 +123,29 @@ to plant-innovation-w-mouse
     ]
   ]
 end
+
+to  initiate-quantity-adopted-plot
+  set-current-plot "plot, quantity adopted"
+   set-plot-y-range 0 100
+
+
+  create-temporary-plot-pen "% adopted"
+    set-plot-pen-color black
+end
+
+
+to update-quantity-adopted-plot
+set-current-plot "plot, quantity adopted"
+  set-current-plot-pen "% adopted"
+  set-plot-pen-mode 0
+  plotxy ticks quantity-adopted
+  end
+
+to-report quantity-adopted
+report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
+end
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 374
@@ -206,7 +233,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "% chance for each tick" "if more than x% around me i adopt"
-1
+0
 
 CHOOSER
 930
@@ -219,22 +246,21 @@ network-structures
 1
 
 PLOT
-983
-293
-1183
-443
+925
+340
+1295
+550
 plot, quantity adopted
-NIL
-NIL
+tick/ time
+%
 0.0
 10.0
 0.0
-10.0
+100.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 TEXTBOX
 220
