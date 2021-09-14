@@ -14,16 +14,23 @@ times-dropped
 
 adopted?
 
-percentage-links-adopted
+initial-round-percentage-contacts-adopted
 
 ]
 
 to setup
-   clear-all
+  clear-all
 
   import-network-structure
-  setup-turtles
+  ask turtles [setup-turtles]
 
+  ;potentially 'infect' an initial turtle:
+  if activate-turtle1? [
+    ask turtle 1 [
+      set adopted? true
+      recolor
+    ]
+  ]
 
   initiate-quantity-adopted-plot
   reset-ticks
@@ -32,85 +39,73 @@ end
 
 
 to go
-if ticks = stop-at-tick [stop]
+  if ticks = stop-at-tick [stop]
 
-spread
+  spread ;spread the innovation
 
 
+  ask turtles [
+    if drop-out? [consider-drop-out]
+    recolor
+
+  ] ;turtles recolor based on whether or not they have the innovation
 
   update-quantity-adopted-plot
   tick
-
 end
 
 
 to import-network-structure
-
   if network-structures = "preferential attachment" [
     nw:load-graphml "pref-net.graphml" ]
-    if network-structures = "small world" [
+  if network-structures = "small world" [
     nw:load-graphml "smallworld.graphml" ]
   if network-structures = "lattice" [
   nw:load-graphml "lattice.graphml" ]
-
 end
 
 
-to setup-turtles
-
-  ask turtles [
+to setup-turtles ;turtle procedure. Run in setup (can also use it later if new turtles join)
   set adopted? false
-    set color green
-  ]
-
-  ;split up. transfer ask turtles to setup. setup turtle for one individual at a time. same for recolor
-
-  if activate-turtle1? [
-    ask turtle 1 [
-      set adopted? true
-      set color red
-    ]
-  ]
-
+  recolor
 end
 
 
+to recolor ;turtle procedure, run in go
+  ifelse adopted?
+    [set color red]
+    [set color green]
 
-to recolor
-  ask turtles [
-  if adopted? [set color red]
-  ]
+
+  ;can add other color/label variables here
 end
 
-to spread
+to spread ;run in go
+
   if mechanism-for-spreading = "% chance for each tick" [
-    ask turtles with [adopted?] [
+    ask adopters [
       ask link-neighbors [
-
         if random-float 100 < probability-of-transfer [
-
-          set adopted? true
-          set color red]
+          set adopted? true ;the probability lies with the receiver
+        ]
       ]
     ]
-
   ]
-
 
   if mechanism-for-spreading = "if more than x% around me i adopt" [
+    ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' tallet her, så det ikke bliver påvirkert, når andre begynder at skifte
 
     ask turtles [
-      let links-adopted ( count in-link-neighbors with [adopted?] )
-      set percentage-links-adopted ( links-adopted / ( count in-link-neighbors ) * 100  ) ;first, all turtles update this variable
-    ]
-
-    ask turtles [
-      if percentage-links-adopted > conformity-before-transfer [
+      if initial-round-percentage-contacts-adopted > conformity-before-transfer [
         set adopted? true
-        set color red
       ]
     ]
   ]
+end
+
+to consider-drop-out
+  ;SAVE IT FIRST (BEFORE ANYONE DOES ANYTHING)
+  ;less-than-this-innovator-links-and-i-drop-out
 end
 
 
@@ -138,22 +133,53 @@ end
 
 
 to update-quantity-adopted-plot
-set-current-plot "plot, quantity adopted"
+  set-current-plot "plot, quantity adopted"
   set-current-plot-pen "% adopted"
   set-plot-pen-mode 0
   plotxy ticks quantity-adopted
-  end
+end
+
+to update-visualisation ;button in interface
+  ;
+
+
+end
+
+
+;USEFUL REPORTERS
 
 to-report quantity-adopted
-report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
+  report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
 end
+
+to-report adopters ;just makes code more readable, instead of writing 'turtles with [adopted?]' every time
+  report turtles with [adopted?]
+end
+
+to-report contacts-adopted ;turtle reporter
+  report ( count in-link-neighbors with [adopted?] )
+end
+
+to-report percentage-contacts-adopted ;turtle reporter
+  report ( contacts-adopted / ( count in-link-neighbors ) * 100  )
+end
+
+
+
+
+
+
+
+
+
+
 
 @#$#@#$#@
 GRAPHICS-WINDOW
-374
-18
-912
-557
+360
+15
+898
+554
 -1
 -1
 16.061
@@ -177,10 +203,10 @@ ticks
 30.0
 
 BUTTON
-38
-45
-104
-78
+20
+70
+86
+103
 NIL
 setup
 NIL
@@ -194,10 +220,10 @@ NIL
 1
 
 BUTTON
-110
-45
-191
-78
+92
+70
+173
+103
 go once
 go
 NIL
@@ -211,10 +237,10 @@ NIL
 1
 
 BUTTON
-40
-85
+180
+70
+243
 103
-118
 NIL
 go
 T
@@ -228,9 +254,9 @@ NIL
 1
 
 CHOOSER
-35
+25
 175
-302
+292
 220
 mechanism-for-spreading
 mechanism-for-spreading
@@ -238,20 +264,20 @@ mechanism-for-spreading
 1
 
 CHOOSER
-930
-24
-1123
-69
+15
+15
+208
+60
 network-structures
 network-structures
 "lattice" "small world" "preferential attachment"
-2
+1
 
 PLOT
-925
-340
-1295
-550
+910
+345
+1280
+555
 plot, quantity adopted
 tick/ time
 %
@@ -265,20 +291,20 @@ false
 PENS
 
 TEXTBOX
-220
-325
-367
-436
+1070
+165
+1217
+276
 visualisering:\n\n- hvornår en node tog innovation til sig\n\n- i interface: hvor mange gange hørt/ taget til sig\n
 11
 0.0
 1
 
 SWITCH
-21
-453
-218
-486
+10
+395
+207
+428
 drop-out?
 drop-out?
 1
@@ -286,19 +312,19 @@ drop-out?
 -1000
 
 CHOOSER
-930
-75
-1182
-120
+915
+25
+1167
+70
 network-structures-for-competition
 network-structures-for-competition
 "question 1" "question 2" "question 3"
 0
 
 SLIDER
-40
+25
 225
-247
+290
 258
 probability-of-transfer
 probability-of-transfer
@@ -311,55 +337,40 @@ probability-of-transfer
 HORIZONTAL
 
 SLIDER
-40
+25
 265
-272
+290
 298
 conformity-before-transfer
 conformity-before-transfer
 0
 100
-15.0
+18.0
 1
 1
 %
 HORIZONTAL
 
 SLIDER
-20
-490
-212
-523
-%-conformity-dropout
-%-conformity-dropout
+9
+447
+316
+480
+less-than-this-innovator-links-and-i-drop-out
+less-than-this-innovator-links-and-i-drop-out
 0
 100
-30.0
+59.0
 1
 1
-NIL
-HORIZONTAL
-
-SLIDER
-20
-530
-207
-563
-ticks-before-dropout
-ticks-before-dropout
-0
-10
-5.0
-1
-1
-NIL
+%
 HORIZONTAL
 
 BUTTON
-40
-125
-237
-158
+25
+115
+222
+148
 NIL
 plant-innovation-w-mouse
 T
@@ -373,33 +384,80 @@ NIL
 1
 
 INPUTBOX
-605
-580
-752
-640
+270
+75
+340
+135
 stop-at-tick
-30.0
+3000.0
 1
 0
 Number
 
 SWITCH
-940
-180
-1097
-213
+220
+15
+355
+48
 activate-turtle1?
 activate-turtle1?
-0
+1
 1
 -1000
 
 TEXTBOX
-240
-460
-390
-516
+220
+380
+355
+436
 2 versioner af drop-out\n\nmed og uden sandsynlighed
+11
+0.0
+1
+
+CHOOSER
+920
+160
+1062
+205
+color-by-this
+color-by-this
+"when adopted" "nr of times heard" "..."
+0
+
+BUTTON
+920
+210
+1062
+243
+NIL
+update-visualisation
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+159
+512
+309
+553
+evt 'hvis nabo-innovators er under %, er der x% risiko for at jeg dropper den'
+11
+0.0
+1
+
+TEXTBOX
+25
+305
+260
+346
+tydeliggør hvilke sliders der hører til hvilken mechanism! (og bedre navne!)
 11
 0.0
 1
