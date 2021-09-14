@@ -28,8 +28,7 @@ to setup
   ;potentially 'infect' an initial turtle:
   if activate-turtle1? [
     ask turtle 1 [
-      set adopted? true
-      recolor
+      adopt
     ]
   ]
 
@@ -55,19 +54,32 @@ to go
   tick
 end
 
+to adopt ;turtle procedure, run when the innovation is adopted
+  set adopted? true
 
-to import-network-structure
-  if network-structures = "preferential attachment" [
-    nw:load-graphml "pref-net.graphml" ]
-  if network-structures = "small world" [
-    nw:load-graphml "smallworld.graphml" ]
-  if network-structures = "lattice" [
-  nw:load-graphml "lattice.graphml" ]
+  ;; If RESET-TICKS hasn't been called, we need to set FIRST-HEARD to 0. Unfortunately,
+  ;; the only way to know if RESET-TICKS hasn't been called yet is to try to get the TICKS
+  ;; and catch the ensuing error. On normal ticks, we use TICKS + 1 because that's going
+  ;; to be the tick on which this turtle will be included in statistics:
+  if first-adopted < 0 [
+    carefully [
+      set first-adopted ticks + 1
+    ] [
+      set first-adopted 0
+    ]
+  ]
+  ;first-adopted = the tick at which they (most recently, if they've dropped and re-adopted) adopted the innovation
+
+  recolor
 end
+
 
 
 to setup-turtles ;turtle procedure. Run in setup (can also use it later if new turtles join)
   set adopted? false
+  set first-adopted -1 ;to avoid tick issues, see explanation in rumor mill model
+
+
   recolor
 end
 
@@ -81,13 +93,27 @@ to recolor ;turtle procedure, run in go
   ;can add other color/label variables here
 end
 
+to color-when-adopted ;turtle procedure
+  ifelse adopted? [
+    let nice-upper-value (max [first-adopted] of turtles) + 1 ;makes sure range1 for scale-color is always a nice value, no matter the network
+    set color scale-color yellow first-adopted nice-upper-value 0
+  ]
+  [
+    set color white
+  ]
+
+  ;the tick at which they (most recently) adopted the innovation
+  ;@consider: what about dropout? do we instead wanna visualise when they first got it?
+end
+
+
 to spread ;run in go
 
   if mechanism-for-spreading = "% chance for each tick" [
     ask adopters [
       ask link-neighbors [
         if random-float 100 < probability-of-transfer [
-          set adopted? true ;the probability lies with the receiver
+          adopt ;the probability lies with the receiver
         ]
       ]
     ]
@@ -98,7 +124,7 @@ to spread ;run in go
 
     ask turtles [
       if initial-round-percentage-contacts-adopted > conformity-before-transfer [
-        set adopted? true
+        adopt
       ]
     ]
   ]
@@ -113,11 +139,9 @@ to  initiate-quantity-adopted-plot
   set-current-plot "plot, quantity adopted"
    set-plot-y-range 0 100
 
-
   create-temporary-plot-pen "% adopted"
     set-plot-pen-color black
 end
-
 
 to update-quantity-adopted-plot
   set-current-plot "plot, quantity adopted"
@@ -126,25 +150,13 @@ to update-quantity-adopted-plot
   plotxy ticks quantity-adopted
 end
 
-to update-visualisation ;button in interface
-  ;
-
-
-end
-
-
-to-report mouse-clicked?
-  report (mouse-was-down? = true and not mouse-down?)
-end
-
 to plant-innovation
   let mouse-is-down? mouse-down?
   if mouse-clicked? [
     ask patch mouse-xcor mouse-ycor [
       if any? turtles-here [
         ask one-of turtles-here [
-          set adopted? true
-          recolor
+          adopt
         ]
       ]
     ]
@@ -154,7 +166,6 @@ to plant-innovation
 end
 
 ;---REPORTERS
-
 to-report quantity-adopted
   report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
 end
@@ -171,7 +182,19 @@ to-report percentage-contacts-adopted ;turtle reporter
   report ( contacts-adopted / ( count in-link-neighbors ) * 100  )
 end
 
+to-report mouse-clicked? ;used for plant-innovation
+  report (mouse-was-down? = true and not mouse-down?)
+end
 
+;---IMPORT NETWORKS
+to import-network-structure
+  if network-structures = "preferential attachment" [
+    nw:load-graphml "pref-net.graphml" ]
+  if network-structures = "small world" [
+    nw:load-graphml "smallworld.graphml" ]
+  if network-structures = "lattice" [
+  nw:load-graphml "lattice.graphml" ]
+end
 
 
 
@@ -297,11 +320,11 @@ false
 PENS
 
 TEXTBOX
-1070
-165
-1217
-276
-visualisering:\n\n- hvornår en node tog innovation til sig\n\n- i interface: hvor mange gange hørt/ taget til sig\n
+1135
+115
+1255
+241
+visualisering:\n\n- hvornår en node tog innovation til sig (TJEK)\n\n- i interface: hvor mange gange hørt/ taget til sig (MANGLER - stadig relevant?)\n
 11
 0.0
 1
@@ -390,7 +413,7 @@ SWITCH
 53
 activate-turtle1?
 activate-turtle1?
-0
+1
 1
 -1000
 
@@ -405,31 +428,14 @@ TEXTBOX
 1
 
 CHOOSER
-920
-160
-1062
-205
+1270
+135
+1412
+180
 color-by-this
 color-by-this
 "when adopted" "nr of times heard" "..."
 0
-
-BUTTON
-920
-210
-1062
-243
-NIL
-update-visualisation
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 TEXTBOX
 60
@@ -459,6 +465,40 @@ BUTTON
 NIL
 plant-innovation
 T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+910
+195
+1100
+228
+NIL
+ask turtles [ color-when-adopted ]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+910
+155
+1100
+188
+NIL
+ask turtles [recolor]
+NIL
 1
 T
 OBSERVER
