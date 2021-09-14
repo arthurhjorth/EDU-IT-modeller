@@ -32,13 +32,14 @@ end
 
 
 to go
-
+if ticks = stop-at-tick [stop]
 
 spread
 
-  tick
-  if ticks = stop-at-tick [stop]
+
+
   update-quantity-adopted-plot
+  tick
 
 end
 
@@ -61,6 +62,8 @@ to setup-turtles
   set adopted? false
     set color green
   ]
+
+  ;split up. transfer ask turtles to setup. setup turtle for one individual at a time. same for recolor
 
   if activate-turtle1? [
     ask turtle 1 [
@@ -144,7 +147,6 @@ set-current-plot "plot, quantity adopted"
 to-report quantity-adopted
 report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -233,7 +235,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "% chance for each tick" "if more than x% around me i adopt"
-0
+1
 
 CHOOSER
 930
@@ -243,7 +245,7 @@ CHOOSER
 network-structures
 network-structures
 "lattice" "small world" "preferential attachment"
-1
+2
 
 PLOT
 925
@@ -376,7 +378,7 @@ INPUTBOX
 752
 640
 stop-at-tick
-20.0
+30.0
 1
 0
 Number
@@ -391,6 +393,16 @@ activate-turtle1?
 0
 1
 -1000
+
+TEXTBOX
+240
+460
+390
+516
+2 versioner af drop-out\n\nmed og uden sandsynlighed
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
