@@ -1,6 +1,7 @@
 extensions [ nw ]
 
 globals [
+  mouse-was-down?
 
 ]
 
@@ -73,8 +74,8 @@ end
 
 to recolor ;turtle procedure, run in go
   ifelse adopted?
-    [set color red]
     [set color green]
+    [set color white]
 
 
   ;can add other color/label variables here
@@ -108,20 +109,6 @@ to consider-drop-out
   ;less-than-this-innovator-links-and-i-drop-out
 end
 
-
-to plant-innovation-w-mouse
-  if mouse-down? [
-    ask patch mouse-xcor mouse-ycor [
-      if any? turtles-here [
-        ask one-of turtles-here [
-          set adopted? true
-          set color red
-        ]
-      ]
-    ]
-  ]
-end
-
 to  initiate-quantity-adopted-plot
   set-current-plot "plot, quantity adopted"
    set-plot-y-range 0 100
@@ -146,7 +133,27 @@ to update-visualisation ;button in interface
 end
 
 
-;USEFUL REPORTERS
+to-report mouse-clicked?
+  report (mouse-was-down? = true and not mouse-down?)
+end
+
+to plant-innovation
+  let mouse-is-down? mouse-down?
+  if mouse-clicked? [
+    ask patch mouse-xcor mouse-ycor [
+      if any? turtles-here [
+        ask one-of turtles-here [
+          set adopted? true
+          recolor
+        ]
+      ]
+    ]
+    ; Other procedures that should be run on mouse-click
+  ]
+  set mouse-was-down? mouse-is-down?
+end
+
+;---REPORTERS
 
 to-report quantity-adopted
   report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
@@ -173,16 +180,15 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 360
 15
-898
-554
+899
+555
 -1
 -1
-16.061
+16.1
 1
 10
 1
@@ -261,7 +267,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "% chance for each tick" "if more than x% around me i adopt"
-1
+0
 
 CHOOSER
 15
@@ -271,7 +277,7 @@ CHOOSER
 network-structures
 network-structures
 "lattice" "small world" "preferential attachment"
-1
+0
 
 PLOT
 910
@@ -330,7 +336,7 @@ probability-of-transfer
 probability-of-transfer
 0
 100
-10.0
+100.0
 1
 1
 %
@@ -345,17 +351,17 @@ conformity-before-transfer
 conformity-before-transfer
 0
 100
-18.0
+50.0
 1
 1
 %
 HORIZONTAL
 
 SLIDER
-9
-447
-316
-480
+10
+435
+317
+468
 less-than-this-innovator-links-and-i-drop-out
 less-than-this-innovator-links-and-i-drop-out
 0
@@ -366,42 +372,25 @@ less-than-this-innovator-links-and-i-drop-out
 %
 HORIZONTAL
 
-BUTTON
-25
-115
-222
-148
-NIL
-plant-innovation-w-mouse
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 INPUTBOX
-270
-75
-340
-135
+280
+70
+350
+130
 stop-at-tick
-3000.0
+50000.0
 1
 0
 Number
 
 SWITCH
-220
-15
-355
-48
+215
+20
+350
+53
 activate-turtle1?
 activate-turtle1?
-1
+0
 1
 -1000
 
@@ -443,10 +432,10 @@ NIL
 1
 
 TEXTBOX
-159
-512
-309
-553
+60
+470
+305
+511
 evt 'hvis nabo-innovators er under %, er der x% risiko for at jeg dropper den'
 11
 0.0
@@ -460,6 +449,23 @@ TEXTBOX
 tydeliggør hvilke sliders der hører til hvilken mechanism! (og bedre navne!)
 11
 0.0
+1
+
+BUTTON
+20
+115
+137
+148
+NIL
+plant-innovation
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
