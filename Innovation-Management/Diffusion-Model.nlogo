@@ -130,22 +130,34 @@ to spread ;run in go
   ]
 end
 
-to consider-drop-out
+to consider-drop-out ; ask agents in to-go
 
   if drop-out-options = "drop out if lower than threshold" [
-    ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ]
-    ask turtles [
-      if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
+    set initial-round-percentage-contacts-adopted percentage-contacts-adopted
+
+    if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
+      if adopted? = "true" [set times-dropped ( times-dropped + 1 ) ]
       set adopted? false
       ;times-dropped lacking @
       ]
+
       ]
-
-
-  ]
 
   ;SAVE IT FIRST (BEFORE ANYONE DOES ANYTHING)
   ;less-than-this-innovator-links-and-i-drop-out
+
+  if drop-out-options = "percentage chance for dropping out" [
+
+    set initial-round-percentage-contacts-adopted percentage-contacts-adopted
+
+
+    if random-float 100 > initial-round-percentage-contacts-adopted [
+      if adopted? = "true" [set times-dropped (times-dropped + 1 ) ]
+      set adopted? false
+    ]
+
+  ]
+
 end
 
 to  initiate-quantity-adopted-plot
@@ -371,7 +383,7 @@ probability-of-transfer
 probability-of-transfer
 0
 100
-70.0
+100.0
 1
 1
 %
@@ -401,7 +413,7 @@ amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
 100
-16.0
+15.0
 1
 1
 %
@@ -528,7 +540,7 @@ CHOOSER
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
-0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
