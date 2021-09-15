@@ -134,7 +134,6 @@ to consider-drop-out ; ask agents in to-go
 
   if drop-out-options = "drop out if lower than threshold" [
     set initial-round-percentage-contacts-adopted percentage-contacts-adopted
-
     if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
       if adopted? = "true" [set times-dropped ( times-dropped + 1 ) ]
       set adopted? false
@@ -143,21 +142,14 @@ to consider-drop-out ; ask agents in to-go
 
       ]
 
-  ;SAVE IT FIRST (BEFORE ANYONE DOES ANYTHING)
-  ;less-than-this-innovator-links-and-i-drop-out
-
   if drop-out-options = "percentage chance for dropping out" [
-
     set initial-round-percentage-contacts-adopted percentage-contacts-adopted
-
-
     if random-float 100 > initial-round-percentage-contacts-adopted [
       if adopted? = "true" [set times-dropped (times-dropped + 1 ) ]
       set adopted? false
     ]
 
-  ]
-
+    ]
 end
 
 to  initiate-quantity-adopted-plot
