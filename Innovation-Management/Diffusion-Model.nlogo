@@ -120,7 +120,7 @@ to spread ;run in go
   ]
 
   if mechanism-for-spreading = "if more than x% around me i adopt" [
-    ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' tallet her, så det ikke bliver påvirkert, når andre begynder at skifte
+    ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
 
     ask turtles [
       if initial-round-percentage-contacts-adopted > conformity-before-transfer [
@@ -131,6 +131,19 @@ to spread ;run in go
 end
 
 to consider-drop-out
+
+  if drop-out-options = "drop out if lower than threshold" [
+    ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ]
+    ask turtles [
+      if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
+      set adopted? false
+      ;times-dropped lacking @
+      ]
+      ]
+
+
+  ]
+
   ;SAVE IT FIRST (BEFORE ANYONE DOES ANYTHING)
   ;less-than-this-innovator-links-and-i-drop-out
 end
@@ -195,7 +208,6 @@ to import-network-structure
   if network-structures = "lattice" [
   nw:load-graphml "lattice.graphml" ]
 end
-
 
 
 
@@ -300,7 +312,7 @@ CHOOSER
 network-structures
 network-structures
 "lattice" "small world" "preferential attachment"
-0
+2
 
 PLOT
 910
@@ -331,12 +343,12 @@ visualisering:\n\n- hvornår en node tog innovation til sig (TJEK)\n\n- i interf
 
 SWITCH
 10
-395
+440
 207
-428
+473
 drop-out?
 drop-out?
-1
+0
 1
 -1000
 
@@ -359,7 +371,7 @@ probability-of-transfer
 probability-of-transfer
 0
 100
-100.0
+70.0
 1
 1
 %
@@ -382,14 +394,14 @@ HORIZONTAL
 
 SLIDER
 10
-435
-317
-468
-less-than-this-innovator-links-and-i-drop-out
-less-than-this-innovator-links-and-i-drop-out
+480
+360
+513
+amount-of-neighbours-drop-out-threshold
+amount-of-neighbours-drop-out-threshold
 0
 100
-59.0
+16.0
 1
 1
 %
@@ -418,9 +430,9 @@ activate-turtle1?
 -1000
 
 TEXTBOX
-220
+215
 380
-355
+350
 436
 2 versioner af drop-out\n\nmed og uden sandsynlighed
 11
@@ -439,10 +451,10 @@ color-by-this
 
 TEXTBOX
 60
-470
+515
 305
-511
-evt 'hvis nabo-innovators er under %, er der x% risiko for at jeg dropper den'
+556
+evt 'hvis nabo-innovators er under %, dropper jeg innovationen
 11
 0.0
 1
@@ -507,6 +519,16 @@ NIL
 NIL
 NIL
 1
+
+CHOOSER
+10
+390
+205
+435
+drop-out-options
+drop-out-options
+"drop out if lower than threshold" "percentage chance for dropping out"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
