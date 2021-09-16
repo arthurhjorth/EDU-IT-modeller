@@ -201,14 +201,27 @@ end
 
 ;---IMPORT NETWORKS
 to import-network-structure
-  if network-structures = "preferential attachment" [
+  if network-structures = "preferential attachment (100)" [
     nw:load-graphml "pref-net.graphml" ]
-  if network-structures = "small world" [
-    nw:load-graphml "smallworld.graphml" ]
-  if network-structures = "lattice" [
-  nw:load-graphml "lattice.graphml" ]
-end
 
+
+   if network-structures = "preferential attachment (196)" [
+    nw:load-graphml "pref-net196_4links.graphml" ]
+
+
+  if network-structures = "small world (100)" [
+    nw:load-graphml "smallworld.graphml" ]
+
+   if network-structures = "small world (196)" [
+    nw:load-graphml "smallworld196_4links.graphml" ]
+
+  if network-structures = "lattice (100)" [
+  nw:load-graphml "lattice.graphml" ]
+
+
+  if network-structures = "lattice (196)" [
+  nw:load-graphml "lattice196_4links.graphml" ]
+end
 
 
 
@@ -306,12 +319,12 @@ mechanism-for-spreading
 CHOOSER
 15
 15
-208
+205
 60
 network-structures
 network-structures
-"lattice" "small world" "preferential attachment"
-2
+"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)"
+5
 
 PLOT
 910
