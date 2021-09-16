@@ -5,7 +5,10 @@ globals [
 
 ]
 
-turtles-own [
+breed [nodes node] ;a breed so we can layer the banner labels on top
+breed [banners banner] ;used for label positioning
+
+nodes-own [
 first-exposed
 first-adopted
 
@@ -19,22 +22,22 @@ initial-round-percentage-contacts-adopted
 
 ]
 
+
 to setup
   clear-all
 
   import-network-structure
-  ask turtles [setup-turtles]
+  ask nodes [setup-nodes]
 
-  ;potentially 'infect' an initial turtle:
-  if activate-turtle1? [
-    ask turtle 1 [
-      adopt
-    ]
+  ;potentially 'infect' an initial node:
+  if activate-initial-adopter? [
+    ask one-of nodes [adopt]
   ]
 
-  initiate-quantity-adopted-plot
-  reset-ticks
 
+  reset-ticks
+  initiate-quantity-adopted-plot
+  update-quantity-adopted-plot
 end
 
 
@@ -43,24 +46,24 @@ to go
 
   spread ;spread the innovation
 
-  ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
-  ask turtles [
-    if drop-out? and adopted? [consider-drop-out] ;adopted is turtle variable, so only run by adopters
-    recolor
+  ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
+  ask nodes [
+    if drop-out? and adopted? [consider-drop-out] ;adopted is node variable, so only run by adopters
+    recolor ;nodes recolor based on whether or not they have the innovation
 
-  ] ;turtles recolor based on whether or not they have the innovation
+  ]
 
   update-quantity-adopted-plot
   tick
 end
 
-to adopt ;turtle procedure, run when the innovation is adopted
+to adopt ;node procedure, run when the innovation is adopted
   set adopted? true
 
   ;; If RESET-TICKS hasn't been called, we need to set FIRST-HEARD to 0. Unfortunately,
   ;; the only way to know if RESET-TICKS hasn't been called yet is to try to get the TICKS
   ;; and catch the ensuing error. On normal ticks, we use TICKS + 1 because that's going
-  ;; to be the tick on which this turtle will be included in statistics:
+  ;; to be the tick on which this node will be included in statistics:
   if first-adopted < 0 [
     carefully [
       set first-adopted ticks + 1
@@ -75,7 +78,7 @@ end
 
 
 
-to setup-turtles ;turtle procedure. Run in setup (can also use it later if new turtles join)
+to setup-nodes ;node procedure. Run in setup (can also use it later if new nodes join)
   set adopted? false
   set first-adopted -1 ;to avoid tick issues, see explanation in rumor mill model
 
@@ -84,7 +87,7 @@ to setup-turtles ;turtle procedure. Run in setup (can also use it later if new t
 end
 
 
-to recolor ;turtle procedure, run in go
+to recolor ;node procedure, run in go
   ifelse adopted?
     [set color green]
     [set color white]
@@ -93,9 +96,9 @@ to recolor ;turtle procedure, run in go
   ;can add other color/label variables here
 end
 
-to color-when-adopted ;turtle procedure
+to color-when-adopted ;node procedure
   ifelse adopted? [
-    let nice-upper-value (max [first-adopted] of turtles) + 1 ;makes sure range1 for scale-color is always a nice value, no matter the network
+    let nice-upper-value (max [first-adopted] of nodes) + 1 ;makes sure range1 for scale-color is always a nice value, no matter the network
     set color scale-color yellow first-adopted nice-upper-value 0
   ]
   [
@@ -105,6 +108,32 @@ to color-when-adopted ;turtle procedure
   ;the tick at which they (most recently) adopted the innovation
   ;@consider: what about dropout? do we instead wanna visualise when they first got it?
 end
+
+to label-when-adopted ;node procedure
+  let the-label first-adopted
+
+  hatch-banners 1 [
+    set size 0 ;invisible
+
+
+    ;LABEL POSITIONING depends on the network structure:
+    ;@customize this for each network, make sure it's readable!:
+    if network-structure = "lattice" [
+      set heading 140
+      fd 0.6
+      set label the-label
+      if [color] of self > 44 [set label-color black] ;for readability - if node is light, label should be dark
+    ]
+
+
+  ]
+
+
+  ;set label first-adopted
+  ;if color > 44 [set label-color black] ;light nodes have dark label colors for readability
+  display
+end
+
 
 
 to spread ;run in go
@@ -120,9 +149,9 @@ to spread ;run in go
   ]
 
   if mechanism-for-spreading = "if more than x% around me i adopt" [
-    ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
+    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
 
-    ask turtles [
+    ask nodes [
       if initial-round-percentage-contacts-adopted > conformity-before-transfer [
         adopt
       ]
@@ -131,7 +160,7 @@ to spread ;run in go
 end
 
 to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out? is on)
-  ;initial-round-percentage-contacts-adopted is set in the previous 'ask turtles' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
+  ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
   if drop-out-options = "drop out if lower than threshold" [
     if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
@@ -149,15 +178,15 @@ to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out?
 end
 
 to  initiate-quantity-adopted-plot
-  set-current-plot "plot, quantity adopted"
-   set-plot-y-range 0 100
+  set-current-plot "Proportion of adopters over time"
+  set-plot-y-range 0 100
 
   create-temporary-plot-pen "% adopted"
-    set-plot-pen-color black
+  set-plot-pen-color 63 ;green
 end
 
 to update-quantity-adopted-plot
-  set-current-plot "plot, quantity adopted"
+  set-current-plot "Proportion of adopters over time"
   set-current-plot-pen "% adopted"
   set-plot-pen-mode 0
   plotxy ticks quantity-adopted
@@ -167,8 +196,8 @@ to plant-innovation
   let mouse-is-down? mouse-down?
   if mouse-clicked? [
     ask patch mouse-xcor mouse-ycor [
-      if any? turtles-here [
-        ask one-of turtles-here [
+      if any? nodes-here [
+        ask one-of nodes-here [
           adopt
         ]
       ]
@@ -180,18 +209,18 @@ end
 
 ;---REPORTERS
 to-report quantity-adopted
-  report ( ( count turtles with [adopted? = true] ) / ( count turtles ) * 100)
+  report (count adopters) / (count nodes) * 100
 end
 
-to-report adopters ;just makes code more readable, instead of writing 'turtles with [adopted?]' every time
-  report turtles with [adopted?]
+to-report adopters ;just makes code more readable, instead of writing 'nodes with [adopted?]' every time
+  report nodes with [adopted?]
 end
 
-to-report contacts-adopted ;turtle reporter
+to-report contacts-adopted ;node reporter
   report ( count in-link-neighbors with [adopted?] )
 end
 
-to-report percentage-contacts-adopted ;turtle reporter
+to-report percentage-contacts-adopted ;node reporter
   report ( contacts-adopted / ( count in-link-neighbors ) * 100  )
 end
 
@@ -201,12 +230,38 @@ end
 
 ;---IMPORT NETWORKS
 to import-network-structure
-  if network-structures = "preferential attachment" [
-    nw:load-graphml "pref-net.graphml" ]
-  if network-structures = "small world" [
-    nw:load-graphml "smallworld.graphml" ]
-  if network-structures = "lattice" [
-  nw:load-graphml "lattice.graphml" ]
+  if network-structure = "preferential attachment" [ nw:load-graphml "pref-net.graphml" ]
+  if network-structure = "small world" [ nw:load-graphml "smallworld.graphml" ]
+  if network-structure = "lattice" [ nw:load-graphml "lattice.graphml" ]
+
+  ask turtles [set breed nodes]
+
+  ;layout it nicely:
+  ask turtles [
+    set breed nodes
+    set shape "circle"
+
+    if network-structure = "lattice" [
+
+      set size 2
+     ; move-outwards 5
+    ]
+  ]
+;
+;    if network-structure = "small world" [
+;      set breed nodes
+;      set shape "circle"
+;      set size 1.3
+;      move-outwards 15
+;    ]
+;
+;  ]
+end
+
+to move-outwards [steps] ;node procedure, used in import-network-structure
+  facexy 0 0
+  left 180
+  forward steps
 end
 
 
@@ -217,14 +272,14 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 360
-15
-899
-555
+20
+923
+584
 -1
 -1
-16.1
+9.1
 1
-10
+12
 1
 1
 1
@@ -232,10 +287,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
+-30
+30
+-30
+30
 0
 0
 1
@@ -243,10 +298,10 @@ ticks
 30.0
 
 BUTTON
-20
-70
-86
-103
+25
+120
+95
+153
 NIL
 setup
 NIL
@@ -260,10 +315,10 @@ NIL
 1
 
 BUTTON
-92
-70
-173
-103
+101
+120
+182
+153
 go once
 go
 NIL
@@ -277,10 +332,10 @@ NIL
 1
 
 BUTTON
-180
-70
-243
-103
+64
+160
+127
+193
 NIL
 go
 T
@@ -294,33 +349,33 @@ NIL
 1
 
 CHOOSER
-25
-175
-292
+10
 220
+277
+265
 mechanism-for-spreading
 mechanism-for-spreading
 "% chance for each tick" "if more than x% around me i adopt"
 0
 
 CHOOSER
-15
-15
-208
-60
-network-structures
-network-structures
+5
+70
+198
+115
+network-structure
+network-structure
 "lattice" "small world" "preferential attachment"
-2
+1
 
 PLOT
-910
-345
-1280
+940
+335
+1320
 555
-plot, quantity adopted
-tick/ time
-%
+Proportion of adopters over time
+time
+% adopters
 0.0
 10.0
 0.0
@@ -331,9 +386,9 @@ false
 PENS
 
 TEXTBOX
-1135
+1165
 115
-1255
+1285
 241
 visualisering:\n\n- hvornår en node tog innovation til sig (TJEK)\n\n- i interface: hvor mange gange hørt/ taget til sig (MANGLER - stadig relevant?)\n
 11
@@ -342,19 +397,19 @@ visualisering:\n\n- hvornår en node tog innovation til sig (TJEK)\n\n- i interf
 
 SWITCH
 10
-440
-207
-473
+395
+120
+428
 drop-out?
 drop-out?
-0
+1
 1
 -1000
 
 CHOOSER
-915
+945
 25
-1167
+1197
 70
 network-structures-for-competition
 network-structures-for-competition
@@ -362,10 +417,10 @@ network-structures-for-competition
 0
 
 SLIDER
-25
-225
-290
-258
+10
+270
+275
+303
 probability-of-transfer
 probability-of-transfer
 0
@@ -377,10 +432,10 @@ probability-of-transfer
 HORIZONTAL
 
 SLIDER
-25
-265
-290
-298
+10
+310
+275
+343
 conformity-before-transfer
 conformity-before-transfer
 0
@@ -394,7 +449,7 @@ HORIZONTAL
 SLIDER
 10
 480
-360
+285
 513
 amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
@@ -407,10 +462,10 @@ amount-of-neighbours-drop-out-threshold
 HORIZONTAL
 
 INPUTBOX
-280
-70
-350
-130
+270
+125
+340
+185
 stop-at-tick
 50000.0
 1
@@ -418,13 +473,13 @@ stop-at-tick
 Number
 
 SWITCH
-215
-20
-350
-53
-activate-turtle1?
-activate-turtle1?
-1
+170
+30
+335
+63
+activate-initial-adopter?
+activate-initial-adopter?
+0
 1
 -1000
 
@@ -439,10 +494,10 @@ TEXTBOX
 1
 
 CHOOSER
-1270
-135
-1412
-180
+1325
+225
+1467
+270
 color-by-this
 color-by-this
 "when adopted" "nr of times heard" "..."
@@ -459,20 +514,20 @@ evt 'hvis nabo-innovators er under %, dropper jeg innovationen
 1
 
 TEXTBOX
-25
-305
-260
-346
+10
+350
+245
+391
 tydeliggør hvilke sliders der hører til hvilken mechanism! (og bedre navne!)
 11
 0.0
 1
 
 BUTTON
-20
-115
-137
-148
+25
+15
+142
+48
 NIL
 plant-innovation
 T
@@ -486,12 +541,12 @@ NIL
 1
 
 BUTTON
-910
-195
-1100
-228
+960
+280
+1387
+313
 NIL
-ask turtles [ color-when-adopted ]
+ask banners [die] \nask turtles [ color-when-adopted label-when-adopted]
 NIL
 1
 T
@@ -503,9 +558,9 @@ NIL
 1
 
 BUTTON
-910
+940
 155
-1100
+1130
 188
 NIL
 ask turtles [recolor]
@@ -521,13 +576,35 @@ NIL
 
 CHOOSER
 10
-390
-205
-435
+430
+285
+475
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
 1
+
+INPUTBOX
+1220
+25
+1437
+85
+banner-angle
+180.0
+1
+0
+Number
+
+INPUTBOX
+1290
+95
+1442
+155
+banner-distance
+0.5
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
