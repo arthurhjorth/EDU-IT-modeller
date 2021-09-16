@@ -94,6 +94,7 @@ to recolor ;node procedure, run in go
 
 
   ;can add other color/label variables here
+  ;label-when-adopted
 end
 
 to color-when-adopted ;node procedure
@@ -110,28 +111,29 @@ to color-when-adopted ;node procedure
 end
 
 to label-when-adopted ;node procedure
-  let the-label first-adopted
+  if show-labels? [
+    let the-label first-adopted
 
-  hatch-banners 1 [
-    set size 0 ;invisible
+    hatch-banners 1 [
+      set size 0 ;invisible
 
 
-    ;LABEL POSITIONING depends on the network structure:
-    ;@customize this for each network, make sure it's readable!:
-    if network-structure = "lattice" [
-      set heading 140
-      fd 0.6
+      ;LABEL POSITIONING:
+      ;@customize this for each network, make sure it's readable!:
+      set heading 120
+      let forward-this-amount ifelse-value (length (word the-label) < 2) [0.6] [0.9] ;if one digit or two digits, forward different amounts - to make it centered!
+      forward forward-this-amount
       set label the-label
-      if [color] of self > 44 [set label-color black] ;for readability - if node is light, label should be dark
+      if [color] of self >= 44 [set label-color black] ;for readability - if node is light, label should be dark
+
+
     ]
 
 
+    ;set label first-adopted
+    ;if color > 44 [set label-color black] ;light nodes have dark label colors for readability
+    display
   ]
-
-
-  ;set label first-adopted
-  ;if color > 44 [set label-color black] ;light nodes have dark label colors for readability
-  display
 end
 
 
@@ -230,44 +232,27 @@ end
 
 ;---IMPORT NETWORKS
 to import-network-structure
-
-
-   if network-structure = "preferential attachment (100)" [
+  if network-structure = "preferential attachment (100)" [
     nw:load-graphml "pref-net100.graphml" ]
-
-
-   if network-structure = "preferential attachment (196)" [
+  if network-structure = "preferential attachment (196)" [
     nw:load-graphml "pref-net196.graphml" ]
-
-
   if network-structure = "small world (100)" [
     nw:load-graphml "smallworld100_3links.graphml" ]
-
-   if network-structure = "small world (196)" [
+  if network-structure = "small world (196)" [
     nw:load-graphml "smallworld196_3links.graphml" ]
-
   if network-structure = "lattice (100)" [
   nw:load-graphml "lattice100.graphml" ]
-
-
   if network-structure = "lattice (196)" [
   nw:load-graphml "lattice196.graphml" ]
 
-
-
-  ask turtles [set breed nodes]
+  ask turtles [
+    set breed nodes ;important!
+    set shape "circle"
+    set size 1.8
+  ]
 
   ;layout it nicely:
-  ask turtles [
-    set breed nodes
-    set shape "circle"
 
-    if network-structure = "lattice" [
-
-      set size 2
-     ; move-outwards 5
-    ]
-  ]
 ;
 ;    if network-structure = "small world" [
 ;      set breed nodes
@@ -285,7 +270,6 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
   forward steps
 
 end
-
 
 
 
@@ -386,7 +370,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)"
-5
+1
 
 PLOT
 940
@@ -404,16 +388,6 @@ true
 false
 "" ""
 PENS
-
-TEXTBOX
-1165
-115
-1285
-241
-visualisering:\n\n- hvornår en node tog innovation til sig (TJEK)\n\n- i interface: hvor mange gange hørt/ taget til sig (MANGLER - stadig relevant?)\n
-11
-0.0
-1
 
 SWITCH
 10
@@ -445,7 +419,7 @@ probability-of-transfer
 probability-of-transfer
 0
 100
-100.0
+60.0
 1
 1
 %
@@ -475,7 +449,7 @@ amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
 100
-15.0
+29.0
 1
 1
 %
@@ -499,7 +473,7 @@ SWITCH
 63
 activate-initial-adopter?
 activate-initial-adopter?
-1
+0
 1
 -1000
 
@@ -514,10 +488,10 @@ TEXTBOX
 1
 
 CHOOSER
-1325
-225
-1467
-270
+1320
+165
+1462
+210
 color-by-this
 color-by-this
 "when adopted" "nr of times heard" "..."
@@ -561,12 +535,12 @@ NIL
 1
 
 BUTTON
-960
+940
 280
-1387
+1367
 313
 NIL
-ask banners [die] \nask turtles [ color-when-adopted label-when-adopted]
+ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
 NIL
 1
 T
@@ -579,11 +553,11 @@ NIL
 
 BUTTON
 940
-155
-1130
-188
+205
+1155
+238
 NIL
-ask turtles [recolor]
+ask nodes [recolor] ask banners [die]
 NIL
 1
 T
@@ -602,29 +576,28 @@ CHOOSER
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
-1
-
-INPUTBOX
-1220
-25
-1437
-85
-banner-angle
-180.0
-1
 0
-Number
 
-INPUTBOX
-1290
-95
-1442
-155
-banner-distance
-0.5
-1
+SWITCH
+940
+245
+1062
+278
+show-labels?
+show-labels?
 0
-Number
+1
+-1000
+
+TEXTBOX
+940
+165
+1185
+186
+Visualisering
+18
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
