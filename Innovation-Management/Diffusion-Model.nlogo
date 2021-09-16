@@ -43,9 +43,9 @@ to go
 
   spread ;spread the innovation
 
-
+  ask turtles [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
   ask turtles [
-    if drop-out? [consider-drop-out]
+    if drop-out? and adopted? [consider-drop-out] ;adopted is turtle variable, so only run by adopters
     recolor
 
   ] ;turtles recolor based on whether or not they have the innovation
@@ -130,26 +130,22 @@ to spread ;run in go
   ]
 end
 
-to consider-drop-out ; ask agents in to-go
+to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out? is on)
+  ;initial-round-percentage-contacts-adopted is set in the previous 'ask turtles' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
   if drop-out-options = "drop out if lower than threshold" [
-    set initial-round-percentage-contacts-adopted percentage-contacts-adopted
     if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
-      if adopted? = "true" [set times-dropped ( times-dropped + 1 ) ]
       set adopted? false
-      ;times-dropped lacking @
-      ]
+      set times-dropped ( times-dropped + 1 )
+    ]
+  ]
 
-      ]
-
-  if drop-out-options = "percentage chance for dropping out" [
-    set initial-round-percentage-contacts-adopted percentage-contacts-adopted
+  if drop-out-options = "percentage chance for dropping out" [ ;every round, my chance of dropping out is the percentage of non-adopters around me
     if random-float 100 > initial-round-percentage-contacts-adopted [
-      if adopted? = "true" [set times-dropped (times-dropped + 1 ) ]
       set adopted? false
+      set times-dropped (times-dropped + 1 )
     ]
-
-    ]
+  ]
 end
 
 to  initiate-quantity-adopted-plot
@@ -212,7 +208,6 @@ to import-network-structure
   if network-structures = "lattice" [
   nw:load-graphml "lattice.graphml" ]
 end
-
 
 
 
