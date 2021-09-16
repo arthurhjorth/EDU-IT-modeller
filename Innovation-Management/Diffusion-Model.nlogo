@@ -263,7 +263,27 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
   left 180
   forward steps
 end
+  if network-structures = "preferential attachment (100)" [
+    nw:load-graphml "pref-net.graphml" ]
 
+
+   if network-structures = "preferential attachment (196)" [
+    nw:load-graphml "pref-net196_4links.graphml" ]
+
+
+  if network-structures = "small world (100)" [
+    nw:load-graphml "smallworld.graphml" ]
+
+   if network-structures = "small world (196)" [
+    nw:load-graphml "smallworld196_4links.graphml" ]
+
+  if network-structures = "lattice (100)" [
+  nw:load-graphml "lattice.graphml" ]
+
+
+  if network-structures = "lattice (196)" [
+  nw:load-graphml "lattice196_4links.graphml" ]
+end
 
 
 
