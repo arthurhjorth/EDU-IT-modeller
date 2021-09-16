@@ -230,9 +230,30 @@ end
 
 ;---IMPORT NETWORKS
 to import-network-structure
-  if network-structure = "preferential attachment" [ nw:load-graphml "pref-net.graphml" ]
-  if network-structure = "small world" [ nw:load-graphml "smallworld.graphml" ]
-  if network-structure = "lattice" [ nw:load-graphml "lattice.graphml" ]
+
+
+   if network-structure = "preferential attachment (100)" [
+    nw:load-graphml "pref-net100.graphml" ]
+
+
+   if network-structure = "preferential attachment (196)" [
+    nw:load-graphml "pref-net196.graphml" ]
+
+
+  if network-structure = "small world (100)" [
+    nw:load-graphml "smallworld100_3links.graphml" ]
+
+   if network-structure = "small world (196)" [
+    nw:load-graphml "smallworld196_3links.graphml" ]
+
+  if network-structure = "lattice (100)" [
+  nw:load-graphml "lattice100.graphml" ]
+
+
+  if network-structure = "lattice (196)" [
+  nw:load-graphml "lattice196.graphml" ]
+
+
 
   ask turtles [set breed nodes]
 
@@ -262,29 +283,8 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
   facexy 0 0
   left 180
   forward steps
+
 end
-  if network-structures = "preferential attachment (100)" [
-    nw:load-graphml "pref-net.graphml" ]
-
-
-   if network-structures = "preferential attachment (196)" [
-    nw:load-graphml "pref-net196_4links.graphml" ]
-
-
-  if network-structures = "small world (100)" [
-    nw:load-graphml "smallworld.graphml" ]
-
-   if network-structures = "small world (196)" [
-    nw:load-graphml "smallworld196_4links.graphml" ]
-
-  if network-structures = "lattice (100)" [
-  nw:load-graphml "lattice.graphml" ]
-
-
-  if network-structures = "lattice (196)" [
-  nw:load-graphml "lattice196_4links.graphml" ]
-end
-
 
 
 
@@ -381,12 +381,12 @@ mechanism-for-spreading
 CHOOSER
 5
 70
-198
+232
 115
 network-structure
 network-structure
-"lattice" "small world" "preferential attachment"
-1
+"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)"
+5
 
 PLOT
 940
@@ -499,7 +499,7 @@ SWITCH
 63
 activate-initial-adopter?
 activate-initial-adopter?
-0
+1
 1
 -1000
 
