@@ -28,6 +28,7 @@ to setup
 
   import-network-structure
   ask nodes [setup-nodes]
+  set-link-shape
 
   ;potentially 'infect' an initial node:
   if activate-initial-adopter? [
@@ -85,6 +86,16 @@ to setup-nodes ;node procedure. Run in setup (can also use it later if new nodes
 
   recolor
 end
+
+
+to set-link-shape
+  if network-structure = "small world (100)" or network-structure = "small world (196)" [
+    ask links [
+      set shape "curve"
+    ]
+  ]
+end
+
 
 
 to recolor ;node procedure, run in go
@@ -272,7 +283,6 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
 end
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 360
@@ -370,7 +380,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)"
-1
+2
 
 PLOT
 940
@@ -949,6 +959,17 @@ NetLogo 6.2.0
 @#$#@#$#@
 default
 0.0
+-0.2 0 0.0 1.0
+0.0 1 1.0 0.0
+0.2 0 0.0 1.0
+link direction
+true
+0
+Line -7500403 true 150 150 90 180
+Line -7500403 true 150 150 210 180
+
+curve
+5.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
