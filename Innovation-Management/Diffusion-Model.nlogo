@@ -43,19 +43,24 @@ end
 
 
 to go
-  if ticks = stop-at-tick [stop]
+  every 0.4 [
 
-  spread ;spread the innovation
+    if ticks = stop-at-tick [stop]
+    if not any? nodes with [not adopted?] [stop]
 
-  ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
-  ask nodes [
-    if drop-out? and adopted? [consider-drop-out] ;adopted is node variable, so only run by adopters
-    recolor ;nodes recolor based on whether or not they have the innovation
+    spread ;spread the innovation
+
+    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
+    ask nodes [
+      if drop-out? and adopted? [consider-drop-out] ;adopted is node variable, so only run by adopters
+      recolor ;nodes recolor based on whether or not they have the innovation
+
+    ]
+
+    update-quantity-adopted-plot
+    tick
 
   ]
-
-  update-quantity-adopted-plot
-  tick
 end
 
 to adopt ;node procedure, run when the innovation is adopted
@@ -255,6 +260,8 @@ to import-network-structure
   nw:load-graphml "lattice100.graphml" ]
   if network-structure = "lattice (196)" [
   nw:load-graphml "lattice196.graphml" ]
+  if network-structure = "preferential attachment (500)" [
+    nw:load-graphml "500pref.graphml" ]
 
   ask turtles [
     set breed nodes ;important!
@@ -264,6 +271,10 @@ to import-network-structure
       set size 1.1 ]
     [
       set size 1.8
+      if network-structure = "preferential attachment (500)" [ set size 1 ]
+
+
+
     ]
 
   ]
@@ -289,13 +300,13 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-360
-20
-923
-584
+345
+10
+933
+599
 -1
 -1
-9.1
+9.51
 1
 12
 1
@@ -316,10 +327,10 @@ ticks
 30.0
 
 BUTTON
-25
-120
-95
-153
+70
+175
+140
+208
 NIL
 setup
 NIL
@@ -333,10 +344,10 @@ NIL
 1
 
 BUTTON
-101
-120
-182
-153
+146
+175
+227
+208
 go once
 go
 NIL
@@ -350,10 +361,10 @@ NIL
 1
 
 BUTTON
-64
-160
-127
-193
+69
+215
+224
+248
 NIL
 go
 T
@@ -367,30 +378,30 @@ NIL
 1
 
 CHOOSER
-10
-220
-277
-265
+20
+300
+287
+345
 mechanism-for-spreading
 mechanism-for-spreading
 "% chance for each tick" "if more than x% around me i adopt"
 0
 
 CHOOSER
-5
-70
-232
-115
+30
+95
+257
+140
 network-structure
 network-structure
-"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)"
-0
+"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
+1
 
 PLOT
 940
-335
-1320
-555
+325
+1430
+600
 Proportion of adopters over time
 time
 % adopters
@@ -404,10 +415,10 @@ false
 PENS
 
 SWITCH
-10
-395
-120
-428
+20
+470
+130
+503
 drop-out?
 drop-out?
 1
@@ -425,10 +436,10 @@ network-structures-for-competition
 0
 
 SLIDER
-10
-270
-275
-303
+20
+350
+285
+383
 probability-of-transfer
 probability-of-transfer
 0
@@ -440,10 +451,10 @@ probability-of-transfer
 HORIZONTAL
 
 SLIDER
-10
-310
-275
-343
+20
+390
+285
+423
 conformity-before-transfer
 conformity-before-transfer
 0
@@ -455,10 +466,10 @@ conformity-before-transfer
 HORIZONTAL
 
 SLIDER
-10
-480
-285
-513
+20
+555
+295
+588
 amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
@@ -470,10 +481,10 @@ amount-of-neighbours-drop-out-threshold
 HORIZONTAL
 
 INPUTBOX
-270
-125
-340
-185
+1370
+75
+1440
+135
 stop-at-tick
 50000.0
 1
@@ -481,41 +492,21 @@ stop-at-tick
 Number
 
 SWITCH
-170
-30
-335
-63
+140
+55
+305
+88
 activate-initial-adopter?
 activate-initial-adopter?
 0
 1
 -1000
 
-TEXTBOX
-60
-515
-305
-556
-evt 'hvis nabo-innovators er under %, dropper jeg innovationen
-11
-0.0
-1
-
-TEXTBOX
-10
-350
-245
-391
-tydeliggør hvilke sliders der hører til hvilken mechanism! (og bedre navne!)
-11
-0.0
-1
-
 BUTTON
-25
 15
-142
-48
+55
+132
+88
 NIL
 plant-innovation
 T
@@ -529,10 +520,10 @@ NIL
 1
 
 BUTTON
-940
-230
-1105
-263
+960
+225
+1125
+258
 Color by when heard
 ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
 NIL
@@ -546,10 +537,10 @@ NIL
 1
 
 BUTTON
-1110
-230
-1245
-263
+1130
+225
+1265
+258
 Reset coloring
 ask nodes [recolor] ask banners [die]
 NIL
@@ -563,20 +554,20 @@ NIL
 1
 
 CHOOSER
-10
-430
-285
-475
+20
+505
+295
+550
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
 0
 
 SWITCH
-940
-195
-1062
-228
+960
+190
+1082
+223
 show-labels?
 show-labels?
 1
@@ -584,12 +575,42 @@ show-labels?
 -1000
 
 TEXTBOX
-940
-165
-1185
-186
+1060
+150
+1305
+171
 Visualisering
 18
+0.0
+1
+
+TEXTBOX
+25
+445
+175
+466
+Drop-out
+17
+0.0
+1
+
+TEXTBOX
+25
+270
+280
+290
+Spreading mechanism
+17
+0.0
+1
+
+TEXTBOX
+85
+25
+235
+46
+Network structure
+17
 0.0
 1
 
