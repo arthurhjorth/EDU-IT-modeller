@@ -259,7 +259,13 @@ to import-network-structure
   ask turtles [
     set breed nodes ;important!
     set shape "circle"
-    set size 1.8
+
+    ifelse network-structure = "small world (196)" [
+      set size 1.1 ]
+    [
+      set size 1.8
+    ]
+
   ]
 
   ;layout it nicely:
@@ -378,7 +384,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)"
-2
+0
 
 PLOT
 940
@@ -409,9 +415,9 @@ drop-out?
 -1000
 
 CHOOSER
-945
+1185
 25
-1197
+1437
 70
 network-structures-for-competition
 network-structures-for-competition
@@ -427,7 +433,7 @@ probability-of-transfer
 probability-of-transfer
 0
 100
-60.0
+100.0
 1
 1
 %
@@ -486,26 +492,6 @@ activate-initial-adopter?
 -1000
 
 TEXTBOX
-215
-380
-350
-436
-2 versioner af drop-out\n\nmed og uden sandsynlighed
-11
-0.0
-1
-
-CHOOSER
-1320
-165
-1462
-210
-color-by-this
-color-by-this
-"when adopted" "nr of times heard" "..."
-0
-
-TEXTBOX
 60
 515
 305
@@ -544,10 +530,10 @@ NIL
 
 BUTTON
 940
-280
-1367
-313
-NIL
+230
+1105
+263
+Color by when heard
 ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
 NIL
 1
@@ -560,11 +546,11 @@ NIL
 1
 
 BUTTON
-940
-205
-1155
-238
-NIL
+1110
+230
+1245
+263
+Reset coloring
 ask nodes [recolor] ask banners [die]
 NIL
 1
@@ -588,12 +574,12 @@ drop-out-options
 
 SWITCH
 940
-245
+195
 1062
-278
+228
 show-labels?
 show-labels?
-0
+1
 1
 -1000
 
