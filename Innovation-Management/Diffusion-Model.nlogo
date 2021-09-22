@@ -44,8 +44,6 @@ end
 
 to go
   every 0.4 [
-
-    if ticks = stop-at-tick [stop]
     if not any? nodes with [not adopted?] [stop]
 
     spread ;spread the innovation
@@ -480,17 +478,6 @@ amount-of-neighbours-drop-out-threshold
 %
 HORIZONTAL
 
-INPUTBOX
-1370
-75
-1440
-135
-stop-at-tick
-50000.0
-1
-0
-Number
-
 SWITCH
 140
 55
@@ -579,7 +566,7 @@ TEXTBOX
 150
 1305
 171
-Visualisering
+Visualisation
 18
 0.0
 1
