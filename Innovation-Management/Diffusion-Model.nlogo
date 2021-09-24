@@ -1,6 +1,7 @@
 extensions [ nw ]
 
 globals [
+  activate-initial-adopter?
   mouse-was-down?
 
   current-pen ;saving the plot pen name
@@ -24,25 +25,24 @@ initial-round-percentage-contacts-adopted
 
 ]
 
-
-to setup
-  clear-all
+to setup-network
+  clear-globals clear-ticks clear-turtles clear-patches clear-drawing clear-output ;everything from clear-all EXCEPT clear-all-plots (so we can compare plots from different runs)
 
   import-network-structure
   ask nodes [setup-nodes]
   set-link-shape
 
   ;potentially 'infect' an initial node:
-  if activate-initial-adopter? [
-    ask one-of nodes [adopt]
-  ]
-
-
+  ;if activate-initial-adopter? [
+   ; ask one-of nodes [adopt]
+  ;]
   reset-ticks
+end
+
+to setup-plot ;after the ideas have been planted and the spreading mechanisms have been set
   initiate-quantity-adopted-plot
   update-quantity-adopted-plot
 end
-
 
 to go
   every 0.4 [
@@ -156,11 +156,19 @@ end
 
 to spread ;run in go
 
-  if mechanism-for-spreading = "% chance for each tick" [
+  if mechanism-for-spreading = "100 % chance of spreading" [
     ask adopters [
       ask link-neighbors [
-        if random-float 100 < probability-of-transfer [
-          adopt ;the probability lies with the receiver
+        adopt
+      ]
+    ]
+  ]
+
+  if mechanism-for-spreading = "50 % chance of spreading" [
+    ask adopters [
+      ask link-neighbors [
+        if random-float 100 < 50 [ ;removed probability-of-transfer, now always 50%
+          adopt
         ]
       ]
     ]
@@ -195,20 +203,37 @@ to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out?
   ]
 end
 
-to  initiate-quantity-adopted-plot
+to initiate-quantity-adopted-plot
   set-current-plot "Proportion of adopters over time"
   set-plot-y-range 0 100
   setup-new-pen
 end
 
 to setup-new-pen ;used to start up a new plot pen
-  set current-pen (word network-structure ", " count adopters " initial, " mechanism-for-spreading) ;pen name
+  set current-pen (word nw-name-short ", " count adopters " initial, " mechanism-short) ;pen name (nw-name-short and mechanism-short are reporters)
+  ;@^^need to differentiate pen name, e.g. if same settings but two different initial adopters (maybe just add counter nr to end of name?)
   create-temporary-plot-pen current-pen
   set-plot-pen-color one-of base-colors ;@make sure it's non-repeating
   set-current-plot-pen current-pen
   set starting-tick ticks ;used for plotting and time-since-start, this is now '0'
-
   update-quantity-adopted-plot
+end
+
+to-report nw-name-short ;used for plot pen name
+  let nw-list [ "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" ]
+  let short-name-list [ "Lat. (100)" "Lat. (196)" "SW (100)" "SW (196)" "PA (100)" "PA (196)" "PA (500)"]
+  let index position network-structure nw-list
+  let short-name item index short-name-list
+  report short-name
+end
+
+to-report mechanism-short ;used for plot pen name
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "If more than x% around me I adopt" ]
+  let last-name (word "Adopt if > " conformity-before-transfer " % around")
+  let short-name-list (list "100% spread" "50% spread" (word "adopt if > " conformity-before-transfer " %"))
+  let index position mechanism-for-spreading mechanism-list
+  let short-name item index short-name-list
+  report short-name
 end
 
 to update-quantity-adopted-plot
@@ -227,16 +252,19 @@ end
 to plant-innovation
   let mouse-is-down? mouse-down?
   if mouse-clicked? [
-    ;ask patch mouse-xcor mouse-ycor [
-    ; if any? nodes-here [
-    ;  ask one-of nodes-here [
-    ;adopt
 
-    ask min-one-of nodes  [distancexy mouse-xcor mouse-ycor] [ adopt ]
-    ;@SØRG FOR AT MAN SKAL VÆRE PÅ DEN
-    ;@ERASE, HVIS DEN ALLEREDE ER
-
-
+    ask min-one-of nodes  [distancexy mouse-xcor mouse-ycor] [
+      let status adopted? ;saving it before the ifelse so it doesn't get confused
+      ifelse status [
+        ;if already adopted, erase/'un-adopt':
+        set adopted? false
+        recolor
+      ]
+      [ ;if not adopted, adopt:
+        adopt
+      ]
+    ]
+    ;@evt SØRG FOR AT MAN SKAL VÆRE PÅ NODEN, når man trykker
   ]
 
 ; Other procedures that should be run on mouse-click
@@ -319,13 +347,13 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-325
+320
 10
-933
-619
+918
+609
 -1
 -1
-9.84
+9.67213115
 1
 12
 1
@@ -346,27 +374,10 @@ ticks
 30.0
 
 BUTTON
-80
-105
-150
-138
-NIL
-setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-156
-105
-237
-138
+935
+45
+1020
+78
 go once
 go
 NIL
@@ -380,10 +391,10 @@ NIL
 1
 
 BUTTON
-79
-145
-234
-178
+1024
+45
+1109
+80
 NIL
 go
 T
@@ -397,30 +408,30 @@ NIL
 1
 
 CHOOSER
-20
+10
+255
+295
 300
-287
-345
 mechanism-for-spreading
 mechanism-for-spreading
-"% chance for each tick" "if more than x% around me i adopt"
+"100 % chance of spreading" "50 % chance of spreading" "If more than x% around me I adopt"
 0
 
 CHOOSER
-40
-55
-267
-100
+10
+45
+295
+90
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-6
+0
 
 PLOT
-940
-325
-1430
-600
+925
+315
+1490
+610
 Proportion of adopters over time
 time
 % adopters
@@ -434,10 +445,10 @@ true
 PENS
 
 SWITCH
-20
-470
-130
-503
+10
+370
+120
+403
 drop-out?
 drop-out?
 1
@@ -445,35 +456,20 @@ drop-out?
 -1000
 
 CHOOSER
-1090
-30
-1342
-75
-network-structures-for-competition
-network-structures-for-competition
+1240
+45
+1492
+90
+task
+task
 "question 1" "question 2" "question 3"
 0
 
 SLIDER
-20
-350
-285
-383
-probability-of-transfer
-probability-of-transfer
-0
-100
-100.0
-1
-1
-%
-HORIZONTAL
-
-SLIDER
-20
-390
-285
-423
+10
+305
+295
+338
 conformity-before-transfer
 conformity-before-transfer
 0
@@ -485,10 +481,10 @@ conformity-before-transfer
 HORIZONTAL
 
 SLIDER
-20
-555
+10
+450
 295
-588
+483
 amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
@@ -499,22 +495,11 @@ amount-of-neighbours-drop-out-threshold
 %
 HORIZONTAL
 
-SWITCH
-20
-185
-185
-218
-activate-initial-adopter?
-activate-initial-adopter?
-0
-1
--1000
-
 BUTTON
-190
-185
-307
-218
+10
+155
+295
+188
 NIL
 plant-innovation
 T
@@ -528,10 +513,10 @@ NIL
 1
 
 BUTTON
-950
-180
-1115
-213
+935
+170
+1065
+203
 Color by when heard
 ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
 NIL
@@ -545,10 +530,10 @@ NIL
 1
 
 BUTTON
-1120
-180
-1255
-213
+1070
+135
+1165
+205
 Reset coloring
 ask nodes [recolor] ask banners [die]
 NIL
@@ -562,20 +547,20 @@ NIL
 1
 
 CHOOSER
-20
-505
+10
+405
 295
-550
+450
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
 1
 
 SWITCH
-950
-145
-1072
-178
+935
+135
+1065
+168
 show-labels?
 show-labels?
 1
@@ -583,112 +568,82 @@ show-labels?
 -1000
 
 TEXTBOX
-1050
+935
 105
-1295
-126
-Visualisation
-18
+1195
+130
+6. Visualise spreading pattern
+17
 0.0
 1
 
 TEXTBOX
-25
-445
-175
-466
+125
+350
+275
+371
 Drop-out
-17
+16
 0.0
 1
 
 TEXTBOX
-25
-270
+80
+230
 280
-290
+250
 Spreading mechanism
+16
+0.0
+1
+
+TEXTBOX
+10
+20
+210
+40
+1. Network structure
 17
 0.0
 1
 
 TEXTBOX
-85
-25
-235
-46
-Network structure
-17
-0.0
-1
-
-TEXTBOX
-1310
-105
-1460
-156
-Lav opgave-vælger, som forudindstiller sliders
-14
-0.0
-1
-
-TEXTBOX
-1325
-300
-1475
-318
+1195
+290
+1320
+308
 DIFFUSION RATE
 11
 0.0
 1
 
 TEXTBOX
-1170
-300
-1320
-318
-S-curve!!! (not sigmoid)
-11
-0.0
-1
-
-TEXTBOX
-220
-260
-330
-295
-maybe remove spreading probability
-11
-0.0
-1
-
-TEXTBOX
-195
-475
-345
-493
+210
+380
+290
+398
 \"de-diffusion?\"
 11
 0.0
 1
 
 TEXTBOX
-965
-50
-1115
-68
-node 1 = 0
+1245
+105
+1485
+231
+to do:\n- lav opgavevælger som forudindstiller sliders\n- fix so node 1 = 0 (labels)\n- fix show-labels, så de tilpasser node size\n- make node size dependent on nw measures (and include nw measures somewhere!)
 11
 0.0
 1
 
 BUTTON
-985
+1365
 280
-1097
+1490
 313
-NIL
-setup-new-pen
+CLEAR PLOT
+clear-all-plots
 NIL
 1
 T
@@ -697,6 +652,97 @@ NIL
 NIL
 NIL
 NIL
+1
+
+BUTTON
+10
+90
+295
+123
+NIL
+setup-network
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+10
+130
+220
+148
+2. Plant one or more ideas
+17
+0.0
+1
+
+TEXTBOX
+10
+200
+200
+221
+3. Choose settings
+17
+0.0
+1
+
+BUTTON
+10
+525
+145
+558
+NIL
+setup-plot
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+15
+500
+240
+520
+4. Setup run in plot
+17
+0.0
+1
+
+BUTTON
+155
+525
+295
+558
+CLEAR PLOT
+clear-all-plots
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+935
+20
+1125
+61
+5. Go/Start the spread!
+17
+0.0
 1
 
 @#$#@#$#@
