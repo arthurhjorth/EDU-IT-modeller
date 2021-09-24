@@ -3,6 +3,8 @@ extensions [ nw ]
 globals [
   mouse-was-down?
 
+  current-pen ;saving the plot pen name
+  starting-tick ;for plotting ticks since beginning
 ]
 
 breed [nodes node] ;a breed so we can layer the banner labels on top
@@ -196,31 +198,50 @@ end
 to  initiate-quantity-adopted-plot
   set-current-plot "Proportion of adopters over time"
   set-plot-y-range 0 100
+  setup-new-pen
+end
 
-  create-temporary-plot-pen "% adopted"
-  set-plot-pen-color 63 ;green
+to setup-new-pen ;used to start up a new plot pen
+  set current-pen (word network-structure ", " count adopters " initial, " mechanism-for-spreading) ;pen name
+  create-temporary-plot-pen current-pen
+  set-plot-pen-color one-of base-colors ;@make sure it's non-repeating
+  set-current-plot-pen current-pen
+  set starting-tick ticks ;used for plotting and time-since-start, this is now '0'
+
+  update-quantity-adopted-plot
 end
 
 to update-quantity-adopted-plot
   set-current-plot "Proportion of adopters over time"
-  set-current-plot-pen "% adopted"
+  set-current-plot-pen current-pen ;pen name saved in this global variable
   set-plot-pen-mode 0
-  plotxy ticks quantity-adopted
+  plotxy time-since-start quantity-adopted
+  display
 end
+
+to-report time-since-start ;used for plotting
+  report ticks - starting-tick
+end
+
 
 to plant-innovation
   let mouse-is-down? mouse-down?
   if mouse-clicked? [
-    ask patch mouse-xcor mouse-ycor [
-      if any? nodes-here [
-        ask one-of nodes-here [
-          adopt
-        ]
-      ]
-    ]
-    ; Other procedures that should be run on mouse-click
+    ;ask patch mouse-xcor mouse-ycor [
+    ; if any? nodes-here [
+    ;  ask one-of nodes-here [
+    ;adopt
+
+    ask min-one-of nodes  [distancexy mouse-xcor mouse-ycor] [ adopt ]
+    ;@SØRG FOR AT MAN SKAL VÆRE PÅ DEN
+    ;@ERASE, HVIS DEN ALLEREDE ER
+
+
   ]
-  set mouse-was-down? mouse-is-down?
+
+; Other procedures that should be run on mouse-click
+
+set mouse-was-down? mouse-is-down?
 end
 
 ;---REPORTERS
@@ -298,13 +319,13 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-345
+325
 10
 933
-599
+619
 -1
 -1
-9.51
+9.84
 1
 12
 1
@@ -325,10 +346,10 @@ ticks
 30.0
 
 BUTTON
-70
-175
-140
-208
+80
+105
+150
+138
 NIL
 setup
 NIL
@@ -342,10 +363,10 @@ NIL
 1
 
 BUTTON
-146
-175
-227
-208
+156
+105
+237
+138
 go once
 go
 NIL
@@ -359,10 +380,10 @@ NIL
 1
 
 BUTTON
-69
-215
-224
-248
+79
+145
+234
+178
 NIL
 go
 T
@@ -386,14 +407,14 @@ mechanism-for-spreading
 0
 
 CHOOSER
-30
-95
-257
-140
+40
+55
+267
+100
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-1
+6
 
 PLOT
 940
@@ -408,7 +429,7 @@ time
 0.0
 100.0
 true
-false
+true
 "" ""
 PENS
 
@@ -424,10 +445,10 @@ drop-out?
 -1000
 
 CHOOSER
-1185
-25
-1437
-70
+1090
+30
+1342
+75
 network-structures-for-competition
 network-structures-for-competition
 "question 1" "question 2" "question 3"
@@ -457,7 +478,7 @@ conformity-before-transfer
 conformity-before-transfer
 0
 100
-50.0
+30.0
 1
 1
 %
@@ -472,17 +493,17 @@ amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
 100
-29.0
+10.0
 1
 1
 %
 HORIZONTAL
 
 SWITCH
-140
-55
-305
-88
+20
+185
+185
+218
 activate-initial-adopter?
 activate-initial-adopter?
 0
@@ -490,10 +511,10 @@ activate-initial-adopter?
 -1000
 
 BUTTON
-15
-55
-132
-88
+190
+185
+307
+218
 NIL
 plant-innovation
 T
@@ -507,10 +528,10 @@ NIL
 1
 
 BUTTON
-960
-225
-1125
-258
+950
+180
+1115
+213
 Color by when heard
 ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
 NIL
@@ -524,10 +545,10 @@ NIL
 1
 
 BUTTON
-1130
-225
-1265
-258
+1120
+180
+1255
+213
 Reset coloring
 ask nodes [recolor] ask banners [die]
 NIL
@@ -548,13 +569,13 @@ CHOOSER
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
-0
+1
 
 SWITCH
-960
-190
-1082
-223
+950
+145
+1072
+178
 show-labels?
 show-labels?
 1
@@ -562,10 +583,10 @@ show-labels?
 -1000
 
 TEXTBOX
-1060
-150
-1305
-171
+1050
+105
+1295
+126
 Visualisation
 18
 0.0
@@ -599,6 +620,83 @@ TEXTBOX
 Network structure
 17
 0.0
+1
+
+TEXTBOX
+1310
+105
+1460
+156
+Lav opgave-vælger, som forudindstiller sliders
+14
+0.0
+1
+
+TEXTBOX
+1325
+300
+1475
+318
+DIFFUSION RATE
+11
+0.0
+1
+
+TEXTBOX
+1170
+300
+1320
+318
+S-curve!!! (not sigmoid)
+11
+0.0
+1
+
+TEXTBOX
+220
+260
+330
+295
+maybe remove spreading probability
+11
+0.0
+1
+
+TEXTBOX
+195
+475
+345
+493
+\"de-diffusion?\"
+11
+0.0
+1
+
+TEXTBOX
+965
+50
+1115
+68
+node 1 = 0
+11
+0.0
+1
+
+BUTTON
+985
+280
+1097
+313
+NIL
+setup-new-pen
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
