@@ -6,6 +6,10 @@ globals [
 
   current-pen ;saving the plot pen name
   starting-tick ;for plotting ticks since beginning
+
+  nice-colors ;for plotting
+  remaining-pen-colors ;for plotting
+  pen-counter ;for plotting
 ]
 
 breed [nodes node] ;a breed so we can layer the banner labels on top
@@ -21,18 +25,29 @@ times-dropped
 
 adopted?
 
-initial-round-percentage-contacts-adopted-adopt
-initial-round-percentage-contacts-adopted-dropout
+initial-round-percentage-contacts-adopted
+initial-round-percentage-contacts-adopted
 
 
 ]
 
 to setup-network
+  set nice-colors [15 65 105 25 44 115 35 125 75 85 135 5 0 15 15 15 15 15 15 15 15]
+  let saved-colors ifelse-value (remaining-pen-colors = 0) [nice-colors] [remaining-pen-colors] ;if =0, it's the first time, and nothing has been used
+  let saved-pen-counter pen-counter
+
+  ;CLEARING:
   clear-globals clear-ticks clear-turtles clear-patches clear-drawing clear-output ;everything from clear-all EXCEPT clear-all-plots (so we can compare plots from different runs)
+
+  ;workaround, globals we don't want deleted in clearing now re-saved:
+  set remaining-pen-colors saved-colors
+  set pen-counter saved-pen-counter
+
+
 
   import-network-structure
   ask nodes [setup-nodes]
-  set-link-shape
+  ask links [set-link-shape]
 
   ;potentially 'infect' an initial node:
   ;if activate-initial-adopter? [
@@ -47,12 +62,13 @@ to setup-plot ;after the ideas have been planted and the spreading mechanisms ha
 end
 
 to go
+  ;setup-plot ;sets up the plot pen with the chosen settings ;should only be run the FIRST time!@@@@ so we can remove interface button!
   every 0.4 [
     if not any? nodes with [not adopted?] [stop]
 
     spread ;spread the innovation
 
-    ask nodes [ set initial-round-percentage-contacts-adopted-dropout percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
+    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
     ask nodes [
       if drop-out? and adopted? [consider-drop-out] ;adopted is node variable, so only run by adopters
       recolor ;nodes recolor based on whether or not they have the innovation
@@ -97,9 +113,7 @@ end
 
 to set-link-shape
   if network-structure = "small world (100)" or network-structure = "small world (196)" [
-    ask links [
       set shape "curve"
-    ]
   ]
 end
 
@@ -176,21 +190,11 @@ to spread ;run in go
     ]
   ]
 
-  if mechanism-for-spreading = "5 % chance of spreading" [
-    ask adopters [
-      ask link-neighbors [
-        if random-float 100 < 5 [ ;removed probability-of-transfer, now always 50%
-          adopt
-        ]
-      ]
-    ]
-  ]
-
-  if mechanism-for-spreading = "if more than x% around me i adopt" [
-    ask nodes [ set initial-round-percentage-contacts-adopted-adopt percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
+  if mechanism-for-spreading = "Conformity threshold (% of neigbour adopters)" [
+    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
 
     ask nodes [
-      if initial-round-percentage-contacts-adopted-adopt > conformity-before-transfer [
+      if initial-round-percentage-contacts-adopted > conformity-threshold [
         adopt
       ]
     ]
@@ -201,31 +205,38 @@ to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out?
   ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
   if drop-out-options = "drop out if lower than threshold" [
-    if initial-round-percentage-contacts-adopted-dropout < amount-of-neighbours-drop-out-threshold [
+    if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
       set adopted? false
       set times-dropped ( times-dropped + 1 )
     ]
   ]
 
   if drop-out-options = "percentage chance for dropping out" [ ;every round, my chance of dropping out is the percentage of non-adopters around me
-    if random-float 100 > initial-round-percentage-contacts-adopted-dropout [
+    if random-float 100 > initial-round-percentage-contacts-adopted [
       set adopted? false
       set times-dropped (times-dropped + 1 )
     ]
   ]
 end
 
+to clear-the-plot
+  clear-all-plots
+  set remaining-pen-colors nice-colors
+  set pen-counter 0
+end
+
 to initiate-quantity-adopted-plot
-  set-current-plot "Proportion of adopters over time"
+  set-current-plot "Diffusion rate"
   set-plot-y-range 0 100
   setup-new-pen
 end
 
 to setup-new-pen ;used to start up a new plot pen
-  set current-pen (word nw-name-short ", " count adopters " initial, " mechanism-short) ;pen name (nw-name-short and mechanism-short are reporters)
-  ;@^^need to differentiate pen name, e.g. if same settings but two different initial adopters (maybe just add counter nr to end of name?)
+  set pen-counter pen-counter + 1
+  set current-pen (word pen-counter ": " nw-name-short ", " count adopters " initial, " mechanism-short) ;pen name (nw-name-short and mechanism-short are reporters)
   create-temporary-plot-pen current-pen
-  set-plot-pen-color one-of base-colors ;@make sure it's non-repeating
+  set-plot-pen-color first remaining-pen-colors ;@make sure it's non-repeating?
+  set remaining-pen-colors but-first remaining-pen-colors ;removing the used color from the 'palette' so we have no repeats :)
   set-current-plot-pen current-pen
   set starting-tick ticks ;used for plotting and time-since-start, this is now '0'
   update-quantity-adopted-plot
@@ -233,23 +244,23 @@ end
 
 to-report nw-name-short ;used for plot pen name
   let nw-list [ "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" ]
-  let short-name-list [ "Lat. (100)" "Lat. (196)" "SW (100)" "SW (196)" "PA (100)" "PA (196)" "PA (500)"]
+  let short-name-list [ "Lat (100)" "Lat (196)" "SW (100)" "SW (196)" "PA (100)" "PA (196)" "PA (500)"]
   let index position network-structure nw-list
   let short-name item index short-name-list
   report short-name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "If more than x% around me I adopt" ]
-  let last-name (word "Adopt if > " conformity-before-transfer " % around")
-  let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-before-transfer " %"))
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "Conformity threshold (% of neigbour adopters)" ]
+  let last-name (word "Adopt if > " conformity-threshold " % around")
+  let short-name-list (list "100% spread" "50% spread" (word "adopt if > " conformity-threshold " %"))
   let index position mechanism-for-spreading mechanism-list
   let short-name item index short-name-list
   report short-name
 end
 
 to update-quantity-adopted-plot
-  set-current-plot "Proportion of adopters over time"
+  set-current-plot "Diffusion rate"
   set-current-plot-pen current-pen ;pen name saved in this global variable
   set-plot-pen-mode 0
   plotxy time-since-start quantity-adopted
@@ -426,8 +437,8 @@ CHOOSER
 300
 mechanism-for-spreading
 mechanism-for-spreading
-"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "If more than x% around me I adopt"
-0
+"100 % chance of spreading" "50 % chance of spreading" "Conformity threshold (% of neigbour adopters)"
+1
 
 CHOOSER
 10
@@ -437,14 +448,14 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+2
 
 PLOT
 925
 315
 1490
 610
-Proportion of adopters over time
+Diffusion rate
 time
 % adopters
 0.0
@@ -458,9 +469,9 @@ PENS
 
 SWITCH
 10
-370
+375
 120
-403
+408
 drop-out?
 drop-out?
 0
@@ -482,11 +493,11 @@ SLIDER
 305
 295
 338
-conformity-before-transfer
-conformity-before-transfer
+conformity-threshold
+conformity-threshold
 0
 100
-49.0
+0.0
 1
 1
 %
@@ -494,9 +505,9 @@ HORIZONTAL
 
 SLIDER
 10
-450
+455
 295
-483
+488
 amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
@@ -510,9 +521,9 @@ HORIZONTAL
 BUTTON
 10
 155
-295
+297
 188
-NIL
+(PRESS THIS BUTTON AND CLICK ON A NODE)
 plant-innovation
 T
 1
@@ -560,9 +571,9 @@ NIL
 
 CHOOSER
 10
-405
+410
 295
-450
+455
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
@@ -612,30 +623,10 @@ Spreading mechanism
 TEXTBOX
 10
 20
-210
-40
-1. Network structure
+295
+61
+1. Choose network structure
 17
-0.0
-1
-
-TEXTBOX
-1195
-290
-1320
-308
-DIFFUSION RATE
-11
-0.0
-1
-
-TEXTBOX
-210
-380
-290
-398
-\"de-diffusion?\"
-11
 0.0
 1
 
@@ -655,7 +646,7 @@ BUTTON
 1490
 313
 CLEAR PLOT
-clear-all-plots
+clear-the-plot
 NIL
 1
 T
@@ -671,7 +662,7 @@ BUTTON
 90
 295
 123
-NIL
+Setup network
 setup-network
 NIL
 1
@@ -705,9 +696,9 @@ TEXTBOX
 
 BUTTON
 10
-525
+530
 145
-558
+563
 NIL
 setup-plot
 NIL
@@ -722,9 +713,9 @@ NIL
 
 TEXTBOX
 15
-500
+505
 240
-520
+525
 4. Setup run in plot
 17
 0.0
@@ -732,9 +723,9 @@ TEXTBOX
 
 BUTTON
 155
-525
+530
 295
-558
+563
 CLEAR PLOT
 clear-all-plots
 NIL
