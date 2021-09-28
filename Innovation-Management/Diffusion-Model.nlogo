@@ -21,7 +21,9 @@ times-dropped
 
 adopted?
 
-initial-round-percentage-contacts-adopted
+initial-round-percentage-contacts-adopted-adopt
+initial-round-percentage-contacts-adopted-dropout
+
 
 ]
 
@@ -50,7 +52,7 @@ to go
 
     spread ;spread the innovation
 
-    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
+    ask nodes [ set initial-round-percentage-contacts-adopted-dropout percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
     ask nodes [
       if drop-out? and adopted? [consider-drop-out] ;adopted is node variable, so only run by adopters
       recolor ;nodes recolor based on whether or not they have the innovation
@@ -174,11 +176,21 @@ to spread ;run in go
     ]
   ]
 
+  if mechanism-for-spreading = "5 % chance of spreading" [
+    ask adopters [
+      ask link-neighbors [
+        if random-float 100 < 5 [ ;removed probability-of-transfer, now always 50%
+          adopt
+        ]
+      ]
+    ]
+  ]
+
   if mechanism-for-spreading = "if more than x% around me i adopt" [
-    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
+    ask nodes [ set initial-round-percentage-contacts-adopted-adopt percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
 
     ask nodes [
-      if initial-round-percentage-contacts-adopted > conformity-before-transfer [
+      if initial-round-percentage-contacts-adopted-adopt > conformity-before-transfer [
         adopt
       ]
     ]
@@ -189,14 +201,14 @@ to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out?
   ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
   if drop-out-options = "drop out if lower than threshold" [
-    if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
+    if initial-round-percentage-contacts-adopted-dropout < amount-of-neighbours-drop-out-threshold [
       set adopted? false
       set times-dropped ( times-dropped + 1 )
     ]
   ]
 
   if drop-out-options = "percentage chance for dropping out" [ ;every round, my chance of dropping out is the percentage of non-adopters around me
-    if random-float 100 > initial-round-percentage-contacts-adopted [
+    if random-float 100 > initial-round-percentage-contacts-adopted-dropout [
       set adopted? false
       set times-dropped (times-dropped + 1 )
     ]
@@ -228,9 +240,9 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "If more than x% around me I adopt" ]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "If more than x% around me I adopt" ]
   let last-name (word "Adopt if > " conformity-before-transfer " % around")
-  let short-name-list (list "100% spread" "50% spread" (word "adopt if > " conformity-before-transfer " %"))
+  let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-before-transfer " %"))
   let index position mechanism-for-spreading mechanism-list
   let short-name item index short-name-list
   report short-name
@@ -414,7 +426,7 @@ CHOOSER
 300
 mechanism-for-spreading
 mechanism-for-spreading
-"100 % chance of spreading" "50 % chance of spreading" "If more than x% around me I adopt"
+"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "If more than x% around me I adopt"
 0
 
 CHOOSER
@@ -451,7 +463,7 @@ SWITCH
 403
 drop-out?
 drop-out?
-1
+0
 1
 -1000
 
@@ -474,7 +486,7 @@ conformity-before-transfer
 conformity-before-transfer
 0
 100
-30.0
+49.0
 1
 1
 %
@@ -489,7 +501,7 @@ amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
 100
-10.0
+51.0
 1
 1
 %
@@ -554,7 +566,7 @@ CHOOSER
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
-1
+0
 
 SWITCH
 935
