@@ -295,6 +295,22 @@ to plant-innovation
 set mouse-was-down? mouse-is-down?
 end
 
+to plant-based-on
+  if based-on-this = "Betweenness centrality" [
+    ask max-one-of nodes [betweenness] [ adopt ]
+  ]
+
+  if based-on-this = "Closeness centrality" [
+    ask max-one-of nodes [closeness] [ adopt ]
+  ]
+
+  if based-on-this = "Degree centrality" [
+    ask max-one-of nodes [degree] [ adopt ]
+  ]
+
+
+end
+
 ;---REPORTERS
 to-report quantity-adopted
   report (count adopters) / (count nodes) * 100
@@ -314,6 +330,18 @@ end
 
 to-report mouse-clicked? ;used for plant-innovation
   report (mouse-was-down? = true and not mouse-down?)
+end
+
+to-report betweenness ;node reporter
+  report nw:betweenness-centrality ;@use precision a little bit? (e.g. lattice, why only node 50 and not the whole 4-node middle? meaningful differences?)
+end
+
+to-report closeness ;node reporter
+  report nw:closeness-centrality
+end
+
+to-report degree ;node reporter
+  report count my-links
 end
 
 ;---IMPORT NETWORKS
@@ -432,13 +460,13 @@ NIL
 
 CHOOSER
 10
-255
+305
 295
-300
+350
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "Conformity threshold (% of neigbour adopters)"
-1
+0
 
 CHOOSER
 10
@@ -448,7 +476,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-2
+0
 
 PLOT
 925
@@ -469,12 +497,12 @@ PENS
 
 SWITCH
 10
-375
+420
 120
-408
+453
 drop-out?
 drop-out?
-0
+1
 1
 -1000
 
@@ -490,9 +518,9 @@ task
 
 SLIDER
 10
-305
+355
 295
-338
+388
 conformity-threshold
 conformity-threshold
 0
@@ -505,9 +533,9 @@ HORIZONTAL
 
 SLIDER
 10
-455
+500
 295
-488
+533
 amount-of-neighbours-drop-out-threshold
 amount-of-neighbours-drop-out-threshold
 0
@@ -571,9 +599,9 @@ NIL
 
 CHOOSER
 10
-410
-295
 455
+295
+500
 drop-out-options
 drop-out-options
 "drop out if lower than threshold" "percentage chance for dropping out"
@@ -602,9 +630,9 @@ TEXTBOX
 
 TEXTBOX
 125
-350
+395
 275
-371
+416
 Drop-out
 16
 0.0
@@ -612,9 +640,9 @@ Drop-out
 
 TEXTBOX
 80
-230
 280
-250
+280
+300
 Spreading mechanism
 16
 0.0
@@ -686,9 +714,9 @@ TEXTBOX
 
 TEXTBOX
 10
+250
 200
-200
-221
+271
 3. Choose settings
 17
 0.0
@@ -696,9 +724,9 @@ TEXTBOX
 
 BUTTON
 10
-530
+575
 145
-563
+608
 NIL
 setup-plot
 NIL
@@ -713,9 +741,9 @@ NIL
 
 TEXTBOX
 15
-505
+550
 240
-525
+570
 4. Setup run in plot
 17
 0.0
@@ -723,9 +751,9 @@ TEXTBOX
 
 BUTTON
 155
-530
+575
 295
-563
+608
 CLEAR PLOT
 clear-all-plots
 NIL
@@ -747,6 +775,33 @@ TEXTBOX
 17
 0.0
 1
+
+BUTTON
+195
+205
+295
+238
+NIL
+plant-based-on
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+10
+195
+187
+240
+based-on-this
+based-on-this
+"Betweenness centrality" "Closeness centrality" "Degree centrality"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
