@@ -24,8 +24,8 @@ times-adopted
 times-dropped
 
 adopted?
+adopted-this-turn
 
-initial-round-percentage-contacts-adopted
 initial-round-percentage-contacts-adopted
 
 
@@ -66,16 +66,22 @@ to go
   every 0.4 [
     if not any? nodes with [not adopted?] [stop]
 
+    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
     spread ;spread the innovation
 
-    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;separately so it's run by everyone BEFORE the next step
     ask nodes [
-      if drop-out? and adopted? [consider-drop-out] ;adopted is node variable, so only run by adopters
+      if drop-out? and adopted? and adopted-this-turn = false [
+        set initial-round-percentage-contacts-adopted percentage-contacts-adopted ;separately so it's run by everyone BEFORE the next step
+        consider-drop-out
+
+      ] ;adopted is node variable, so only run by adopters
       recolor ;nodes recolor based on whether or not they have the innovation
 
     ]
 
-    update-quantity-adopted-plot
+    ;update-quantity-adopted-plot
+    ask nodes [ set adopted-this-turn false ]
+    ;ask nodes [ set initial-round-percentage-contacts-adopted 0 ]
     tick
 
   ]
@@ -83,6 +89,7 @@ end
 
 to adopt ;node procedure, run when the innovation is adopted
   set adopted? true
+  set adopted-this-turn true
 
   ;; If RESET-TICKS hasn't been called, we need to set FIRST-HEARD to 0. Unfortunately,
   ;; the only way to know if RESET-TICKS hasn't been called yet is to try to get the TICKS
@@ -190,9 +197,17 @@ to spread ;run in go
     ]
   ]
 
-  if mechanism-for-spreading = "Conformity threshold (% of neigbour adopters)" [
-    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
+    if mechanism-for-spreading = "5 % chance of spreading" [
+    ask adopters [
+      ask link-neighbors [
+        if random-float 100 < 5 [ ;removed probability-of-transfer, now always 50%
+          adopt
+        ]
+      ]
+    ]
+  ]
 
+  if mechanism-for-spreading = "Conformity threshold (% of neigbour adopters)" [
     ask nodes [
       if initial-round-percentage-contacts-adopted > conformity-threshold [
         adopt
@@ -251,9 +266,9 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "Conformity threshold (% of neigbour adopters)" ]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold (% of neigbour adopters)" ]
   let last-name (word "Adopt if > " conformity-threshold " % around")
-  let short-name-list (list "100% spread" "50% spread" (word "adopt if > " conformity-threshold " %"))
+  let short-name-list (list "100% spread" "50% spread" "5 % chance of spreading" (word "adopt if > " conformity-threshold " %"))
   let index position mechanism-for-spreading mechanism-list
   let short-name item index short-name-list
   report short-name
@@ -465,8 +480,8 @@ CHOOSER
 350
 mechanism-for-spreading
 mechanism-for-spreading
-"100 % chance of spreading" "50 % chance of spreading" "Conformity threshold (% of neigbour adopters)"
-0
+"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold (% of neigbour adopters)"
+3
 
 CHOOSER
 10
@@ -502,7 +517,7 @@ SWITCH
 453
 drop-out?
 drop-out?
-1
+0
 1
 -1000
 
@@ -525,7 +540,7 @@ conformity-threshold
 conformity-threshold
 0
 100
-0.0
+49.0
 1
 1
 %
@@ -801,7 +816,7 @@ CHOOSER
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
