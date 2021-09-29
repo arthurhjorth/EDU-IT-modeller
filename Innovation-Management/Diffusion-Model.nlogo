@@ -64,7 +64,7 @@ to setup-plot ;after the ideas have been planted and the spreading mechanisms ha
 end
 
 to go
-  while [first-go?] [
+  if first-go? [
     setup-plot
     set first-go? false
   ]
@@ -109,6 +109,7 @@ to adopt ;node procedure, run when the innovation is adopted
       set first-adopted ticks + 1
     ] [
       set first-adopted 0
+      ;@never runs? initial nodes are 1, not 0...
     ]
   ]
   ;first-adopted = the tick at which they (most recently, if they've dropped and re-adopted) adopted the innovation
@@ -157,6 +158,37 @@ to color-when-adopted ;node procedure
   ;the tick at which they (most recently) adopted the innovation
   ;@consider: what about dropout? do we instead wanna visualise when they first got it?
 end
+
+to size-by [measure]
+
+
+end
+
+
+to color-by [measure] ;button in interface, colors a network by a chosen measure
+  if measure = "Time of adoption" [ ask nodes [color-when-adopted] ]
+
+  if measure = "Betweenness centrality" [
+    let lower-value (min [betweenness] of nodes) - 0.02
+    let upper-value (max [betweenness] of nodes) + 0.02
+    ask nodes [set color scale-color blue betweenness upper-value lower-value] ;the darker the color, the higher the value
+  ]
+
+  if measure = "Closeness centrality" [
+    let lower-value (min [closeness] of nodes) - 0.02
+    let upper-value (max [closeness] of nodes) + 0.02
+    ask nodes [set color scale-color red closeness upper-value lower-value] ;the darker the color, the higher the value
+  ]
+
+  if measure = "Degree centrality" [
+    let lower-value (min [degree] of nodes) - 0.5
+    let upper-value (max [degree] of nodes) + 0.5
+    ask nodes [set color scale-color green degree upper-value lower-value] ;the darker the color, the higher the value
+  ]
+
+
+end
+
 
 to label-when-adopted ;node procedure
   if show-labels? [
@@ -301,15 +333,11 @@ to plant-innovation
   if mouse-clicked? [
 
     ask min-one-of nodes  [distancexy mouse-xcor mouse-ycor] [
-      let status adopted? ;saving it before the ifelse so it doesn't get confused
-      ifelse status [
-        ;if already adopted, erase/'un-adopt':
-        set adopted? false
-        recolor
+      every .2 [
+      set adopted? not adopted? ;flips the status
+      recolor
       ]
-      [ ;if not adopted, adopt:
-        adopt
-      ]
+
     ]
     ;@evt SØRG FOR AT MAN SKAL VÆRE PÅ NODEN, når man trykker
   ]
@@ -500,7 +528,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-1
+6
 
 PLOT
 920
@@ -588,27 +616,10 @@ NIL
 1
 
 BUTTON
-925
-165
-1055
-198
-Color by when heard
-ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
 1060
 130
 1155
-200
+165
 Reset coloring
 ask nodes [recolor] ask banners [die]
 NIL
@@ -638,7 +649,7 @@ SWITCH
 163
 show-labels?
 show-labels?
-1
+0
 1
 -1000
 
@@ -687,16 +698,16 @@ TEXTBOX
 100
 1480
 226
-to do:\n- lav opgavevælger som forudindstiller sliders\n- fix so node 1 = 0 (labels)\n- fix show-labels, så de tilpasser node size\n- make node size dependent on nw measures (and include nw measures somewhere!)
+to do:\n- lav opgavevælger som forudindstiller sliders\n- fix so node 1 = 0 (labels)\n- fix show-labels, så de tilpasser node size\n- make node size dependent on nw measures
 11
 0.0
 1
 
 BUTTON
-1360
+920
 255
-1485
-288
+1045
+295
 CLEAR PLOT
 clear-the-plot
 NIL
@@ -782,6 +793,33 @@ based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
 1
+
+BUTTON
+1060
+168
+1155
+213
+COLOR
+color-by color-based-on-this
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+925
+170
+1055
+215
+color-based-on-this
+color-based-on-this
+"Time of adoption" "Betweenness centrality" "Closeness centrality" "Degree centrality"
+2
 
 @#$#@#$#@
 ## WHAT IS IT?
