@@ -346,16 +346,18 @@ set mouse-was-down? mouse-is-down?
 end
 
 to plant-based-on
+  let candidates nodes with [not adopted?]
+
   if based-on-this = "Betweenness centrality" [
-    ask max-one-of nodes [betweenness] [ adopt ]
+    ask max-one-of candidates [betweenness] [ adopt ]
   ]
 
   if based-on-this = "Closeness centrality" [
-    ask max-one-of nodes [closeness] [ adopt ]
+    ask max-one-of candidates [closeness] [ adopt ]
   ]
 
   if based-on-this = "Degree centrality" [
-    ask max-one-of nodes [degree] [ adopt ]
+    ask max-one-of candidates [degree] [ adopt ]
   ]
 
 
@@ -557,13 +559,13 @@ drop-out?
 -1000
 
 CHOOSER
-1235
+1230
 40
-1487
+1482
 85
 task
 task
-"question 1" "question 2" "question 3"
+"Question 1" "Question 2" "Question 3"
 0
 
 SLIDER
@@ -691,16 +693,6 @@ TEXTBOX
 0.0
 1
 
-TEXTBOX
-1240
-100
-1480
-226
-to do:\n- lav opgavevælger som forudindstiller sliders\n- fix so node 1 = 0 (labels)\n- fix show-labels, så de tilpasser node size\n- make node size dependent on nw measures
-11
-0.0
-1
-
 BUTTON
 920
 255
@@ -790,7 +782,7 @@ CHOOSER
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-1
+2
 
 BUTTON
 1060
