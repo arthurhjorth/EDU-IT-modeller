@@ -10,6 +10,8 @@ globals [
   nice-colors ;for plotting
   remaining-pen-colors ;for plotting
   pen-counter ;for plotting
+
+  first-go? ;keeping track in go-procedure (for setup-plot)
 ]
 
 breed [nodes node] ;a breed so we can layer the banner labels on top
@@ -24,7 +26,7 @@ times-adopted
 times-dropped
 
 adopted?
-adopted-this-turn
+adopted-this-turn?
 
 initial-round-percentage-contacts-adopted
 
@@ -42,7 +44,7 @@ to setup-network
   ;workaround, globals we don't want deleted in clearing now re-saved:
   set remaining-pen-colors saved-colors
   set pen-counter saved-pen-counter
-
+  set first-go? true ;for go procedure and setup-plot
 
 
   import-network-structure
@@ -62,26 +64,33 @@ to setup-plot ;after the ideas have been planted and the spreading mechanisms ha
 end
 
 to go
+  while [first-go?] [
+    setup-plot
+    set first-go? false
+  ]
   ;setup-plot ;sets up the plot pen with the chosen settings ;should only be run the FIRST time!@@@@ so we can remove interface button!
+
   every 0.4 [
-    if not any? nodes with [not adopted?] [stop]
+    if not any? nodes with [not adopted?] [stop] ;stop model if everyone has adopted
 
-    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;vi 'fastlåser' % af naboer der har adopteret her, så det ikke bliver påvirkert, når andre begynder at skifte i dette tick
-    spread ;spread the innovation
+    ask nodes [ set initial-round-percentage-contacts-adopted percentage-contacts-adopted ] ;turtle variable fastlåses, % nabo-adopters, så den ikke skifter, når andre begynder at skifte i dette tick
 
+    ;spread the innovation:
+    spread
+
+    ;dropout:
     ask nodes [
-      if drop-out? and adopted? and adopted-this-turn = false [
-        set initial-round-percentage-contacts-adopted percentage-contacts-adopted ;separately so it's run by everyone BEFORE the next step
+      if drop-out? and adopted? and not adopted-this-turn? [ ;can only dropout if they've been adopters for at least one turn (so it has had time to visualise)
         consider-drop-out
+      ]
 
-      ] ;adopted is node variable, so only run by adopters
       recolor ;nodes recolor based on whether or not they have the innovation
-
     ]
 
-    ;update-quantity-adopted-plot
-    ask nodes [ set adopted-this-turn false ]
-    ;ask nodes [ set initial-round-percentage-contacts-adopted 0 ]
+    update-quantity-adopted-plot
+
+    ask nodes [ set adopted-this-turn? false ]
+
     tick
 
   ]
@@ -89,7 +98,7 @@ end
 
 to adopt ;node procedure, run when the innovation is adopted
   set adopted? true
-  set adopted-this-turn true
+  set adopted-this-turn? true
 
   ;; If RESET-TICKS hasn't been called, we need to set FIRST-HEARD to 0. Unfortunately,
   ;; the only way to know if RESET-TICKS hasn't been called yet is to try to get the TICKS
@@ -110,7 +119,7 @@ end
 
 
 to setup-nodes ;node procedure. Run in setup (can also use it later if new nodes join)
-  set adopted? false
+  set adopted? false set adopted-this-turn? false
   set first-adopted -1 ;to avoid tick issues, see explanation in rumor mill model
 
 
@@ -181,7 +190,7 @@ to spread ;run in go
 
   if mechanism-for-spreading = "100 % chance of spreading" [
     ask adopters [
-      ask link-neighbors [
+      ask link-neighbors with [not adopted?] [
         adopt
       ]
     ]
@@ -189,8 +198,8 @@ to spread ;run in go
 
   if mechanism-for-spreading = "50 % chance of spreading" [
     ask adopters [
-      ask link-neighbors [
-        if random-float 100 < 50 [ ;removed probability-of-transfer, now always 50%
+      ask link-neighbors with [not adopted?] [
+        if random-float 100 < 50 [
           adopt
         ]
       ]
@@ -199,16 +208,16 @@ to spread ;run in go
 
     if mechanism-for-spreading = "5 % chance of spreading" [
     ask adopters [
-      ask link-neighbors [
-        if random-float 100 < 5 [ ;removed probability-of-transfer, now always 50%
+      ask link-neighbors with [not adopted?] [
+        if random-float 100 < 5 [
           adopt
         ]
       ]
     ]
   ]
 
-  if mechanism-for-spreading = "Conformity threshold (% of neigbour adopters)" [
-    ask nodes [
+  if mechanism-for-spreading = "Adopt if % neighbors higher than threshold" [
+    ask nodes with [not adopted?] [
       if initial-round-percentage-contacts-adopted > conformity-threshold [
         adopt
       ]
@@ -219,8 +228,8 @@ end
 to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out? is on)
   ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
-  if drop-out-options = "drop out if lower than threshold" [
-    if initial-round-percentage-contacts-adopted < amount-of-neighbours-drop-out-threshold [
+  if drop-out-options = "Drop out if % neighbors lower than threshold" [
+    if initial-round-percentage-contacts-adopted < drop-out-threshold [
       set adopted? false
       set times-dropped ( times-dropped + 1 )
     ]
@@ -266,9 +275,9 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold (% of neigbour adopters)" ]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold" ]
   let last-name (word "Adopt if > " conformity-threshold " % around")
-  let short-name-list (list "100% spread" "50% spread" "5 % chance of spreading" (word "adopt if > " conformity-threshold " %"))
+  let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-threshold " %"))
   let index position mechanism-for-spreading mechanism-list
   let short-name item index short-name-list
   report short-name
@@ -413,9 +422,9 @@ to move-outwards [steps] ;node procedure, used in import-network-structure
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-320
+315
 10
-918
+913
 609
 -1
 -1
@@ -440,10 +449,10 @@ ticks
 30.0
 
 BUTTON
-935
-45
-1020
-78
+925
+40
+1010
+85
 go once
 go
 NIL
@@ -457,10 +466,10 @@ NIL
 1
 
 BUTTON
-1024
-45
-1109
-80
+1014
+40
+1099
+85
 NIL
 go
 T
@@ -475,13 +484,13 @@ NIL
 
 CHOOSER
 10
-305
-295
-350
+335
+297
+380
 mechanism-for-spreading
 mechanism-for-spreading
-"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold (% of neigbour adopters)"
-3
+"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"
+0
 
 CHOOSER
 10
@@ -491,12 +500,12 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+1
 
 PLOT
-925
-315
-1490
+920
+295
+1485
 610
 Diffusion rate
 time
@@ -512,20 +521,20 @@ PENS
 
 SWITCH
 10
-420
+450
 120
-453
+483
 drop-out?
 drop-out?
-0
+1
 1
 -1000
 
 CHOOSER
-1240
-45
-1492
-90
+1235
+40
+1487
+85
 task
 task
 "question 1" "question 2" "question 3"
@@ -533,14 +542,14 @@ task
 
 SLIDER
 10
-355
+385
 295
-388
+418
 conformity-threshold
 conformity-threshold
 0
 100
-49.0
+0.0
 1
 1
 %
@@ -548,14 +557,14 @@ HORIZONTAL
 
 SLIDER
 10
-500
+530
 295
-533
-amount-of-neighbours-drop-out-threshold
-amount-of-neighbours-drop-out-threshold
+563
+drop-out-threshold
+drop-out-threshold
 0
 100
-51.0
+25.0
 1
 1
 %
@@ -563,9 +572,9 @@ HORIZONTAL
 
 BUTTON
 10
-155
+170
 297
-188
+203
 (PRESS THIS BUTTON AND CLICK ON A NODE)
 plant-innovation
 T
@@ -579,10 +588,10 @@ NIL
 1
 
 BUTTON
-935
-170
-1065
-203
+925
+165
+1055
+198
 Color by when heard
 ask banners [die] \nask nodes [ color-when-adopted label-when-adopted]
 NIL
@@ -596,10 +605,10 @@ NIL
 1
 
 BUTTON
-1070
-135
-1165
-205
+1060
+130
+1155
+200
 Reset coloring
 ask nodes [recolor] ask banners [die]
 NIL
@@ -614,19 +623,19 @@ NIL
 
 CHOOSER
 10
-455
+485
 295
-500
+530
 drop-out-options
 drop-out-options
-"drop out if lower than threshold" "percentage chance for dropping out"
+"Drop out if % neighbors lower than threshold" "percentage chance for dropping out"
 0
 
 SWITCH
-935
-135
-1065
-168
+925
+130
+1055
+163
 show-labels?
 show-labels?
 1
@@ -634,20 +643,20 @@ show-labels?
 -1000
 
 TEXTBOX
-935
-105
-1195
-130
-6. Visualise spreading pattern
+925
+100
+1185
+125
+5. Visualise spreading pattern
 17
 0.0
 1
 
 TEXTBOX
 125
-395
+425
 275
-416
+446
 Drop-out
 16
 0.0
@@ -655,9 +664,9 @@ Drop-out
 
 TEXTBOX
 80
+310
 280
-280
-300
+330
 Spreading mechanism
 16
 0.0
@@ -674,20 +683,20 @@ TEXTBOX
 1
 
 TEXTBOX
-1245
-105
-1485
-231
+1240
+100
+1480
+226
 to do:\n- lav opgavevælger som forudindstiller sliders\n- fix so node 1 = 0 (labels)\n- fix show-labels, så de tilpasser node size\n- make node size dependent on nw measures (and include nw measures somewhere!)
 11
 0.0
 1
 
 BUTTON
-1365
-280
-1490
-313
+1360
+255
+1485
+288
 CLEAR PLOT
 clear-the-plot
 NIL
@@ -719,9 +728,9 @@ NIL
 
 TEXTBOX
 10
-130
+145
 220
-148
+163
 2. Plant one or more ideas
 17
 0.0
@@ -729,73 +738,29 @@ TEXTBOX
 
 TEXTBOX
 10
-250
+280
 200
-271
+301
 3. Choose settings
 17
 0.0
 1
 
-BUTTON
-10
-575
-145
-608
-NIL
-setup-plot
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 TEXTBOX
+925
 15
-550
-240
-570
-4. Setup run in plot
+1115
+56
+4. Go/Start the spread!
 17
 0.0
 1
 
 BUTTON
-155
-575
+190
+210
 295
-608
-CLEAR PLOT
-clear-all-plots
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-TEXTBOX
-935
-20
-1125
-61
-5. Go/Start the spread!
-17
-0.0
-1
-
-BUTTON
-195
-205
-295
-238
+255
 NIL
 plant-based-on
 NIL
@@ -810,9 +775,9 @@ NIL
 
 CHOOSER
 10
-195
+210
 187
-240
+255
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
