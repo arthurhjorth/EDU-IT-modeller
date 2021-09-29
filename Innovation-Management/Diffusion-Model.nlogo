@@ -333,10 +333,8 @@ to plant-innovation
   if mouse-clicked? [
 
     ask min-one-of nodes  [distancexy mouse-xcor mouse-ycor] [
-      every .2 [
       set adopted? not adopted? ;flips the status
       recolor
-      ]
 
     ]
     ;@evt SØRG FOR AT MAN SKAL VÆRE PÅ NODEN, når man trykker
@@ -528,7 +526,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-6
+0
 
 PLOT
 920
