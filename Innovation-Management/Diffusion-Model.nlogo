@@ -58,10 +58,23 @@ to setup-network
   reset-ticks
 end
 
+to change-nw-layout
+  if network-structure = "small world (100)" or network-structure = "small world (196)" [
+    repeat 4000 [layout-spring turtles links .01 3 1]
+  ]
+
+
+end
+
 to setup-plot ;after the ideas have been planted and the spreading mechanisms have been set
   initiate-quantity-adopted-plot
   update-quantity-adopted-plot
 end
+
+to setup-task
+  ;auto-setup settingss for the tasks
+end
+
 
 to go
   if first-go? [
@@ -166,7 +179,10 @@ end
 
 
 to color-by [measure] ;button in interface, colors a network by a chosen measure
-  if measure = "Time of adoption" [ ask nodes [color-when-adopted] ]
+  if measure = "Time of adoption" [
+    ask banners [set label ""]
+    ask nodes [color-when-adopted label-when-adopted]
+  ]
 
   if measure = "Betweenness centrality" [
     let lower-value (min [betweenness] of nodes) - 0.02
@@ -511,20 +527,20 @@ NIL
 1
 
 CHOOSER
-10
-335
-297
-380
+15
+355
+302
+400
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"
-0
+2
 
 CHOOSER
 10
-45
+35
 295
-90
+80
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
@@ -548,10 +564,10 @@ true
 PENS
 
 SWITCH
-10
-450
-120
-483
+15
+495
+125
+528
 drop-out?
 drop-out?
 1
@@ -560,19 +576,19 @@ drop-out?
 
 CHOOSER
 1230
-40
-1482
-85
+90
+1485
+135
 task
 task
 "Question 1" "Question 2" "Question 3"
-0
+1
 
 SLIDER
-10
-385
-295
-418
+15
+405
+300
+438
 conformity-threshold
 conformity-threshold
 0
@@ -584,10 +600,10 @@ conformity-threshold
 HORIZONTAL
 
 SLIDER
-10
-530
-295
-563
+15
+575
+300
+608
 drop-out-threshold
 drop-out-threshold
 0
@@ -599,10 +615,10 @@ drop-out-threshold
 HORIZONTAL
 
 BUTTON
-10
-170
-297
-203
+15
+185
+302
+218
 (PRESS THIS BUTTON AND CLICK ON A NODE)
 plant-innovation
 T
@@ -633,10 +649,10 @@ NIL
 1
 
 CHOOSER
-10
-485
-295
+15
 530
+300
+575
 drop-out-options
 drop-out-options
 "Drop out if % neighbors lower than threshold" "percentage chance for dropping out"
@@ -649,7 +665,7 @@ SWITCH
 163
 show-labels?
 show-labels?
-0
+1
 1
 -1000
 
@@ -664,20 +680,20 @@ TEXTBOX
 1
 
 TEXTBOX
-125
-425
-275
-446
+130
+470
+280
+491
 Drop-out
 16
 0.0
 1
 
 TEXTBOX
-80
-310
-280
+85
 330
+285
+350
 Spreading mechanism
 16
 0.0
@@ -685,9 +701,9 @@ Spreading mechanism
 
 TEXTBOX
 10
-20
+10
 295
-61
+51
 1. Choose network structure
 17
 0.0
@@ -712,9 +728,9 @@ NIL
 
 BUTTON
 10
-90
+80
 295
-123
+113
 Setup network
 setup-network
 NIL
@@ -728,20 +744,20 @@ NIL
 1
 
 TEXTBOX
-10
-145
-220
-163
+15
+160
+225
+178
 2. Plant one or more ideas
 17
 0.0
 1
 
 TEXTBOX
-10
-280
-200
-301
+15
+295
+205
+316
 3. Choose settings
 17
 0.0
@@ -758,10 +774,10 @@ TEXTBOX
 1
 
 BUTTON
-190
-210
-295
-255
+195
+225
+300
+270
 NIL
 plant-based-on
 NIL
@@ -775,14 +791,14 @@ NIL
 1
 
 CHOOSER
-10
-210
-187
-255
+15
+225
+192
+270
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-2
+1
 
 BUTTON
 1060
@@ -809,7 +825,71 @@ CHOOSER
 color-based-on-this
 color-based-on-this
 "Time of adoption" "Betweenness centrality" "Closeness centrality" "Degree centrality"
-2
+1
+
+TEXTBOX
+1065
+230
+1215
+248
+adjust color scale
+11
+0.0
+1
+
+TEXTBOX
+1295
+195
+1445
+251
+add layout animation:\n\nrepeat 4000 [layout-spring turtles links .01 3 1]
+11
+0.0
+1
+
+BUTTON
+1230
+140
+1485
+173
+NIL
+setup-task
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+1260
+60
+1445
+85
+----- SETUP A TASK -----
+17
+0.0
+1
+
+BUTTON
+10
+115
+295
+148
+Change layout visualization
+change-nw-layout
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
