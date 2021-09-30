@@ -46,7 +46,7 @@ to setup-network
   set remaining-pen-colors saved-colors
   set pen-counter saved-pen-counter
   set first-go? true ;for go procedure and setup-plot
-  set show-labels? false ;dropped this... but code still there, if we wanna go back (only works for color-by time of adoption)
+  set show-labels? false ;dropped this... but code still there, if we wanna go back (only works for color-by time since adoption)
 
   import-network-structure
   ask nodes [setup-nodes]
@@ -134,6 +134,10 @@ to adopt ;node procedure, run when the innovation is adopted
   recolor
 end
 
+to-report time-since-adopted ;node-reporter
+report ticks - first-adopted
+end
+
 
 
 to setup-nodes ;node procedure. Run in setup (can also use it later if new nodes join)
@@ -203,10 +207,10 @@ to size-by [measure] ;node procedure
     set OldMax (max [degree] of nodes)
     set OldValue degree
   ]
-  if measure = "Time of adoption" [
-    set OldMin (min [first-adopted] of nodes)
-    set OldMax (max [first-adopted] of nodes)
-    set OldValue first-adopted
+  if measure = "Time since adoption" [
+    set OldMin (min [time-since-adopted] of nodes)
+    set OldMax (max [time-since-adopted] of nodes)
+    set OldValue time-since-adopted
   ]
 
 
@@ -227,7 +231,7 @@ end
 
 to color-by [measure] ;button in interface, colors a network by a chosen measure
   ask banners [set label ""]
-  if measure = "Time of adoption" [
+  if measure = "Time since adoption" [
     ask nodes [color-when-adopted label-when-adopted]
   ]
 
@@ -588,7 +592,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-1
+0
 
 PLOT
 920
@@ -668,7 +672,7 @@ BUTTON
 1060
 175
 1150
-206
+208
 Reset
 ask nodes [recolor set-default-size]\nask banners [die]
 NIL
@@ -832,12 +836,12 @@ NIL
 CHOOSER
 925
 125
-1055
+1060
 170
 visualize-this
 visualize-this
-"Time of adoption" "Betweenness" "Closeness" "Degree"
-3
+"Time since adoption" "Betweenness" "Closeness" "Degree"
+0
 
 TEXTBOX
 1220
