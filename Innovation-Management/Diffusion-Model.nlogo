@@ -12,6 +12,7 @@ globals [
   pen-counter ;for plotting
 
   first-go? ;keeping track in go-procedure (for setup-plot)
+  show-labels?
 ]
 
 breed [nodes node] ;a breed so we can layer the banner labels on top
@@ -45,7 +46,7 @@ to setup-network
   set remaining-pen-colors saved-colors
   set pen-counter saved-pen-counter
   set first-go? true ;for go procedure and setup-plot
-
+  set show-labels? false ;dropped this... but code still there, if we wanna go back (only works for color-by time of adoption)
 
   import-network-structure
   ask nodes [setup-nodes]
@@ -174,37 +175,64 @@ to color-when-adopted ;node procedure
   ;@consider: what about dropout? do we instead wanna visualise when they first got it?
 end
 
-to size-by [measure]
+to size-by [measure] ;node procedure
+  ;simple linear transformation
+  ;NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+  ;moves their nr for the nw measure to a corresponding scale of the wanted sizes (determined by layout/space)
+
   ;depending on the nw structure, set lower and upper size limit:
-  let lower-limit 0.5
-  let upper-limit 1.5
+  let NewMin 0.6 ;lower size limit
+  let NewMax 2.9 ;upper size limit
+  let OldMin "NA" ;just a placeholder
+  let OldMax "NA"
+  let OldValue "NA"
 
   if measure = "Betweenness" [
-
-
+    set OldMin (min [betweenness] of nodes)
+    set OldMax (max [betweenness] of nodes)
+    set OldValue betweenness
   ]
-
   if measure = "Closeness" [
-    ;
+    set OldMin (min [closeness] of nodes)
+    set OldMax (max [closeness] of nodes)
+    set OldValue closeness
+  ]
+  if measure = "Degree" [
+    set OldMin (min [degree] of nodes)
+    set OldMax (max [degree] of nodes)
+    set OldValue degree
+  ]
+  if measure = "Time of adoption" [
+    set OldMin (min [first-adopted] of nodes)
+    set OldMax (max [first-adopted] of nodes)
+    set OldValue first-adopted
   ]
 
-  if measure = "Degree" [
-    ;
-  ]
+
+  ;actually make the node change size using the formula:
+  set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
 
 
 end
 
+to set-default-size ;node procedure
+  ifelse network-structure = "small world (196)" [
+      set size 1.1 ]
+    [
+      set size 1.8
+      if network-structure = "preferential attachment (500)" [ set size 1 ]
+    ]
+end
 
 to color-by [measure] ;button in interface, colors a network by a chosen measure
+  ask banners [set label ""]
   if measure = "Time of adoption" [
-    ask banners [set label ""]
     ask nodes [color-when-adopted label-when-adopted]
   ]
 
   if measure = "Betweenness" [
-    let lower-value (min [betweenness] of nodes) - 0.02
-    let upper-value (max [betweenness] of nodes) + 0.02
+    let lower-value (min [betweenness] of nodes) - 0.1
+    let upper-value (max [betweenness] of nodes) + 0.1
     ask nodes [set color scale-color blue betweenness upper-value lower-value] ;the darker the color, the higher the value
   ]
 
@@ -217,7 +245,7 @@ to color-by [measure] ;button in interface, colors a network by a chosen measure
   if measure = "Degree" [
     let lower-value (min [degree] of nodes) - 0.5
     let upper-value (max [degree] of nodes) + 0.5
-    ask nodes [set color scale-color green degree upper-value lower-value] ;the darker the color, the higher the value
+    ask nodes [set color scale-color violet degree upper-value lower-value] ;the darker the color, the higher the value
   ]
 
 
@@ -454,17 +482,9 @@ to import-network-structure
 
   ask turtles [
     set breed nodes ;important!
-    set shape "circle"
+    set shape "circle-with-border"
 
-    ifelse network-structure = "small world (196)" [
-      set size 1.1 ]
-    [
-      set size 1.8
-      if network-structure = "preferential attachment (500)" [ set size 1 ]
-
-
-
-    ]
+    set-default-size
 
   ]
 
@@ -571,9 +591,9 @@ network-structure
 
 PLOT
 920
-295
+280
 1485
-610
+600
 Diffusion rate
 time
 % adopters
@@ -645,11 +665,11 @@ NIL
 
 BUTTON
 1060
-130
-1155
-165
-Reset coloring
-ask nodes [recolor] ask banners [die]
+175
+1150
+206
+Reset
+ask nodes [recolor set-default-size]\nask banners [die]
 NIL
 1
 T
@@ -660,23 +680,12 @@ NIL
 NIL
 1
 
-SWITCH
-925
-130
-1055
-163
-show-labels?
-show-labels?
-1
-1
--1000
-
 TEXTBOX
 925
 100
 1185
 125
-5. Visualise spreading pattern
+5. Visualize
 17
 0.0
 1
@@ -712,10 +721,10 @@ TEXTBOX
 1
 
 BUTTON
-920
-255
-1045
-295
+1360
+240
+1485
+280
 CLEAR PLOT
 clear-the-plot
 NIL
@@ -800,15 +809,15 @@ CHOOSER
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-0
+1
 
 BUTTON
 1060
+125
+1150
 170
-1155
-215
-COLOR
-color-by color-based-on-this
+VISUALIZE
+color-by visualize-this\nask nodes [size-by visualize-this]
 NIL
 1
 T
@@ -821,19 +830,19 @@ NIL
 
 CHOOSER
 925
-170
+125
 1055
-215
-color-based-on-this
-color-based-on-this
+170
+visualize-this
+visualize-this
 "Time of adoption" "Betweenness" "Closeness" "Degree"
 3
 
 TEXTBOX
 1295
-195
+160
 1445
-251
+216
 add layout animation:\n\nrepeat 4000 [layout-spring turtles links .01 3 1]
 11
 0.0
@@ -903,21 +912,14 @@ If conformity threshold: I adopt if more than this % of my neighbors have also a
 0.0
 1
 
-BUTTON
-1095
-240
-1252
-273
-NIL
-size-by \"betweenness\"
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
+TEXTBOX
+925
+175
+1060
+235
+Darker color and bigger size indicates a higher score on the chosen measure.
+12
+0.0
 1
 
 @#$#@#$#@
@@ -1023,6 +1025,13 @@ false
 0
 Circle -7500403 true true 0 0 300
 Circle -16777216 true false 30 30 240
+
+circle-with-border
+false
+0
+Circle -7500403 true true 0 0 300
+Circle -1 false false 0 0 300
+Circle -1 false false 0 0 300
 
 cow
 false
