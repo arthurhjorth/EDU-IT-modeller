@@ -53,6 +53,7 @@ to setup-network
   ask links [set-link-shape]
 
   ask patches [set pcolor 1] ;dark grey
+  ask links [set color 7] ;a bit lighter grey than the default
 
   ;potentially 'infect' an initial node:
   ;if activate-initial-adopter? [
@@ -587,7 +588,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-2
+1
 
 PLOT
 920
@@ -836,10 +837,10 @@ CHOOSER
 visualize-this
 visualize-this
 "Time of adoption" "Betweenness" "Closeness" "Degree"
-1
+3
 
 TEXTBOX
-1295
+1220
 160
 1445
 216
