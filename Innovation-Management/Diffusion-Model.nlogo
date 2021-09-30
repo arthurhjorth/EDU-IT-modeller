@@ -51,6 +51,8 @@ to setup-network
   ask nodes [setup-nodes]
   ask links [set-link-shape]
 
+  ask patches [set pcolor 1] ;dark grey
+
   ;potentially 'infect' an initial node:
   ;if activate-initial-adopter? [
    ; ask one-of nodes [adopt]
@@ -264,7 +266,7 @@ to spread ;run in go
     ]
   ]
 
-  if mechanism-for-spreading = "Adopt if % neighbors higher than threshold" [
+  if mechanism-for-spreading = "Conformity threshold" [
     ask nodes with [not adopted?] [
       if initial-round-percentage-contacts-adopted > conformity-threshold [
         adopt
@@ -276,19 +278,24 @@ end
 to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out? is on)
   ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
-  if drop-out-options = "Drop out if % neighbors lower than threshold" [
+  if drop-out? [ ;gamle "Drop out if % neighbors lower than threshold"
     if initial-round-percentage-contacts-adopted < drop-out-threshold [
       set adopted? false
       set times-dropped ( times-dropped + 1 )
     ]
   ]
 
-  if drop-out-options = "percentage chance for dropping out" [ ;every round, my chance of dropping out is the percentage of non-adopters around me
-    if random-float 100 > initial-round-percentage-contacts-adopted [
-      set adopted? false
-      set times-dropped (times-dropped + 1 )
-    ]
-  ]
+  ;DROPPET:
+;  if drop-out-options = "percentage chance for dropping out" [ ;every round, my chance of dropping out is the percentage of non-adopters around me
+;    if random-float 100 > initial-round-percentage-contacts-adopted [
+;      set adopted? false
+;      set times-dropped (times-dropped + 1 )
+;    ]
+;  ]
+end
+
+to-report drop-out? ;replaces the old interface switch
+  report ifelse-value (drop-out-threshold = 0) [false] [true]
 end
 
 to clear-the-plot
@@ -323,7 +330,7 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold" ]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" ]
   let last-name (word "Adopt if > " conformity-threshold " % around")
   let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-threshold " %"))
   let index position mechanism-for-spreading mechanism-list
@@ -534,7 +541,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"
-2
+3
 
 CHOOSER
 10
@@ -544,7 +551,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+6
 
 PLOT
 920
@@ -563,37 +570,26 @@ true
 "" ""
 PENS
 
-SWITCH
-15
-495
-125
-528
-drop-out?
-drop-out?
-1
-1
--1000
-
 CHOOSER
 1230
-90
+50
 1485
-135
+95
 task
 task
 "Question 1" "Question 2" "Question 3"
-1
+0
 
 SLIDER
 15
-405
+445
 300
-438
+478
 conformity-threshold
 conformity-threshold
 0
 100
-0.0
+33.0
 1
 1
 %
@@ -601,14 +597,14 @@ HORIZONTAL
 
 SLIDER
 15
-575
+565
 300
-608
+598
 drop-out-threshold
 drop-out-threshold
 0
 100
-25.0
+0.0
 1
 1
 %
@@ -648,16 +644,6 @@ NIL
 NIL
 1
 
-CHOOSER
-15
-530
-300
-575
-drop-out-options
-drop-out-options
-"Drop out if % neighbors lower than threshold" "percentage chance for dropping out"
-0
-
 SWITCH
 925
 130
@@ -680,12 +666,12 @@ TEXTBOX
 1
 
 TEXTBOX
-130
-470
-280
-491
+125
+500
+275
+521
 Drop-out
-16
+17
 0.0
 1
 
@@ -693,9 +679,9 @@ TEXTBOX
 85
 330
 285
-350
+351
 Spreading mechanism
-16
+17
 0.0
 1
 
@@ -798,7 +784,7 @@ CHOOSER
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-1
+0
 
 BUTTON
 1060
@@ -828,16 +814,6 @@ color-based-on-this
 1
 
 TEXTBOX
-1065
-230
-1215
-248
-adjust color scale
-11
-0.0
-1
-
-TEXTBOX
 1295
 195
 1445
@@ -849,9 +825,9 @@ add layout animation:\n\nrepeat 4000 [layout-spring turtles links .01 3 1]
 
 BUTTON
 1230
-140
+100
 1485
-173
+133
 NIL
 setup-task
 NIL
@@ -866,9 +842,9 @@ NIL
 
 TEXTBOX
 1260
-60
+20
 1445
-85
+45
 ----- SETUP A TASK -----
 17
 0.0
@@ -889,6 +865,26 @@ NIL
 NIL
 NIL
 NIL
+1
+
+TEXTBOX
+15
+530
+305
+560
+I drop out if less than this % of my neighbors have adopted:
+12
+0.0
+1
+
+TEXTBOX
+20
+410
+300
+440
+If conformity threshold: I adopt if more than this % of my neighbors have also adopted:
+12
+0.0
 1
 
 @#$#@#$#@
