@@ -175,6 +175,22 @@ to color-when-adopted ;node procedure
 end
 
 to size-by [measure]
+  ;depending on the nw structure, set lower and upper size limit:
+  let lower-limit 0.5
+  let upper-limit 1.5
+
+  if measure = "Betweenness" [
+
+
+  ]
+
+  if measure = "Closeness" [
+    ;
+  ]
+
+  if measure = "Degree" [
+    ;
+  ]
 
 
 end
@@ -186,19 +202,19 @@ to color-by [measure] ;button in interface, colors a network by a chosen measure
     ask nodes [color-when-adopted label-when-adopted]
   ]
 
-  if measure = "Betweenness centrality" [
+  if measure = "Betweenness" [
     let lower-value (min [betweenness] of nodes) - 0.02
     let upper-value (max [betweenness] of nodes) + 0.02
     ask nodes [set color scale-color blue betweenness upper-value lower-value] ;the darker the color, the higher the value
   ]
 
-  if measure = "Closeness centrality" [
+  if measure = "Closeness" [
     let lower-value (min [closeness] of nodes) - 0.02
     let upper-value (max [closeness] of nodes) + 0.02
     ask nodes [set color scale-color red closeness upper-value lower-value] ;the darker the color, the higher the value
   ]
 
-  if measure = "Degree centrality" [
+  if measure = "Degree" [
     let lower-value (min [degree] of nodes) - 0.5
     let upper-value (max [degree] of nodes) + 0.5
     ask nodes [set color scale-color green degree upper-value lower-value] ;the darker the color, the higher the value
@@ -330,7 +346,7 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" ]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"]
   let last-name (word "Adopt if > " conformity-threshold " % around")
   let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-threshold " %"))
   let index position mechanism-for-spreading mechanism-list
@@ -541,7 +557,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"
-3
+0
 
 CHOOSER
 10
@@ -551,7 +567,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-6
+0
 
 PLOT
 920
@@ -788,9 +804,9 @@ based-on-this
 
 BUTTON
 1060
-168
+170
 1155
-213
+215
 COLOR
 color-by color-based-on-this
 NIL
@@ -810,8 +826,8 @@ CHOOSER
 215
 color-based-on-this
 color-based-on-this
-"Time of adoption" "Betweenness centrality" "Closeness centrality" "Degree centrality"
-1
+"Time of adoption" "Betweenness" "Closeness" "Degree"
+3
 
 TEXTBOX
 1295
@@ -885,6 +901,23 @@ TEXTBOX
 If conformity threshold: I adopt if more than this % of my neighbors have also adopted:
 12
 0.0
+1
+
+BUTTON
+1095
+240
+1252
+273
+NIL
+size-by \"betweenness\"
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
