@@ -46,7 +46,7 @@ to setup-network
   set remaining-pen-colors saved-colors
   set pen-counter saved-pen-counter
   set first-go? true ;for go procedure and setup-plot
-  set show-labels? false ;dropped this... but code still there, if we wanna go back (only works for color-by time since adoption)
+  set show-labels? false ;dropped this... but code still there, if we wanna go back (only works for color-by time since adopted)
 
   import-network-structure
   ask nodes [setup-nodes]
@@ -207,7 +207,7 @@ to size-by [measure] ;node procedure
     set OldMax (max [degree] of nodes)
     set OldValue degree
   ]
-  if measure = "Time since adoption" [
+  if measure = "Time since adopted" [
     set OldMin (min [time-since-adopted] of nodes)
     set OldMax (max [time-since-adopted] of nodes)
     set OldValue time-since-adopted
@@ -231,7 +231,7 @@ end
 
 to color-by [measure] ;button in interface, colors a network by a chosen measure
   ask banners [set label ""]
-  if measure = "Time since adoption" [
+  if measure = "Time since adopted" [
     ask nodes [color-when-adopted label-when-adopted]
   ]
 
@@ -669,9 +669,9 @@ NIL
 1
 
 BUTTON
-1060
+1070
 175
-1150
+1160
 208
 Reset
 ask nodes [recolor set-default-size]\nask banners [die]
@@ -817,9 +817,9 @@ based-on-this
 0
 
 BUTTON
-1060
+1070
 125
-1150
+1160
 170
 VISUALIZE
 color-by visualize-this\nask nodes [size-by visualize-this]
@@ -836,11 +836,11 @@ NIL
 CHOOSER
 925
 125
-1060
+1065
 170
 visualize-this
 visualize-this
-"Time since adoption" "Betweenness" "Closeness" "Degree"
+"Time since adopted" "Betweenness" "Closeness" "Degree"
 0
 
 TEXTBOX
