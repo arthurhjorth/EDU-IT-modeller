@@ -181,7 +181,7 @@ to size-by [measure] ;node procedure
   ;moves their nr for the nw measure to a corresponding scale of the wanted sizes (determined by layout/space)
 
   ;depending on the nw structure, set lower and upper size limit:
-  let NewMin 0.6 ;lower size limit
+  let NewMin 0.8 ;lower size limit
   let NewMax 2.9 ;upper size limit
   let OldMin "NA" ;just a placeholder
   let OldMax "NA"
@@ -587,7 +587,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+2
 
 PLOT
 920
@@ -809,7 +809,7 @@ CHOOSER
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-1
+0
 
 BUTTON
 1060
@@ -836,7 +836,7 @@ CHOOSER
 visualize-this
 visualize-this
 "Time of adoption" "Betweenness" "Closeness" "Degree"
-3
+1
 
 TEXTBOX
 1295
