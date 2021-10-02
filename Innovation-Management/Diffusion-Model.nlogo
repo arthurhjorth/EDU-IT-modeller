@@ -75,8 +75,17 @@ to setup-plot ;after the ideas have been planted and the spreading mechanisms ha
   update-quantity-adopted-plot
 end
 
-to setup-task
-  ;auto-setup settingss for the tasks
+to setup-task ;auto-setup settings for the tasks
+  if task = "Task 1a" [ ;figure out highest possible conformity rate for it to spread to everyone. simple.
+    set network-structure "lattice (196)"
+    setup-network
+    ask node 35 [adopt]
+    set mechanism-for-spreading "Conformity threshold"
+    set conformity-threshold 1
+    set drop-out-threshold 0
+
+  ]
+
 end
 
 
@@ -592,7 +601,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+1
 
 PLOT
 920
@@ -618,7 +627,7 @@ CHOOSER
 95
 task
 task
-"Question 1" "Question 2" "Question 3"
+"Task 1a" "Question 2" "Question 3"
 0
 
 SLIDER
@@ -628,9 +637,9 @@ SLIDER
 478
 conformity-threshold
 conformity-threshold
-0
+1
 100
-20.0
+33.0
 1
 1
 %
