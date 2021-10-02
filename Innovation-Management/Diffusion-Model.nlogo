@@ -317,7 +317,7 @@ to spread ;run in go
 
   if mechanism-for-spreading = "Conformity threshold" [
     ask nodes with [not adopted?] [
-      if initial-round-percentage-contacts-adopted > conformity-threshold [
+      if initial-round-percentage-contacts-adopted >= conformity-threshold [ ;lig med eller større
         adopt
       ]
     ]
@@ -379,7 +379,7 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold"]
   let last-name (word "Adopt if > " conformity-threshold " % around")
   let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-threshold " %"))
   let index position mechanism-for-spreading mechanism-list
@@ -581,8 +581,8 @@ CHOOSER
 400
 mechanism-for-spreading
 mechanism-for-spreading
-"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Adopt if % neighbors higher than threshold"
-0
+"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold"
+3
 
 CHOOSER
 10
@@ -630,7 +630,7 @@ conformity-threshold
 conformity-threshold
 0
 100
-33.0
+20.0
 1
 1
 %
@@ -841,7 +841,7 @@ CHOOSER
 visualize-this
 visualize-this
 "Time since adopted" "Betweenness" "Closeness" "Degree"
-0
+3
 
 TEXTBOX
 1220
@@ -912,7 +912,7 @@ TEXTBOX
 410
 300
 440
-If conformity threshold: I adopt if more than this % of my neighbors have also adopted:
+If conformity threshold: I adopt if at least this % of my neighbors have also adopted:
 12
 0.0
 1
