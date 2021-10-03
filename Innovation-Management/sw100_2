@@ -1,0 +1,4839 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns/graphml"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/graphml">
+<key id="FIRST-ADOPTED" for="node" attr.name="FIRST-ADOPTED" attr.type="double"/>
+<key id="ADOPTED?" for="node" attr.name="ADOPTED?" attr.type="boolean"/>
+<key id="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED" for="node" attr.name="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED" attr.type="double"/>
+<key id="YCOR" for="node" attr.name="YCOR" attr.type="double"/>
+<key id="HIDDEN?" for="node" attr.name="HIDDEN?" attr.type="boolean"/>
+<key id="XCOR" for="node" attr.name="XCOR" attr.type="double"/>
+<key id="SIZE" for="node" attr.name="SIZE" attr.type="double"/>
+<key id="ADOPTED-THIS-TURN?" for="node" attr.name="ADOPTED-THIS-TURN?" attr.type="boolean"/>
+<key id="TIMES-DROPPED" for="node" attr.name="TIMES-DROPPED" attr.type="double"/>
+<key id="HEADING" for="node" attr.name="HEADING" attr.type="double"/>
+<key id="SHAPE" for="node" attr.name="SHAPE" attr.type="string"/>
+<key id="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED" for="node" attr.name="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED" attr.type="double"/>
+<key id="LABEL-COLOR" for="node" attr.name="LABEL-COLOR" attr.type="double"/>
+<key id="PEN-SIZE" for="node" attr.name="PEN-SIZE" attr.type="double"/>
+<key id="PEN-MODE" for="node" attr.name="PEN-MODE" attr.type="string"/>
+<key id="TIMES-ADOPTED" for="node" attr.name="TIMES-ADOPTED" attr.type="double"/>
+<key id="COLOR" for="node" attr.name="COLOR" attr.type="double"/>
+<key id="FIRST-EXPOSED" for="node" attr.name="FIRST-EXPOSED" attr.type="double"/>
+<key id="LABEL" for="node" attr.name="LABEL" attr.type="string"/>
+<key id="BREED" for="node" attr.name="BREED" attr.type="string"/>
+<key id="TIMES-EXPOSED" for="node" attr.name="TIMES-EXPOSED" attr.type="double"/>
+<key id="WHO" for="node" attr.name="WHO" attr.type="double"/>
+<key id="SHAPE" for="edge" attr.name="SHAPE" attr.type="string"/>
+<key id="LABEL-COLOR" for="edge" attr.name="LABEL-COLOR" attr.type="double"/>
+<key id="HIDDEN?" for="edge" attr.name="HIDDEN?" attr.type="boolean"/>
+<key id="END1" for="edge" attr.name="END1" attr.type="string"/>
+<key id="COLOR" for="edge" attr.name="COLOR" attr.type="double"/>
+<key id="TIE-MODE" for="edge" attr.name="TIE-MODE" attr.type="string"/>
+<key id="END2" for="edge" attr.name="END2" attr.type="string"/>
+<key id="LABEL" for="edge" attr.name="LABEL" attr.type="string"/>
+<key id="BREED" for="edge" attr.name="BREED" attr.type="string"/>
+<key id="THICKNESS" for="edge" attr.name="THICKNESS" attr.type="double"/>
+<graph edgedefault="undirected">
+<node id="node 0">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">24.24623809437542</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-2.692032197316814</data>
+<data key="SIZE">1.1634474838332909</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">0</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.26833643538811</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">0</data>
+</node>
+<node id="node 1">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">22.084710390644997</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-0.78309620780722</data>
+<data key="SIZE">1.4770958823883025</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">3.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.77521178030409</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">1</data>
+</node>
+<node id="node 2">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">11.920995749081767</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">6.21297412817208</data>
+<data key="SIZE">1.7171672339855806</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">36</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.6323509982926</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">2</data>
+</node>
+<node id="node 3">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">17.06684884757438</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">12.167964425673555</data>
+<data key="SIZE">0.9329250097630826</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">39.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.36573974167287</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">3</data>
+</node>
+<node id="node 4">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">14.795418134483295</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">13.764804381118516</data>
+<data key="SIZE">1.0477093546824248</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">43.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.81930833565796</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">4</data>
+</node>
+<node id="node 5">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">8.491322294169958</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">11.137436884424599</data>
+<data key="SIZE">1.2148290681576814</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">46.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.02373416505777</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">5</data>
+</node>
+<node id="node 6">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">13.384263703538995</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">17.048664864726504</data>
+<data key="SIZE">0.9875649038546523</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">50.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.1056262725936</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">6</data>
+</node>
+<node id="node 7">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">7.592946951560886</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">16.38605983885677</data>
+<data key="SIZE">1.8811408990973222</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">54</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">104.85175360550888</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">7</data>
+</node>
+<node id="node 8">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">11.097081966395308</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">20.10792359538257</data>
+<data key="SIZE">1.031772341085324</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">57.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.89517656275515</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">8</data>
+</node>
+<node id="node 9">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">10.249202042416227</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">13.759884563842562</data>
+<data key="SIZE">1.794165494176025</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">61.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.26580042376843</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">9</data>
+</node>
+<node id="node 10">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">7.572690406922786</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">21.289144098878644</data>
+<data key="SIZE">1.6425090894980838</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">64.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.98776144116643</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">10</data>
+</node>
+<node id="node 11">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">10.820620601855131</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">17.48117464595091</data>
+<data key="SIZE">2.0133482383804164</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">68.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">104.22237995406962</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">11</data>
+</node>
+<node id="node 12">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">17.05498137622966</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-4.172676894450928</data>
+<data key="SIZE">1.6307327806396303</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">7.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.04382261407038</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">12</data>
+</node>
+<node id="node 13">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">7.379952997859857</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">24.21015238069197</data>
+<data key="SIZE">1.0720224156475446</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">72</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.70356589624228</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">13</data>
+</node>
+<node id="node 14">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">7.069386080788455</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">28.408270591362868</data>
+<data key="SIZE">0.8396178933848064</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">75.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.80992870167088</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">14</data>
+</node>
+<node id="node 15">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">3.859590739755763</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">25.505061804951684</data>
+<data key="SIZE">0.8856006360184625</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">79.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.59102764223299</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">15</data>
+</node>
+<node id="node 16">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">1.4230103971322796</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">25.970592123463327</data>
+<data key="SIZE">1.2416726878740194</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">82.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.89594498897776</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">16</data>
+</node>
+<node id="node 17">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">0.1308396817867157</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">19.941973797609393</data>
+<data key="SIZE">0.9474194942541561</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">86.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.29673868107105</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">17</data>
+</node>
+<node id="node 18">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-0.7580776066441822</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">25.871688128623365</data>
+<data key="SIZE">1.0962517573837935</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">90</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.58822200260367</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">18</data>
+</node>
+<node id="node 19">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-1.836238689577373</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">23.83785818252117</data>
+<data key="SIZE">1.2437783249059895</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">93.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.88592109412741</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">19</data>
+</node>
+<node id="node 20">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-4.721017874330646</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">23.014456783085787</data>
+<data key="SIZE">1.4663374920402692</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">97.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.82642714742113</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">20</data>
+</node>
+<node id="node 21">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-6.75359826632843</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">24.141614637754586</data>
+<data key="SIZE">1.190311061083861</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">100.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.14045225137386</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">21</data>
+</node>
+<node id="node 22">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-9.22279417921816</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">23.733615687613014</data>
+<data key="SIZE">0.8207014162784774</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">104.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.89998067861359</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">22</data>
+</node>
+<node id="node 23">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">16.534501296265123</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">2.114310381205999</data>
+<data key="SIZE">2.8999999999999995</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">10.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">100.00147013324148</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">23</data>
+</node>
+<node id="node 24">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-9.10807845704812</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">17.207287962674734</data>
+<data key="SIZE">1.534999710377625</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">108</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.4995603387762</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">24</data>
+</node>
+<node id="node 25">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-8.726292137915435</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">20.964457752687885</data>
+<data key="SIZE">1.4288537115065154</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">111.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.0048688583897</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">25</data>
+</node>
+<node id="node 26">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-12.92046380002714</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">22.369288322139635</data>
+<data key="SIZE">1.2128954341319442</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">115.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.03293923879971</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">26</data>
+</node>
+<node id="node 27">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-11.824726056280605</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">13.844607262156169</data>
+<data key="SIZE">1.8177564327263445</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">118.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.15349565145543</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">27</data>
+</node>
+<node id="node 28">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-11.399720631726861</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">16.945286776309242</data>
+<data key="SIZE">1.9521023879881652</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">122.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">104.51394110873694</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">28</data>
+</node>
+<node id="node 29">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-5.5138350009742725</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">12.308747369677256</data>
+<data key="SIZE">2.369285217100499</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">126</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">102.52794031710188</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">29</data>
+</node>
+<node id="node 30">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-7.435498464581774</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">10.715629231164971</data>
+<data key="SIZE">2.818631404331372</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">129.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">100.38882571006609</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">30</data>
+</node>
+<node id="node 31">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-14.231635345758557</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">12.557938823935881</data>
+<data key="SIZE">2.125134416355328</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">133.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">103.69022133569021</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">31</data>
+</node>
+<node id="node 32">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-14.257857700856803</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">16.12030784648506</data>
+<data key="SIZE">1.5444898269126883</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">136.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.45438259502427</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">32</data>
+</node>
+<node id="node 33">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-10.809545692879816</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">9.456945714302625</data>
+<data key="SIZE">1.430265882822435</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">140.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.99814621029483</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">33</data>
+</node>
+<node id="node 34">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">20.780695339397866</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">1.3705710977502268</data>
+<data key="SIZE">1.327655799328984</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">14.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.48662198836398</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">34</data>
+</node>
+<node id="node 35">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-16.73326597879364</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">11.933036250715096</data>
+<data key="SIZE">0.9956316506125958</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">144</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.06722448726296</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">35</data>
+</node>
+<node id="node 36">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-17.015718077601136</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">9.41938311956084</data>
+<data key="SIZE">0.9609013681874583</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">147.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.23255815772298</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">36</data>
+</node>
+<node id="node 37">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-13.452400060301823</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">4.898448015533552</data>
+<data key="SIZE">1.405735648402475</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">151.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.1149225049489</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">37</data>
+</node>
+<node id="node 38">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-14.533807145000948</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">7.581448513833045</data>
+<data key="SIZE">1.8848099153786853</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">154.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">104.83428723649553</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">38</data>
+</node>
+<node id="node 39">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-15.579845945288408</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">0.5007698409051397</data>
+<data key="SIZE">1.5918711214789378</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">158.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.22882372262896</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">39</data>
+</node>
+<node id="node 40">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-22.7492842129968</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">6.917098651023405</data>
+<data key="SIZE">1.2827148252943057</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">162</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.70056370355785</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">40</data>
+</node>
+<node id="node 41">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-22.924886078311086</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">3.5964026110377385</data>
+<data key="SIZE">1.2593438482131536</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">165.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.81182134827733</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">41</data>
+</node>
+<node id="node 42">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-26.292058720017966</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-0.35850356774888725</data>
+<data key="SIZE">1.527616787434611</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">169.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.53470677766634</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">42</data>
+</node>
+<node id="node 43">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-25.24386925851048</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">5.3405673484856</data>
+<data key="SIZE">0.9919899739447664</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">172.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.08456070591937</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">43</data>
+</node>
+<node id="node 44">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-17.09140461308336</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">4.160981771957236</data>
+<data key="SIZE">1.6313571733521361</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">176.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.04085018966843</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">44</data>
+</node>
+<node id="node 45">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">22.501002836175847</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">4.933046424563173</data>
+<data key="SIZE">1.1122938756387373</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">18</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.51185342429567</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">45</data>
+</node>
+<node id="node 46">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-20.4990625106874</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">3.4333558851171375</data>
+<data key="SIZE">0.9310743423423027</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">180</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.37454985250734</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">46</data>
+</node>
+<node id="node 47">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-19.826638879783978</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">5.889010563287464</data>
+<data key="SIZE">1.46466612144742</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">183.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.83438371487522</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">47</data>
+</node>
+<node id="node 48">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-25.732702874004588</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-2.6331648131073235</data>
+<data key="SIZE">0.8360247101114633</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">187.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.82703406729807</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">48</data>
+</node>
+<node id="node 49">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-23.005877272432873</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-2.723548519195942</data>
+<data key="SIZE">1.180240563447835</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">190.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.188392902047</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">49</data>
+</node>
+<node id="node 50">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-23.282337050034315</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-5.311156864681059</data>
+<data key="SIZE">1.328763604010307</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">194.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.48134827904386</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">50</data>
+</node>
+<node id="node 51">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-21.02921375150316</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-9.333776576037348</data>
+<data key="SIZE">1.497987093732048</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">198</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.67575907187125</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">51</data>
+</node>
+<node id="node 52">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-13.868263990053933</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-9.097460024840169</data>
+<data key="SIZE">1.7593161291341834</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">201.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.4317009875772</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">52</data>
+</node>
+<node id="node 53">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-14.36181664832014</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-2.087441582375403</data>
+<data key="SIZE">0.9083317011238792</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">205.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.48281630143998</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">53</data>
+</node>
+<node id="node 54">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-13.734419799788242</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-5.119218982990438</data>
+<data key="SIZE">1.4108350018237101</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">208.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.09064700935156</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">54</data>
+</node>
+<node id="node 55">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-16.448771285136164</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-11.620227136571629</data>
+<data key="SIZE">1.090614854079092</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">212.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.6150565069128</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">55</data>
+</node>
+<node id="node 56">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">23.738603153009795</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">6.996438377287508</data>
+<data key="SIZE">0.9394079246298864</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">21.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.33487779540108</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">56</data>
+</node>
+<node id="node 57">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-17.495357657124064</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-14.137258071552184</data>
+<data key="SIZE">0.8613357069007471</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">216</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.70654094976601</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">57</data>
+</node>
+<node id="node 58">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-10.68062546140091</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-10.184595001529145</data>
+<data key="SIZE">1.6327275432773725</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">219.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.03432653728767</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">58</data>
+</node>
+<node id="node 59">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-17.92720731930433</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-16.840014319113223</data>
+<data key="SIZE">0.8675231117762067</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">223.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.67708578017772</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">59</data>
+</node>
+<node id="node 60">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-17.83028670930433</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-9.806842135961237</data>
+<data key="SIZE">2.4102178771119007</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">226.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">102.33308019939439</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">60</data>
+</node>
+<node id="node 61">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-13.918596330466414</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-17.450507727113997</data>
+<data key="SIZE">1.116746690083028</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">230.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.49065578049478</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">61</data>
+</node>
+<node id="node 62">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-14.72228463264396</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-20.036767742326187</data>
+<data key="SIZE">1.0214975716828152</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">234</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.94408965011944</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">62</data>
+</node>
+<node id="node 63">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-12.233854814669856</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-20.125827624520543</data>
+<data key="SIZE">0.8</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">237.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.99852986675852</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">63</data>
+</node>
+<node id="node 64">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-10.845880870946237</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-21.66875011989483</data>
+<data key="SIZE">0.8963553591058551</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">241.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.53982973312722</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">64</data>
+</node>
+<node id="node 65">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-4.833185618858053</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-18.931818367456003</data>
+<data key="SIZE">1.5377403805957268</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">244.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.48651336549992</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">65</data>
+</node>
+<node id="node 66">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-8.667379630347083</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-21.715899271441327</data>
+<data key="SIZE">1.2260750860652196</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">248.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.97019744468356</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">66</data>
+</node>
+<node id="node 67">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">22.823288936303513</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">9.233700062007866</data>
+<data key="SIZE">0.9910091855130938</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">25.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.08922975379431</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">67</data>
+</node>
+<node id="node 68">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-8.567297635338228</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-24.86723343836898</data>
+<data key="SIZE">0.8921918501685617</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">252</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.5596501367211</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">68</data>
+</node>
+<node id="node 69">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-5.583071223092994</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-24.422305125193795</data>
+<data key="SIZE">1.078725747121067</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">255.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.67165465569258</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">69</data>
+</node>
+<node id="node 70">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-7.9901876017527105</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-15.652450025437016</data>
+<data key="SIZE">1.3735571101352604</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">259.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.26810858551775</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">70</data>
+</node>
+<node id="node 71">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-5.5728367650029</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-21.834078226949735</data>
+<data key="SIZE">1.0239041746126425</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">262.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.93263300571736</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">71</data>
+</node>
+<node id="node 72">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-6.7327435661594315</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-17.480556776352408</data>
+<data key="SIZE">0.9759990081812459</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">266.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.16068577255487</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">72</data>
+</node>
+<node id="node 73">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-2.82591556200469</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-21.94877434174801</data>
+<data key="SIZE">1.0394517297037407</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">270</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.85861879764315</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">73</data>
+</node>
+<node id="node 74">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-4.571291799724937</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-15.801387479928216</data>
+<data key="SIZE">1.3351402285188865</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">273.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.45099232851506</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">74</data>
+</node>
+<node id="node 75">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">-2.3683169459282154</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-16.87339372989241</data>
+<data key="SIZE">1.6854673446817925</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">277.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.78325846825251</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">75</data>
+</node>
+<node id="node 76">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">3.5323395386091714</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-24.47629688871049</data>
+<data key="SIZE">0.8581429683810358</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">280.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.72173999628747</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">76</data>
+</node>
+<node id="node 77">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">2.7545887941371445</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-21.26939870414411</data>
+<data key="SIZE">1.1275875182067507</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">284.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.43904796796447</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">77</data>
+</node>
+<node id="node 78">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">20.070112111185683</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">9.01235168843895</data>
+<data key="SIZE">1.2777740804314854</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">28.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.72408414237769</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">78</data>
+</node>
+<node id="node 79">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">6.195648894169749</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-21.70466326005355</data>
+<data key="SIZE">0.9977044454287775</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">288</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.05735693793311</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">79</data>
+</node>
+<node id="node 80">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">3.483087453281059</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-18.689826610063093</data>
+<data key="SIZE">1.6712080195980468</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">291.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.85114005140578</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">80</data>
+</node>
+<node id="node 81">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">8.881044764625889</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-14.654137816932993</data>
+<data key="SIZE">1.4823613839657854</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">295.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.75014533563885</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">81</data>
+</node>
+<node id="node 82">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">11.174945728797702</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-20.664000792182964</data>
+<data key="SIZE">1.000052482825419</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">298.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.04617909502323</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">82</data>
+</node>
+<node id="node 83">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">13.203097576819179</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-18.664302182621423</data>
+<data key="SIZE">1.0215953608691164</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">302.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.94362412424479</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">83</data>
+</node>
+<node id="node 84">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">14.67996421104893</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-16.871210048566066</data>
+<data key="SIZE">1.084173284377621</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">306</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.64572162933337</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">84</data>
+</node>
+<node id="node 85">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">15.759670908218176</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-12.64530994351095</data>
+<data key="SIZE">1.3070518808659957</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">309.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.58470703770637</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">85</data>
+</node>
+<node id="node 86">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">12.735498334108751</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-10.021866959294496</data>
+<data key="SIZE">2.425311432236544</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">313.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">102.26122726026477</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">86</data>
+</node>
+<node id="node 87">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">18.421520335546283</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-15.112730144636485</data>
+<data key="SIZE">1.4776421898059637</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">316.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">106.77261108131017</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">87</data>
+</node>
+<node id="node 88">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">21.48578773003419</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-14.561427547976592</data>
+<data key="SIZE">0.8851074002606528</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">320.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.59337569334419</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">88</data>
+</node>
+<node id="node 89">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">18.810748736164157</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">6.169374862192114</data>
+<data key="SIZE">1.410548311211886</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">32.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.09201180133796</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">89</data>
+</node>
+<node id="node 90">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">19.66469874952833</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-12.240892005096619</data>
+<data key="SIZE">1.106707830124923</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">324</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.53844581985554</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">90</data>
+</node>
+<node id="node 91">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">18.86278970993334</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-9.918833494273558</data>
+<data key="SIZE">0.9947284096655294</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">327.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.07152436997801</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">91</data>
+</node>
+<node id="node 92">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">13.282917196883451</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-6.349616683571167</data>
+<data key="SIZE">1.2827011822845265</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">331.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.70062865116914</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">92</data>
+</node>
+<node id="node 93">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">14.216244728492923</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-4.008266498682779</data>
+<data key="SIZE">1.1973431302829627</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">334.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.10697605335784</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">93</data>
+</node>
+<node id="node 94">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">19.954898985783377</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-6.619971908978522</data>
+<data key="SIZE">0.9861468708170447</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">338.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.11237682544171</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">94</data>
+</node>
+<node id="node 95">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">20.62195891581375</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-4.285519505162552</data>
+<data key="SIZE">0.9744393944923346</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">342</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.16811032074975</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">95</data>
+</node>
+<node id="node 96">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">23.17526062352775</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-4.841509200296251</data>
+<data key="SIZE">1.033491071308024</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">345.6</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">108.88699453956366</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">96</data>
+</node>
+<node id="node 97">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">16.48960783386576</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-0.7527540784070461</data>
+<data key="SIZE">1.6497087589583228</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">349.2</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">105.95348738133043</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">97</data>
+</node>
+<node id="node 98">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">26.87154253694082</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">-2.87573413292828</data>
+<data key="SIZE">1.0033997764213676</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">352.8</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">109.03024428834499</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">98</data>
+</node>
+<node id="node 99">
+<data key="FIRST-ADOPTED">-1</data>
+<data key="ADOPTED?">false</data>
+<data key="INITIAL-ROUND-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="YCOR">24.758454010123597</data>
+<data key="HIDDEN?">false</data>
+<data key="XCOR">0.16118575326988283</data>
+<data key="SIZE">1.417450331869914</data>
+<data key="ADOPTED-THIS-TURN?">false</data>
+<data key="TIMES-DROPPED">0</data>
+<data key="HEADING">356.4</data>
+<data key="SHAPE">circle-with-border</data>
+<data key="POST-SPREAD-PERCENTAGE-CONTACTS-ADOPTED">0</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="PEN-SIZE">1</data>
+<data key="PEN-MODE">up</data>
+<data key="TIMES-ADOPTED">0</data>
+<data key="COLOR">107.0591547000045</data>
+<data key="FIRST-EXPOSED">0</data>
+<data key="LABEL"></data>
+<data key="BREED">nodes</data>
+<data key="TIMES-EXPOSED">0</data>
+<data key="WHO">99</data>
+</node>
+<edge source="node 0" target="node 1">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 0)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 1)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 0" target="node 12">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 0)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 12)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 1" target="node 12">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 1)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 12)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 1" target="node 23">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 1)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 23)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 2" target="node 4">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 2)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 4)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 2" target="node 44">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 2)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 44)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 3" target="node 4">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 3)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 4)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 3" target="node 5">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 3)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 5)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 4" target="node 5">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 4)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 5)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 4" target="node 6">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 4)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 6)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 5" target="node 6">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 5)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 6)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 5" target="node 7">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 5)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 7)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 6" target="node 7">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 6)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 7)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 6" target="node 8">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 6)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 8)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 7" target="node 8">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 7)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 8)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 7" target="node 9">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 7)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 9)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 8" target="node 9">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 8)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 9)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 8" target="node 10">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 8)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 10)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 9" target="node 10">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 9)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 10)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 9" target="node 11">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 9)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 11)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 10" target="node 11">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 10)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 11)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 10" target="node 19">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 10)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 19)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 11" target="node 13">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 11)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 13)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 11" target="node 23">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 11)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 23)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 12" target="node 23">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 12)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 23)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 12" target="node 65">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 12)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 65)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 13" target="node 14">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 13)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 14)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 13" target="node 15">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 13)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 15)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 14" target="node 15">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 14)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 15)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 14" target="node 16">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 14)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 16)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 15" target="node 16">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 15)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 16)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 15" target="node 17">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 15)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 17)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 16" target="node 18">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 16)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 18)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 16" target="node 25">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 16)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 25)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 17" target="node 10">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 17)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 10)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 17" target="node 18">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 17)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 18)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 18" target="node 19">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 18)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 19)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 18" target="node 20">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 18)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 20)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 19" target="node 20">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 19)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 20)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 19" target="node 21">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 19)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 21)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 20" target="node 21">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 20)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 21)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 20" target="node 32">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 20)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 32)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 21" target="node 22">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 21)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 22)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 21" target="node 24">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 21)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 24)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 22" target="node 24">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 22)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 24)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 22" target="node 25">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 22)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 25)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 23" target="node 34">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 23)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 34)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 23" target="node 45">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 23)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 45)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 24" target="node 25">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 24)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 25)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 24" target="node 26">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 24)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 26)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 25" target="node 26">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 25)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 26)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 25" target="node 27">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 25)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 27)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 26" target="node 27">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 26)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 27)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 26" target="node 28">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 26)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 28)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 27" target="node 28">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 27)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 28)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 27" target="node 60">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 27)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 60)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 28" target="node 29">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 28)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 29)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 28" target="node 30">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 28)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 30)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 29" target="node 30">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 29)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 30)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 29" target="node 70">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 29)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 70)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 30" target="node 7">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 30)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 7)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 30" target="node 31">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 30)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 31)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 31" target="node 32">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 31)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 32)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 31" target="node 33">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 31)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 33)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 32" target="node 33">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 32)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 33)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 32" target="node 35">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 32)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 35)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 33" target="node 35">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 33)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 35)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 33" target="node 36">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 33)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 36)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 34" target="node 45">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 34)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 45)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 34" target="node 56">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 34)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 56)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 35" target="node 36">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 35)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 36)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 35" target="node 37">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 35)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 37)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 36" target="node 37">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 36)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 37)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 36" target="node 38">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 36)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 38)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 37" target="node 39">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 37)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 39)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 37" target="node 93">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 37)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 93)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 38" target="node 31">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 38)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 31)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 38" target="node 40">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 38)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 40)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 39" target="node 41">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 39)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 41)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 39" target="node 75">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 39)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 75)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 40" target="node 41">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 40)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 41)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 40" target="node 42">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 40)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 42)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 41" target="node 42">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 41)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 42)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 41" target="node 43">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 41)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 43)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 42" target="node 43">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 42)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 43)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 42" target="node 44">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 42)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 44)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 43" target="node 44">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 43)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 44)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 43" target="node 46">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 43)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 46)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 44" target="node 46">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 44)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 46)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 44" target="node 47">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 44)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 47)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 45" target="node 56">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 45)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 56)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 45" target="node 67">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 45)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 67)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 46" target="node 47">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 46)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 47)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 46" target="node 48">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 46)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 48)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 47" target="node 24">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 47)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 24)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 47" target="node 49">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 47)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 49)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 48" target="node 49">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 48)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 49)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 48" target="node 50">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 48)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 50)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 49" target="node 50">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 49)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 50)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 49" target="node 51">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 49)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 51)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 50" target="node 42">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 50)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 42)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 50" target="node 52">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 50)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 52)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 51" target="node 52">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 51)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 52)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 51" target="node 60">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 51)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 60)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 52" target="node 54">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 52)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 54)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 52" target="node 80">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 52)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 80)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 53" target="node 5">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 53)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 5)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 53" target="node 54">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 53)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 54)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 54" target="node 2">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 54)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 2)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 54" target="node 55">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 54)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 55)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 55" target="node 57">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 55)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 57)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 55" target="node 58">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 55)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 58)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 56" target="node 67">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 56)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 67)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 56" target="node 78">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 56)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 78)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 57" target="node 58">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 57)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 58)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 57" target="node 59">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 57)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 59)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 58" target="node 23">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 58)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 23)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 58" target="node 60">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 58)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 60)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 59" target="node 60">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 59)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 60)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 59" target="node 61">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 59)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 61)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 60" target="node 61">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 60)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 61)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 60" target="node 62">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 60)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 62)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 61" target="node 62">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 61)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 62)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 61" target="node 63">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 61)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 63)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 62" target="node 63">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 62)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 63)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 62" target="node 64">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 62)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 64)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 63" target="node 64">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 63)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 64)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 63" target="node 65">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 63)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 65)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 64" target="node 65">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 64)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 65)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 64" target="node 66">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 64)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 66)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 65" target="node 61">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 65)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 61)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 65" target="node 66">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 65)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 66)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 66" target="node 68">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 66)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 68)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 66" target="node 69">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 66)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 69)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 67" target="node 78">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 67)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 78)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 67" target="node 89">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 67)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 89)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 68" target="node 69">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 68)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 69)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 68" target="node 70">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 68)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 70)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 69" target="node 70">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 69)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 70)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 69" target="node 71">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 69)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 71)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 70" target="node 71">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 70)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 71)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 70" target="node 72">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 70)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 72)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 71" target="node 72">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 71)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 72)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 71" target="node 73">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 71)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 73)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 72" target="node 29">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 72)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 29)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 72" target="node 74">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 72)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 74)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 73" target="node 74">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 73)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 74)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 73" target="node 75">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 73)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 75)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 74" target="node 30">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 74)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 30)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 74" target="node 75">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 74)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 75)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 75" target="node 76">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 75)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 76)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 75" target="node 77">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 75)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 77)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 76" target="node 77">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 76)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 77)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 76" target="node 79">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 76)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 79)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 77" target="node 79">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 77)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 79)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 77" target="node 80">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 77)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 80)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 78" target="node 2">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 78)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 2)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 78" target="node 89">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 78)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 89)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 79" target="node 80">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 79)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 80)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 79" target="node 81">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 79)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 81)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 80" target="node 81">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 80)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 81)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 80" target="node 82">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 80)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 82)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 81" target="node 9">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 81)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 9)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 81" target="node 83">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 81)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 83)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 82" target="node 83">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 82)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 83)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 82" target="node 84">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 82)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 84)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 83" target="node 84">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 83)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 84)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 83" target="node 85">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 83)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 85)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 84" target="node 85">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 84)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 85)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 84" target="node 86">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 84)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 86)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 85" target="node 34">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 85)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 34)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 85" target="node 86">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 85)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 86)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 86" target="node 29">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 86)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 29)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 86" target="node 87">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 86)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 87)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 87" target="node 88">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 87)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 88)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 87" target="node 90">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 87)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 90)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 88" target="node 90">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 88)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 90)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 88" target="node 91">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 88)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 91)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 89" target="node 3">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 89)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 3)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 89" target="node 86">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 89)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 86)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 90" target="node 91">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 90)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 91)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 90" target="node 92">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 90)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 92)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 91" target="node 92">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 91)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 92)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 91" target="node 93">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 91)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 93)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 92" target="node 33">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 92)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 33)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 92" target="node 94">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 92)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 94)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 93" target="node 94">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 93)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 94)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 93" target="node 95">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 93)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 95)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 94" target="node 95">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 94)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 95)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 94" target="node 96">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 94)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 96)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 95" target="node 96">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 95)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 96)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 95" target="node 97">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 95)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 97)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 96" target="node 97">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 96)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 97)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 96" target="node 98">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 96)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 98)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 97" target="node 38">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 97)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 38)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 97" target="node 99">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 97)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 99)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 98" target="node 0">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 98)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 0)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 98" target="node 99">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 98)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 99)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 99" target="node 0">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 99)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 0)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+<edge source="node 99" target="node 1">
+<data key="SHAPE">curve</data>
+<data key="LABEL-COLOR">9.9</data>
+<data key="HIDDEN?">false</data>
+<data key="END1">(node 99)</data>
+<data key="COLOR">7</data>
+<data key="TIE-MODE">none</data>
+<data key="END2">(node 1)</data>
+<data key="LABEL"></data>
+<data key="BREED">links</data>
+<data key="THICKNESS">0</data>
+</edge>
+</graph>
+</graphml>

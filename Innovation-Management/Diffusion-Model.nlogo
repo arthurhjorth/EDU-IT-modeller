@@ -63,8 +63,15 @@ to setup-network
 end
 
 to change-nw-layout
-  if network-structure = "small world (100)" or network-structure = "small world (196)" [
-    repeat 4000 [layout-spring turtles links .01 3 1]
+  if network-structure = "small world (100)" [
+    repeat 3 [layout-spring turtles links 1 0 0 ]
+      repeat 6 [layout-spring turtles links 0 0 1 ]
+  ]
+
+
+  if network-structure = "small world (196)" [
+    repeat 5 [layout-spring turtles links 1 0 0]
+    repeat 6 [layout-spring turtles links 0 0 0.5] ;kan også lave mere luft om nødvendigt
   ]
 
 
@@ -103,6 +110,7 @@ to go
 
     ;spread the innovation:
     spread
+
 
     ;dropout:
     ask nodes [
@@ -337,7 +345,7 @@ to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out?
   ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
   if drop-out? [ ;gamle "Drop out if % neighbors lower than threshold"
-    if initial-round-percentage-contacts-adopted < drop-out-threshold [
+        if initial-round-percentage-contacts-adopted <= drop-out-threshold [
       set adopted? false
       set times-dropped ( times-dropped + 1 )
     ]
@@ -601,7 +609,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-1
+3
 
 PLOT
 920
@@ -639,7 +647,7 @@ conformity-threshold
 conformity-threshold
 1
 100
-33.0
+50.0
 1
 1
 %
@@ -654,7 +662,7 @@ drop-out-threshold
 drop-out-threshold
 0
 100
-0.0
+25.0
 1
 1
 %
@@ -850,7 +858,7 @@ CHOOSER
 visualize-this
 visualize-this
 "Time since adopted" "Betweenness" "Closeness" "Degree"
-3
+1
 
 TEXTBOX
 1220
@@ -911,7 +919,7 @@ TEXTBOX
 530
 305
 560
-I drop out if less than this % of my neighbors have adopted:
+I drop out if no more than this % of my neighbors have adopted:
 12
 0.0
 1
@@ -1303,7 +1311,7 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 curve
-5.0
+3.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
