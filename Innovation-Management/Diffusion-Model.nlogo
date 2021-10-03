@@ -83,6 +83,17 @@ to setup-plot ;after the ideas have been planted and the spreading mechanisms ha
 end
 
 to setup-task ;auto-setup settings for the tasks
+  if task = "Demonstrate conformity" [
+    set network-structure "preferential attachment (100)"
+    setup-network
+    set mechanism-for-spreading "Conformity threshold"
+    set conformity-threshold 50
+    set drop-out-threshold 0
+    ask node 34 [adopt]
+
+
+  ]
+
   if task = "Task 1a (top node)" or task = "Task 1a (middle node)" [ ;figure out highest possible conformity rate for it to spread to everyone. simple.
     set network-structure "lattice (196)"
     setup-network
@@ -648,7 +659,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" "No spread"
-2
+3
 
 CHOOSER
 10
@@ -658,7 +669,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+4
 
 PLOT
 920
@@ -684,8 +695,8 @@ CHOOSER
 95
 task
 task
-"Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2a"
-5
+"Demonstrate conformity" "Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2a"
+0
 
 SLIDER
 15
@@ -696,7 +707,7 @@ conformity-threshold
 conformity-threshold
 1
 100
-0.0
+50.0
 1
 1
 %
@@ -711,7 +722,7 @@ drop-out-threshold
 drop-out-threshold
 0
 100
-20.0
+0.0
 1
 1
 %
