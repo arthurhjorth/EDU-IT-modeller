@@ -618,9 +618,9 @@ ticks
 30.0
 
 BUTTON
-925
+920
 40
-1010
+1005
 85
 Go once
 go
@@ -635,9 +635,9 @@ NIL
 1
 
 BUTTON
-1014
+1009
 40
-1099
+1094
 85
 GO
 go
@@ -669,7 +669,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-4
+3
 
 PLOT
 920
@@ -690,13 +690,13 @@ PENS
 
 CHOOSER
 1230
-50
+45
 1485
-95
+90
 task
 task
 "Demonstrate conformity" "Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2a"
-0
+3
 
 SLIDER
 15
@@ -707,7 +707,7 @@ conformity-threshold
 conformity-threshold
 1
 100
-50.0
+26.0
 1
 1
 %
@@ -747,9 +747,9 @@ NIL
 
 BUTTON
 1070
-175
+190
 1160
-208
+223
 Reset
 ask nodes [recolor set-default-size]\nask banners [die]
 NIL
@@ -764,9 +764,9 @@ NIL
 
 TEXTBOX
 925
-100
+115
 1185
-125
+140
 5. Visualize
 17
 0.0
@@ -857,9 +857,9 @@ TEXTBOX
 1
 
 TEXTBOX
-925
+920
 15
-1115
+1110
 56
 4. Go/Start the spread!
 17
@@ -895,9 +895,9 @@ based-on-this
 
 BUTTON
 1070
-125
+140
 1160
-170
+185
 VISUALIZE
 color-by visualize-this\nask nodes [size-by visualize-this]
 NIL
@@ -912,29 +912,19 @@ NIL
 
 CHOOSER
 925
-125
+140
 1065
-170
+185
 visualize-this
 visualize-this
 "Time since adopted" "Betweenness" "Closeness" "Degree"
-1
-
-TEXTBOX
-1220
-160
-1445
-216
-add layout animation:\n\nrepeat 4000 [layout-spring turtles links .01 3 1]
-11
-0.0
-1
+3
 
 BUTTON
 1230
-100
+95
 1485
-133
+128
 SETUP TASK
 setup-task
 NIL
@@ -949,9 +939,9 @@ NIL
 
 TEXTBOX
 1260
-20
+15
 1445
-45
+40
 ----- SETUP A TASK -----
 17
 0.0
@@ -996,9 +986,9 @@ If conformity threshold: I adopt if at least this % of my neighbors have also ad
 
 TEXTBOX
 925
-175
+190
 1060
-235
+250
 Darker color and bigger size indicates a higher score on the chosen measure.
 12
 0.0
