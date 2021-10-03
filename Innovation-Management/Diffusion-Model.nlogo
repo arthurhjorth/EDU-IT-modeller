@@ -35,7 +35,7 @@ initial-round-percentage-contacts-adopted
 ]
 
 to setup-network
-  set nice-colors [15 65 105 25 44 115 35 125 75 85 135 5 0 15 15 15 15 15 15 15 15]
+  set nice-colors [15 65 105 25 44 115 35 125 75 85 135 5 0 55 95 125 46 17 133 23 117]
   let saved-colors ifelse-value (remaining-pen-colors = 0) [nice-colors] [remaining-pen-colors] ;if =0, it's the first time, and nothing has been used
   let saved-pen-counter pen-counter
 
@@ -92,6 +92,24 @@ to setup-task ;auto-setup settings for the tasks
     set drop-out-threshold 0
 
   ]
+
+  if task = "Task 1b (Small world 100)" [
+    set network-structure "small world (100)"
+    setup-network
+    set mechanism-for-spreading "Conformity threshold"
+    set conformity-threshold 26
+    set drop-out-threshold 0
+  ]
+
+  if task = "Task 1b (Small world 196)" [
+    set network-structure "small world (196)"
+    setup-network
+    set mechanism-for-spreading "Conformity threshold"
+    set conformity-threshold 26
+    set drop-out-threshold 0
+  ]
+
+
 
 end
 
@@ -248,6 +266,7 @@ end
 
 to color-by [measure] ;button in interface, colors a network by a chosen measure
   ask banners [set label ""]
+
   if measure = "Time since adopted" [
     ask nodes [color-when-adopted label-when-adopted]
   ]
@@ -255,19 +274,19 @@ to color-by [measure] ;button in interface, colors a network by a chosen measure
   if measure = "Betweenness" [
     let lower-value (min [betweenness] of nodes) - 0.1
     let upper-value (max [betweenness] of nodes) + 0.1
-    ask nodes [set color scale-color blue betweenness upper-value lower-value] ;the darker the color, the higher the value
+    ask nodes with [not adopted?] [set color scale-color blue betweenness upper-value lower-value] ;the darker the color, the higher the value
   ]
 
   if measure = "Closeness" [
     let lower-value (min [closeness] of nodes) - 0.02
     let upper-value (max [closeness] of nodes) + 0.02
-    ask nodes [set color scale-color red closeness upper-value lower-value] ;the darker the color, the higher the value
+    ask nodes with [not adopted?] [set color scale-color red closeness upper-value lower-value] ;the darker the color, the higher the value
   ]
 
   if measure = "Degree" [
     let lower-value (min [degree] of nodes) - 0.5
     let upper-value (max [degree] of nodes) + 0.5
-    ask nodes [set color scale-color violet degree upper-value lower-value] ;the darker the color, the higher the value
+    ask nodes with [not adopted?] [set color scale-color violet degree upper-value lower-value] ;the darker the color, the higher the value
   ]
 
 
@@ -609,7 +628,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-3
+2
 
 PLOT
 920
@@ -635,7 +654,7 @@ CHOOSER
 95
 task
 task
-"Task 1a" "Question 2" "Question 3"
+"Task 1a" "Task 1b"
 0
 
 SLIDER
@@ -647,7 +666,7 @@ conformity-threshold
 conformity-threshold
 1
 100
-50.0
+33.0
 1
 1
 %
@@ -662,7 +681,7 @@ drop-out-threshold
 drop-out-threshold
 0
 100
-25.0
+0.0
 1
 1
 %
@@ -831,7 +850,7 @@ CHOOSER
 based-on-this
 based-on-this
 "Betweenness centrality" "Closeness centrality" "Degree centrality"
-0
+1
 
 BUTTON
 1070
