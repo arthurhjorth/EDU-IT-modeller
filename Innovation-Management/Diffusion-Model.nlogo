@@ -127,7 +127,11 @@ to setup-task ;auto-setup settings for the tasks
   ]
 
   if task = "Task 2a" [ ;dropout
-
+    set network-structure "small world (196)"
+    setup-network
+    set mechanism-for-spreading "5 % chance of spreading"
+    set drop-out-threshold 20
+    set conformity-threshold 0 ;not used
 
 
   ]
@@ -253,26 +257,30 @@ to size-by [measure] ;node procedure
     set OldMin (min [betweenness] of nodes)
     set OldMax (max [betweenness] of nodes)
     set OldValue betweenness
+
+    set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
   ]
   if measure = "Closeness" [
     set OldMin (min [closeness] of nodes)
     set OldMax (max [closeness] of nodes)
     set OldValue closeness
+
+    set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
   ]
   if measure = "Degree" [
     set OldMin (min [degree] of nodes)
     set OldMax (max [degree] of nodes)
     set OldValue degree
+
+    set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
   ]
   if measure = "Time since adopted" and adopted? [
     set OldMin (min [time-since-adopted] of nodes)
     set OldMax (max [time-since-adopted] of nodes)
     set OldValue time-since-adopted
+
+    if adopted? [ set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin ]
   ]
-
-
-  ;actually make the node change size using the formula:
-  if adopted? [ set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin ]
 
 
 end
@@ -640,7 +648,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" "No spread"
-4
+2
 
 CHOOSER
 10
@@ -677,7 +685,7 @@ CHOOSER
 task
 task
 "Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2a"
-4
+5
 
 SLIDER
 15
@@ -703,7 +711,7 @@ drop-out-threshold
 drop-out-threshold
 0
 100
-50.0
+20.0
 1
 1
 %
@@ -899,7 +907,7 @@ CHOOSER
 visualize-this
 visualize-this
 "Time since adopted" "Betweenness" "Closeness" "Degree"
-0
+1
 
 TEXTBOX
 1220
