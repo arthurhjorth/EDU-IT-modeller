@@ -364,7 +364,7 @@ to consider-drop-out ; adopter procedure, run by adopters in to-go (if drop-out?
   ;initial-round-percentage-contacts-adopted is set in the previous 'ask nodes' step in go - so everybody sets that BEFORE doing this one by one (so as if everybody acts at once)
 
   if drop-out? [ ;gamle "Drop out if % neighbors lower than threshold"
-        if initial-round-percentage-contacts-adopted <= drop-out-threshold [
+        if initial-round-percentage-contacts-adopted < drop-out-threshold [
       set adopted? false
       set times-dropped ( times-dropped + 1 )
     ]
@@ -654,7 +654,7 @@ CHOOSER
 95
 task
 task
-"Task 1a" "Task 1b"
+"Task 1a" "Task 1b (Small world 100)" "Task 1b (Small world 196)"
 0
 
 SLIDER
@@ -937,8 +937,8 @@ TEXTBOX
 15
 530
 305
-560
-I drop out if no more than this % of my neighbors have adopted:
+565
+At least this % of my neighbors must have adopted, or I drop out:
 12
 0.0
 1
