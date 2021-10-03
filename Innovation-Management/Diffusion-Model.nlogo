@@ -83,25 +83,20 @@ to setup-plot ;after the ideas have been planted and the spreading mechanisms ha
 end
 
 to setup-task ;auto-setup settings for the tasks
-  if task = "Task 1a" [ ;figure out highest possible conformity rate for it to spread to everyone. simple.
+  if task = "Task 1a (top node)" or task = "Task 1a (middle node)" [ ;figure out highest possible conformity rate for it to spread to everyone. simple.
     set network-structure "lattice (196)"
     setup-network
-    ask node 35 [adopt]
     set mechanism-for-spreading "Conformity threshold"
-    set conformity-threshold 1
+    set conformity-threshold 100
     set drop-out-threshold 0
 
+    ifelse task = "Task 1a (top node)"
+      [ask node 35 [adopt]] ;top node
+      [ask node 172 [adopt]] ;middle node
   ]
 
-  if task = "Task 1b (Small world 100)" [
-    set network-structure "small world (100)"
-    setup-network
-    set mechanism-for-spreading "Conformity threshold"
-    set conformity-threshold 26
-    set drop-out-threshold 0
-  ]
 
-  if task = "Task 1b (Small world 196)" [
+  if task = "Task 1b" [
     set network-structure "small world (196)"
     setup-network
     set mechanism-for-spreading "Conformity threshold"
@@ -109,6 +104,33 @@ to setup-task ;auto-setup settings for the tasks
     set drop-out-threshold 0
   ]
 
+  if task = "Task 1c" [
+    set network-structure "small world (100)"
+    setup-network
+    set mechanism-for-spreading "Conformity threshold"
+    set conformity-threshold 26
+    set drop-out-threshold 0
+  ]
+
+  if task = "Demonstrate dropout" [
+    set network-structure "lattice (100)"
+    setup-network
+    set mechanism-for-spreading "No spread"
+    set drop-out-threshold 50
+    set conformity-threshold 0 ;not used
+
+    ;let initial-nodes (turtle-set node 144 node 36 node 52 node 87 node 58 node 92 node 89 node 1 node 60)
+    ;let initial-nodes (turtle-set (node 31) (node 46) (node 77) (node 47) (node 93) (node 0) (node 16) (node 1) (node 62) (node 57) (node 68))
+    let initial-nodes (turtle-set (node 90) (node 78) (node 95) (node 98) (node 10) (node 92) (node 11) (node 9) (node 91) (node 93) (node 94) (node 96) (node 97) (node 89))
+    ask initial-nodes [adopt]
+    ask initial-nodes [set adopted-this-turn? false] ;otherwise nothing happens the first tick
+  ]
+
+  if task = "Task 2a" [ ;dropout
+
+
+
+  ]
 
 
 end
@@ -242,7 +264,7 @@ to size-by [measure] ;node procedure
     set OldMax (max [degree] of nodes)
     set OldValue degree
   ]
-  if measure = "Time since adopted" [
+  if measure = "Time since adopted" and adopted? [
     set OldMin (min [time-since-adopted] of nodes)
     set OldMax (max [time-since-adopted] of nodes)
     set OldValue time-since-adopted
@@ -250,7 +272,7 @@ to size-by [measure] ;node procedure
 
 
   ;actually make the node change size using the formula:
-  set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+  if adopted? [ set size (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin ]
 
 
 end
@@ -267,7 +289,7 @@ end
 to color-by [measure] ;button in interface, colors a network by a chosen measure
   ask banners [set label ""]
 
-  if measure = "Time since adopted" [
+  if measure = "Time since adopted" and any? nodes with [adopted?] [
     ask nodes [color-when-adopted label-when-adopted]
   ]
 
@@ -415,9 +437,9 @@ to-report nw-name-short ;used for plot pen name
 end
 
 to-report mechanism-short ;used for plot pen name
-  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold"]
+  let mechanism-list [ "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" "No spread"]
   let last-name (word "Adopt if > " conformity-threshold " % around")
-  let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-threshold " %"))
+  let short-name-list (list "100% spread" "50% spread" "5% spread" (word "adopt if > " conformity-threshold " %") "0 spread")
   let index position mechanism-for-spreading mechanism-list
   let short-name item index short-name-list
   report short-name
@@ -581,7 +603,7 @@ BUTTON
 40
 1010
 85
-go once
+Go once
 go
 NIL
 1
@@ -598,7 +620,7 @@ BUTTON
 40
 1099
 85
-NIL
+GO
 go
 T
 1
@@ -617,8 +639,8 @@ CHOOSER
 400
 mechanism-for-spreading
 mechanism-for-spreading
-"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold"
-3
+"100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" "No spread"
+4
 
 CHOOSER
 10
@@ -628,7 +650,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-2
+0
 
 PLOT
 920
@@ -654,8 +676,8 @@ CHOOSER
 95
 task
 task
-"Task 1a" "Task 1b (Small world 100)" "Task 1b (Small world 196)"
-0
+"Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2a"
+4
 
 SLIDER
 15
@@ -666,7 +688,7 @@ conformity-threshold
 conformity-threshold
 1
 100
-33.0
+0.0
 1
 1
 %
@@ -681,7 +703,7 @@ drop-out-threshold
 drop-out-threshold
 0
 100
-0.0
+50.0
 1
 1
 %
@@ -692,7 +714,7 @@ BUTTON
 185
 302
 218
-(PRESS THIS BUTTON AND CLICK ON A NODE)
+CLICK HERE TO PLANT IDEAS
 plant-innovation
 T
 1
@@ -877,7 +899,7 @@ CHOOSER
 visualize-this
 visualize-this
 "Time since adopted" "Betweenness" "Closeness" "Degree"
-1
+0
 
 TEXTBOX
 1220
@@ -894,7 +916,7 @@ BUTTON
 100
 1485
 133
-NIL
+SETUP TASK
 setup-task
 NIL
 1
