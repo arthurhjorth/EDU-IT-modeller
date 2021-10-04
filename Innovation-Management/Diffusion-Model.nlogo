@@ -448,8 +448,8 @@ to setup-new-pen ;used to start up a new plot pen
 end
 
 to-report nw-name-short ;used for plot pen name
-  let nw-list [ "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" ]
-  let short-name-list [ "Lat (100)" "Lat (196)" "SW (100)" "SW (196)" "PA (100)" "PA (196)" "PA (500)"]
+  let nw-list [ "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" "random network (78)" ]
+  let short-name-list [ "Lat (100)" "Lat (196)" "SW (100)" "SW (196)" "PA (100)" "PA (196)" "PA (500)" "random (100)"]
   let index position network-structure nw-list
   let short-name item index short-name-list
   report short-name
@@ -558,9 +558,12 @@ to import-network-structure
   nw:load-graphml "lattice196.graphml" ]
   if network-structure = "preferential attachment (500)" [
     nw:load-graphml "500pref.graphml" ]
-  if network-structure = "random network (100)" [
+  if network-structure = "random network (78)" [
     nw:load-graphml "random-network"
   repeat 7  [ layout-spring turtles links 0 0 1 ]
+    ask turtles [set breed nodes]
+    ;let unconnected-nodes (turtle-set (node 1) (node 61) (node 23) (node 49) (node 11) (node 5) (node 19) (node 13) (node 12) (node 82) (node 29) (node 15) (node 50) (node 35) (node 65) (node 46) (node 27) (node 75) (node 18) (node 98) (node 63) (node 74))
+    ;ask unconnected-nodes [die]
   ]
 
   ask turtles [
@@ -660,7 +663,7 @@ CHOOSER
 mechanism-for-spreading
 mechanism-for-spreading
 "100 % chance of spreading" "50 % chance of spreading" "5 % chance of spreading" "Conformity threshold" "No spread"
-3
+0
 
 CHOOSER
 10
@@ -669,8 +672,8 @@ CHOOSER
 80
 network-structure
 network-structure
-"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" "random network (100)"
-7
+"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" "random network (78)"
+0
 
 PLOT
 920
@@ -697,7 +700,7 @@ CHOOSER
 task
 task
 "Demonstrate conformity" "Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2"
-3
+0
 
 SLIDER
 15
@@ -708,7 +711,7 @@ conformity-threshold
 conformity-threshold
 1
 100
-25.0
+100.0
 1
 1
 %
@@ -919,7 +922,7 @@ CHOOSER
 visualize-this
 visualize-this
 "Time since adopted" "Betweenness" "Closeness" "Degree"
-3
+1
 
 BUTTON
 1230
