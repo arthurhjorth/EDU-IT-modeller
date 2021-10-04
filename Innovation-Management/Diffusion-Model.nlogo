@@ -478,20 +478,17 @@ end
 
 
 to plant-innovation
-  let mouse-is-down? mouse-down?
-  if mouse-clicked? [
-
+  if mouse-down? [
+    every .3 [
     ask min-one-of nodes  [distancexy mouse-xcor mouse-ycor] [
+
       set adopted? not adopted? ;flips the status
       recolor
-
+      ]
     ]
-    ;@evt SØRG FOR AT MAN SKAL VÆRE PÅ NODEN, når man trykker
   ]
 
-; Other procedures that should be run on mouse-click
 
-set mouse-was-down? mouse-is-down?
 end
 
 to plant-based-on
@@ -669,7 +666,7 @@ CHOOSER
 network-structure
 network-structure
 "lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-3
+0
 
 PLOT
 920
