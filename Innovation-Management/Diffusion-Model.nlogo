@@ -137,7 +137,7 @@ to setup-task ;auto-setup settings for the tasks
     ask initial-nodes [set adopted-this-turn? false] ;otherwise nothing happens the first tick
   ]
 
-  if task = "Task 2a" [ ;dropout
+  if task = "Task 2" [ ;dropout
     set network-structure "small world (196)"
     setup-network
     set mechanism-for-spreading "5 % chance of spreading"
@@ -695,7 +695,7 @@ CHOOSER
 90
 task
 task
-"Demonstrate conformity" "Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2a"
+"Demonstrate conformity" "Task 1a (top node)" "Task 1a (middle node)" "Task 1b" "Task 1c" "Demonstrate dropout" "Task 2"
 3
 
 SLIDER
