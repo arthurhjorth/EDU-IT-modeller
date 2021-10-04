@@ -558,6 +558,10 @@ to import-network-structure
   nw:load-graphml "lattice196.graphml" ]
   if network-structure = "preferential attachment (500)" [
     nw:load-graphml "500pref.graphml" ]
+  if network-structure = "random network (100)" [
+    nw:load-graphml "random-network"
+  repeat 7  [ layout-spring turtles links 0 0 1 ]
+  ]
 
   ask turtles [
     set breed nodes ;important!
@@ -665,8 +669,8 @@ CHOOSER
 80
 network-structure
 network-structure
-"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)"
-0
+"lattice (100)" "lattice (196)" "small world (100)" "small world (196)" "preferential attachment (100)" "preferential attachment (196)" "preferential attachment (500)" "random network (100)"
+7
 
 PLOT
 920
