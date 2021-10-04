@@ -111,7 +111,7 @@ to setup-task ;auto-setup settings for the tasks
     set network-structure "small world (196)"
     setup-network
     set mechanism-for-spreading "Conformity threshold"
-    set conformity-threshold 25
+    set conformity-threshold 26
     set drop-out-threshold 0
   ]
 
