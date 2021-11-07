@@ -7,6 +7,8 @@ globals [
   price-offered-by
 
   active-trading-style ;used for active-turtles in compare-all
+
+  price
 ]
 
 breed [merchants merchant]
@@ -89,13 +91,30 @@ to set-price-mar ;market clearing. from set-price, run in trade
 
 end
 
+
 to set-price-equ ;equilibrium. from set-price, run in trade
 
+  ; equilibrium sets the price as the  mean between the two agents' optimal prices (based on demand and excess demand from Hamill&Gilbert pp. 89)
+  ; the underlying assumption from economy is that negotiating will even prices out over time - and that both are equally good at negotiating
+
+  ask active-consumer [
+    set price  precision (
+      ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
+      ( ( beta * money ) + [ beta  * money ] of partner ) )    2
+
+  ]
 
 end
 
 to set-price-ran ;random. from set-price, run in trade
 
+  ;;;; we establish which trading rates each agent would like, and then pick a price at random in this interval
+  ;;;; the underlying assumption is that over time, the prices will even out that both agents get a fair price
+  ;;; furthermore, the price will play a role in how many items are traded
+
+  let minMRS min [ mrs ] of active-turtles ;defining lowest MRS
+   let maxMRS max [ mrs ] of active-turtles ;and highest MRS
+    set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
 end
 
@@ -275,7 +294,6 @@ to-report my-color [kind] ;from make-turtles. input = trading style
 
   ;...@ and so on
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 325
