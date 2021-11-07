@@ -14,6 +14,13 @@ globals [
   total-supply-list
   total-demand-list
   price-check-list
+
+  deal-tableware
+
+  succesful-trades
+  success-this-tick?
+  unsuccessful-price
+  recorded-time
 ]
 
 breed [merchants merchant]
@@ -27,6 +34,9 @@ turtles-own [
   tableware
   mrs ;marginal rate of substitution ;hvor mange penge er EN tallerken værd (neutralt/ligegyldigt punkt)
   partner
+  utility ;current utility
+  offer ;used in decide-quantity
+  temp-utility
 ]
 
 
@@ -45,20 +55,17 @@ end
 to go
   trade
 
-
-
-
   ;ask turtles [ update-mrs ] ;only for some price-settings
 end
 
 
 to trade ;THE function run in go!
-  if price-setting = one-of ["market clearing" "equilibrium" "random"] [
+  if member? price-setting ["market clearing" "equilibrium" "random"] [
     set active-trading-style price-setting
     set-price                                ; step 2
-    ;decide-quantity                          ; step 3
-    ;check-utility-and-trade                  ; step 4
-    ;print-trade-details
+    decide-quantity                          ; step 3
+    check-utility-and-trade                  ; step 4
+    ;print-trade-details @
 
 
   ]
@@ -85,6 +92,7 @@ to trade ;THE function run in go!
   ]
 
 end
+
 
 to set-price ;run in trade
   let price-function (word "set-price-" (substring active-trading-style 0 3)) ;e.g. "set-price-neg"
@@ -242,115 +250,219 @@ end
 
 to set-price-neg ;negotiation. from set-price, run in trade
 
-;
-;  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
-;  let second-bidder [partner] of initial-bidder
-;
-;
-;  ask initial-bidder [
-;
-;    ;;;; round 1:
-;    set price mrs
-;    decide-quantity
-;    ;possible to make an ifelse about deal here already to save computing
-;    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
-;    ifelse deal > 0 [
-;      if price-setting = "compare-all-price-settings" [stop]
-;      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
-;      stop ] ;if the bid is accepted, exit this function
-;
-;
-;    [
-;      ;;;; else, start round 2:
-;      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
-;
-;      set price [mrs] of partner
-;      decide-quantity
-;      check-utility-and-trade
-;      ifelse deal > 0 [
-;        if price-setting = "compare-all-price-settings" [stop]
-;        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
-;        stop]
-;
-;
-;      [
-;        ;;;; else, start round 3:
-;        ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
-;        let mrs-price-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
-;        set price mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
-;        decide-quantity
-;        check-utility-and-trade
-;        ifelse deal > 0 [
-;          if price-setting = "compare-all-price-settings" [stop]
-;          output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
-;          stop]
-;
-;        [
-;          ;;;; else, start round 4:
-;          ; agent2 does the same
-;          set price ( [mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
-;          decide-quantity
-;          check-utility-and-trade
-;          ifelse deal > 0 [
-;            if price-setting = "compare-all-price-settings" [stop]
-;            output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
-;            stop]
-;
-;          [
-;            ;;; round 5, agent 1 with 40%
-;            set price mrs + (mrs-price-difference * 0.4 )
-;            decide-quantity
-;            check-utility-and-trade
-;            ifelse deal > 0 [
-;              if price-setting = "compare-all-price-settings" [stop]
-;              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
-;              stop]
-;
-;            [
-;              ; round 6, agent2 does the same
-;              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
-;              decide-quantity
-;              check-utility-and-trade
-;              ifelse deal > 0 [
-;                if price-setting = "compare-all-price-settings" [stop]
-;                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
-;                stop ]
-;
-;
-;
-;
-;              [
-;                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
-;                set price mrs + mrs-price-difference * 0.5
-;                decide-quantity
-;                check-utility-and-trade
-;                if deal > 0
-;                [if price-setting = "compare-all-price-settings" [stop]
-;                  output-print "Agents met halfway between their initial prices." ]
-;                if deal = 0
-;                [ if price-setting = "compare-all-price-settings" [stop]
-;                  output-print "Agents did not agree on a trading price." ]
-;
-;                ;the end
-;
-;              ]
-;            ]
-;          ]
-;        ]
-;      ]
-;    ]
-;  ]
-;
+  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  let second-bidder [partner] of initial-bidder
+
+
+  ask initial-bidder [
+
+    ;;;; round 1:
+    set price mrs
+    decide-quantity
+    ;possible to make an ifelse about deal-tableware here already to save computing
+    check-utility-and-trade ;write out the outputs. No interesting until the deal-tableware actually pulls through
+    ifelse deal-tableware > 0 [
+      if price-setting = "compare all price settings" [stop]
+      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop ] ;if the bid is accepted, exit this function
+
+
+    [
+      ;;;; else, start round 2:
+      ;if the first deal-tableware is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+
+      set price [mrs] of partner
+      decide-quantity
+      check-utility-and-trade
+      ifelse deal-tableware > 0 [
+        if price-setting = "compare all price settings" [stop]
+        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+        stop]
+
+
+      [
+        ;;;; else, start round 3:
+        ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+        let mrs-price-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        decide-quantity
+        check-utility-and-trade
+        ifelse deal-tableware > 0 [
+          if price-setting = "compare all price settings" [stop]
+          output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+          stop]
+
+        [
+          ;;;; else, start round 4:
+          ; agent2 does the same
+          set price ( [mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          decide-quantity
+          check-utility-and-trade
+          ifelse deal-tableware > 0 [
+            if price-setting = "compare all price settings" [stop]
+            output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop]
+
+          [
+            ;;; round 5, agent 1 with 40%
+            set price mrs + (mrs-price-difference * 0.4 )
+            decide-quantity
+            check-utility-and-trade
+            ifelse deal-tableware > 0 [
+              if price-setting = "compare all price settings" [stop]
+              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop]
+
+            [
+              ; round 6, agent2 does the same
+              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+              decide-quantity
+              check-utility-and-trade
+              ifelse deal-tableware > 0 [
+                if price-setting = "compare all price settings" [stop]
+                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+                stop ]
+
+
+
+
+              [
+                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                set price mrs + mrs-price-difference * 0.5
+                decide-quantity
+                check-utility-and-trade
+                if deal-tableware > 0
+                [if price-setting = "compare all price settings" [stop]
+                  output-print "Agents met halfway between their initial prices." ]
+                if deal-tableware = 0
+                [ if price-setting = "compare all price settings" [stop]
+                  output-print "Agents did not agree on a trading price." ]
+
+                ;the end
+
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+
 
 end
 
 
 to decide-quantity
-  ;
+  ;;;; given my a) current holding, b) the set price and c) my preferences (alpha and beta),
+  ;;;; how many pieces of tableware do I wish to trade this round?
+  print "1"
+  ask active-consumer [ ;@PROBLEMS START HERE (at least for random)
+    print "2"
+    ifelse  price = 0 [
+      set offer 0 ;undgå ulovlig division. Vi kan assume at offer er 0 hvis pris er 0, idet agenter aldrig vil give væk gratis ("more is always better" -economy)
+    ]
+    ; if price not 0:
+    [
+      let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
+      let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
+      set offer floor ( optimal - tableware )  ;offer to buy the number of tableware optimal with current holding subtracted (floor = integers rounded down)
+      if offer * price > money [set offer ( money / price ) ] ;ensures that the consumer never offers more tableware than they can afford - instead offers the max they can afford
+    ]
+  ]
+  print "3"
+  ask active-merchant [
+    print "yay"
+    ifelse price = 0 [
+      set offer 0
+    ]
+    [
+      let budget ( tableware * price ) + money
+      let optimal ( budget * alpha / price )
+      set offer floor ( tableware - optimal ) ;floor = integer rounded down
+      if offer > tableware [ set offer tableware ] ; ensures that the merchant won't offer more than it currently has in its holding (can at most sell all the tableware they have)
+    ]
+  ]
+
+  ;the deal-tableware is set to the lowest offer (amount of tableware):
+  set deal-tableware min list ([offer] of active-merchant) ([offer] of active-consumer)
+
+
 end
 
 to check-utility-and-trade
-  ;
+  ;easier variable name:
+  let deal-money ( deal-tableware * price )
+
+  ; step 1: calculating the change in utility for each agent given the planned trade
+  ; @lisa: there is some problematic calculations going on with the ^s. (???) I tried to solve it, but for now without success.
+  ask active-turtles [ ;merchant and consumer both do this
+    set temp-utility 0 ;reset
+    if deal-tableware > 0 [
+      let temp-tableware ( tableware + deal-tableware ) ;tableware is turtles-own
+      let temp-money ( money - deal-money ) ;same for money
+      set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas
+    ]
+  ]
+
+  ; step 2: if the utility is not increased for one of the agents, the trade is cancelled.
+  ifelse any? active-turtles with [temp-utility < utility] [
+    set deal-tableware 0
+  ]
+  [
+    set succesful-trades succesful-trades + 1
+  ]
+
+  ;; step 3: if the utility is increase for both agents, the trade goes through and holdings are updated.
+  if deal-tableware > 0 [
+    ask active-consumer [
+      set tableware (tableware + deal-tableware) ;(@assumes it's always this way around, and roles aren't reversed - check!)
+      set money (money - deal-money)
+    ]
+
+
+    ask active-merchant [
+      set tableware (tableware - deal-tableware)
+      set money (money + deal-money)
+    ]
+
+    update-price-list ;add price to list to save it, when trade is successful
+  ]
+
+  ;record if deal or no deal and stuff
+  ifelse deal-tableware = 0 [
+    set unsuccessful-price price
+    set recorded-time ( ticks )
+    if price-setting != "compare all price settings" [ set success-this-tick? false ]
+    ;@conversate-fail
+  ]
+  [ ;if a deal:
+    if price-setting != "compare all price settings" [ set success-this-tick? true ]
+    ;@conversate-success
+  ]
+
+end
+
+to update-price-list ;run in check-utility-and-trade
+  ifelse price-setting != "compare all price settings"
+  [
+    set price-list fput price price-list
+  ]
+  [ ;if compare all:
+
+    ask active-consumer with [trading-style = "market clearing"] [
+      set market-clearing-price-list fput price market-clearing-price-list
+    ]
+    ask active-consumer with [trading-style = "equilibrium"] [
+      set equilibrium-price-list fput price equilibrium-price-list
+    ]
+    ask active-consumer with [trading-style = "random"] [
+      set random-price-list fput price random-price-list
+    ]
+    ask active-consumer with [trading-style = "negotiation"] [
+      set negotiation-price-list fput price negotiation-price-list
+    ]
+
+  ]
 end
 
 
@@ -405,7 +517,7 @@ to initiate-price-plot ;run in setup
   set-plot-y-range 0 3
 
   ;create the plot pens to use:
-  ifelse price-setting = "compare-all-price-settings" [
+  ifelse price-setting = "compare all price settings" [
 
     ;@plot latest or mean? (for quantity)
     create-temporary-plot-pen "Market-clearing success"
@@ -448,11 +560,106 @@ to initiate-price-plot ;run in setup
   ]
 end
 
+to update-price-plot
+  ;@ADD: make a dot every time, either red or green (change size?) (instead of plot lines?)
+
+  set-current-plot "Price plot"
+
+  ifelse price-setting = "compare all price settings" [
+
+    if length market-clearing-price-list > 0 [
+      set-current-plot-pen "Market-clearing success" ;;@@;;@@ Change names for mean if we choose for mean to be the best representation.
+      ;set-plot-pen-mode 1
+      plotxy ticks (mean market-clearing-price-list)
+
+      set-current-plot-pen "Market-clearing success2"
+      ;set-plot-pen-mode 2
+      plotxy ticks ( first market-clearing-price-list )
+    ]
+
+    if length equilibrium-price-list > 0 [
+      set-current-plot-pen "Equilibrium success"
+      ;set-plot-pen-mode 1
+      plotxy ticks (mean equilibrium-price-list)
+
+      set-current-plot-pen "Equilibrium success2"
+      ;set-plot-pen-mode 2
+      plotxy ticks ( first equilibrium-price-list )
+    ]
+
+
+    if length random-price-list > 0 [
+      set-current-plot-pen "Random success"
+      plotxy ticks (mean random-price-list)
+
+      set-current-plot-pen "Random success2"
+      plotxy ticks (first random-price-list)
+    ]
+
+    if length negotiation-price-list > 0 [
+      set-current-plot-pen "Negotiation success"
+      plotxy ticks (mean negotiation-price-list)
+
+      set-current-plot-pen "Negotiation success2"
+      plotxy ticks (first negotiation-price-list)
+    ]
+
+
+  ]
+  [ ;if not compare all:
+    if length price-list > 0 [ ;if it even exists
+      if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
+    ]
+
+
+    if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
+
+
+    ifelse success-this-tick? [
+      set-current-plot-pen "Price trade successful"
+      ;plot-pen-down
+      plotxy ticks (first price-list) ;x and y, using custom function for big dots
+    ]
+    [
+      set-current-plot-pen "Price trade unsuccessful"
+      plotxy ticks unsuccessful-price ;x and y
+    ]
+
+    ;plot mean:
+    set-current-plot-pen "Mean price successful trades"
+    if mean-price != "no price list" [plotxy ticks mean-price]
+
+  ]
+
+  ;2 i 1 approach:
+  ;    set-current-plot-pen "Price trade"
+;    ifelse success-this-tick? [
+;      set-plot-pen-color green
+;      plotxy ticks (first price-list) ;plot latest successful price
+;    ]
+;    [
+;      set-plot-pen-color red
+;      plotxy ticks unsuccessful-price
+;    ]
+end
+
+to-report mean-price ;used in update-price-plot
+  ifelse length price-list > 0 [
+    report ( ( sum price-list ) / ( length price-list ) )
+  ]
+  [
+    report "no price list"
+  ]
+end
+
 
 
 ;---TURTLE REPORTERS
 
-to-report my-utility ;turtle reporter
+to-report my-utility ;turtle reporter ;current utility
+  ; Cobb-Douglas utility function ;;;copied from red cross parcels model
+  ;As i understand the utility hereby is a measure of the total quantity of tableware and money, modified by the alpha and betas. Meaning that the weight of money+tableware is modified by the alphas + betas.
+  ;in short, an individual utility function dependant on alphas and betas.
   report precision ( ( tableware ^ alpha ) * ( money ^ beta ) ) 2
 end
 
@@ -509,11 +716,9 @@ to make-turtles [kind] ;run in setup
 end
 
 to-report my-color [kind] ;from make-turtles. input = trading style
-  if kind = "market clearing" [
-    report red
-  ]
+  let index position kind ["market clearing" "equilibrium" "random" "negotiation"]
 
-  ;...@ and so on
+  report item index [red blue green violet]
 end
 
 to-report frequency [an-item a-list]
@@ -555,7 +760,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-1
+2
 
 SLIDER
 99
@@ -564,7 +769,7 @@ SLIDER
 151
 alpha-consumers
 alpha-consumers
-0
+0.5
 1
 0.9
 0.1
@@ -594,8 +799,8 @@ SLIDER
 100
 alpha-merchants
 alpha-merchants
-0
-1
+0.1
+0.5
 0.1
 0.1
 1
@@ -682,10 +887,10 @@ NIL
 HORIZONTAL
 
 PLOT
-1000
-220
-1200
-370
+870
+115
+1180
+290
 Demand and Supply Plot
 NIL
 NIL
@@ -699,10 +904,10 @@ false
 PENS
 
 PLOT
-915
-375
-1115
-525
+870
+295
+1180
+460
 Price plot
 NIL
 NIL
@@ -714,7 +919,6 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?
