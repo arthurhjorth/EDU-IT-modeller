@@ -9,6 +9,11 @@ globals [
   active-trading-style ;used for active-turtles in compare-all
 
   price
+
+  global-difference-list
+  total-supply-list
+  total-demand-list
+  price-check-list
 ]
 
 breed [merchants merchant]
@@ -86,8 +91,124 @@ to set-price ;run in trade
   run price-function
 end
 
-to set-price-mar ;market clearing. from set-price, run in trade
+to-report temporary-budget [n] ;total capital in money
+  report ( tableware * n ) + money
+end
 
+to-report temporary-optimal [n] ;Optimal holding of tableware
+  report round ( temporary-budget n * alpha / n ) ;budget [ foreslået pris ] * alpha / foreslået pris
+end
+
+to-report temporary-demand [n]
+  let demandd (temporary-optimal n - tableware)
+  report ifelse-value demandd > 0 [demandd] [0]
+end
+
+to-report temporary-supply [n]
+  let supplyy (tableware - temporary-optimal n)
+  report ifelse-value supplyy > 0 [supplyy] [0]
+end
+
+
+to set-price-mar ;market clearing. from set-price, run in trade
+  set global-difference-list [] ;clear, initiate
+  set total-supply-list []
+  set total-demand-list []
+
+  set price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
+    ;n is price-temporary, i.e. each element of this price-list^^
+
+  ask turtles with[ trading-style = "market clearing" ] [
+
+    let list-supply (map [n -> temporary-supply n] price-check-list)
+    ;Save evert turtles supply list in a global / total list::
+        ifelse length total-supply-list > 0 [
+      set total-supply-list (map + list-supply total-supply-list)
+    ]
+    [
+      set total-supply-list list-supply ;First turtle cannot map as there is nothing in the tota-supply-list initially
+    ]
+
+
+
+    let list-demand (map [n -> temporary-demand n] price-check-list)
+    ;Save evert turtles demand list in a global / total list::
+        ifelse length total-demand-list > 0 [
+      set total-demand-list (map + list-demand total-demand-list)
+    ]
+    [
+      set total-demand-list list-demand ;First turtle cannot map as there is nothing in the tota-supply-list initially
+    ]
+
+  ;  show list-supply
+  ;  show list-demand
+
+    ;lav ny liste med FORSKELLEN på de to:
+    let list-forskel (map + list-supply list-demand)
+
+    ifelse length global-difference-list > 0 [
+      set global-difference-list (map - global-difference-list list-forskel) ;Minus, as we want to find where the difference is the lowest. HOWEVER, when there are more than 2 agents we need another solution @@@@@
+    ]
+    [
+      set global-difference-list list-forskel ;den første turtle til at gøre det (kan ikke mappe på tom liste)
+    ]
+  ] ;END of ask turtles
+
+  set global-difference-list (map abs global-difference-list)
+ ; show global-difference-list
+
+  ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
+
+  let min-forskel min global-difference-list
+  let nr-occurences frequency min-forskel global-difference-list ;bruger frequency funktion/reporter
+
+  let first-index position min-forskel global-difference-list ;index for første appearance af min i listen
+  let last-index first-index + nr-occurences
+
+
+  let min-differences sublist price-check-list first-index last-index
+ ; show min-differences
+  set price mean min-differences ;THIS IS WHAT WE WANT - gemmer mean pris (da der er flere occurences)
+
+  ;og gemme den pris (hvilken pris svarede det til i price-check-list?) (skal vi også gemme summen af supply-demand-forskel? eller gennemsnit?)
+
+  plot-market-clearing
+
+end
+
+to plot-market-clearing
+  ;brug global demand og supply lister
+
+  set-current-plot "Demand and Supply Plot"
+  clear-plot
+  create-temporary-plot-pen "supply"
+  set-current-plot-pen "supply"
+  set-plot-pen-color 15
+  set-plot-x-range 0.1 20
+  let upper-bound ( money-merchants + money-consumers + tableware-merchants + tableware-consumers ) / 2
+  set-plot-y-range 0 upper-bound
+  ;plotxy price-check-list total-supply-list
+
+  ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
+
+  (foreach price-check-list total-supply-list
+    [
+      [x y] ->
+      plotxy x y
+
+    ])
+
+  create-temporary-plot-pen "demand"
+  set-current-plot-pen "demand"
+  set-plot-pen-color 105
+   set-plot-x-range 0.1 20
+
+  (foreach price-check-list total-demand-list
+    [
+      [x y] ->
+      plotxy x y
+
+    ])
 
 end
 
@@ -118,8 +239,108 @@ to set-price-ran ;random. from set-price, run in trade
 
 end
 
+
 to set-price-neg ;negotiation. from set-price, run in trade
 
+;
+;  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+;  let second-bidder [partner] of initial-bidder
+;
+;
+;  ask initial-bidder [
+;
+;    ;;;; round 1:
+;    set price mrs
+;    decide-quantity
+;    ;possible to make an ifelse about deal here already to save computing
+;    check-utility-and-trade ;write out the outputs. No interesting until the deal actually pulls through
+;    ifelse deal > 0 [
+;      if price-setting = "compare-all-price-settings" [stop]
+;      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+;      stop ] ;if the bid is accepted, exit this function
+;
+;
+;    [
+;      ;;;; else, start round 2:
+;      ;if the first deal is not accepted, partner suggests its mrs instead and the trading evaluation runs again
+;
+;      set price [mrs] of partner
+;      decide-quantity
+;      check-utility-and-trade
+;      ifelse deal > 0 [
+;        if price-setting = "compare-all-price-settings" [stop]
+;        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+;        stop]
+;
+;
+;      [
+;        ;;;; else, start round 3:
+;        ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
+;        let mrs-price-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
+;        set price mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+;        decide-quantity
+;        check-utility-and-trade
+;        ifelse deal > 0 [
+;          if price-setting = "compare-all-price-settings" [stop]
+;          output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+;          stop]
+;
+;        [
+;          ;;;; else, start round 4:
+;          ; agent2 does the same
+;          set price ( [mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+;          decide-quantity
+;          check-utility-and-trade
+;          ifelse deal > 0 [
+;            if price-setting = "compare-all-price-settings" [stop]
+;            output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+;            stop]
+;
+;          [
+;            ;;; round 5, agent 1 with 40%
+;            set price mrs + (mrs-price-difference * 0.4 )
+;            decide-quantity
+;            check-utility-and-trade
+;            ifelse deal > 0 [
+;              if price-setting = "compare-all-price-settings" [stop]
+;              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+;              stop]
+;
+;            [
+;              ; round 6, agent2 does the same
+;              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+;              decide-quantity
+;              check-utility-and-trade
+;              ifelse deal > 0 [
+;                if price-setting = "compare-all-price-settings" [stop]
+;                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+;                stop ]
+;
+;
+;
+;
+;              [
+;                ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+;                set price mrs + mrs-price-difference * 0.5
+;                decide-quantity
+;                check-utility-and-trade
+;                if deal > 0
+;                [if price-setting = "compare-all-price-settings" [stop]
+;                  output-print "Agents met halfway between their initial prices." ]
+;                if deal = 0
+;                [ if price-setting = "compare-all-price-settings" [stop]
+;                  output-print "Agents did not agree on a trading price." ]
+;
+;                ;the end
+;
+;              ]
+;            ]
+;          ]
+;        ]
+;      ]
+;    ]
+;  ]
+;
 
 end
 
@@ -294,6 +515,10 @@ to-report my-color [kind] ;from make-turtles. input = trading style
 
   ;...@ and so on
 end
+
+to-report frequency [an-item a-list]
+    report length (filter [ i -> i = an-item] a-list)
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 325
@@ -330,7 +555,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-2
+1
 
 SLIDER
 99
@@ -340,9 +565,9 @@ SLIDER
 alpha-consumers
 alpha-consumers
 0
-100
-50.0
 1
+0.9
+0.1
 1
 NIL
 HORIZONTAL
@@ -370,9 +595,9 @@ SLIDER
 alpha-merchants
 alpha-merchants
 0
-100
-50.0
 1
+0.1
+0.1
 1
 NIL
 HORIZONTAL
@@ -455,6 +680,41 @@ money-consumers
 1
 NIL
 HORIZONTAL
+
+PLOT
+1000
+220
+1200
+370
+Demand and Supply Plot
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+
+PLOT
+915
+375
+1115
+525
+Price plot
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?
