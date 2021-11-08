@@ -480,7 +480,7 @@ to-report active-merchant
 end
 
 to-report active-consumer
-    report one-of active-turtles with [breed = "consumer"]
+    report one-of active-turtles with [breed = "consumers"]
 end
 
 
