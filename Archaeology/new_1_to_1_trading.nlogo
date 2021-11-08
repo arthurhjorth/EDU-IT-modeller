@@ -355,9 +355,7 @@ end
 to decide-quantity
   ;;;; given my a) current holding, b) the set price and c) my preferences (alpha and beta),
   ;;;; how many pieces of tableware do I wish to trade this round?
-  print "1"
   ask active-consumer [ ;@PROBLEMS START HERE (at least for random)
-    print "2"
     ifelse  price = 0 [
       set offer 0 ;undgå ulovlig division. Vi kan assume at offer er 0 hvis pris er 0, idet agenter aldrig vil give væk gratis ("more is always better" -economy)
     ]
@@ -369,9 +367,8 @@ to decide-quantity
       if offer * price > money [set offer ( money / price ) ] ;ensures that the consumer never offers more tableware than they can afford - instead offers the max they can afford
     ]
   ]
-  print "3"
+
   ask active-merchant [
-    print "yay"
     ifelse price = 0 [
       set offer 0
     ]
@@ -476,11 +473,11 @@ to-report active-turtles ;the ones currently trading
 end
 
 to-report active-merchant
-    report one-of active-turtles with [breed = "merchants"]
+    report one-of active-turtles with [breed = merchants]
 end
 
 to-report active-consumer
-    report one-of active-turtles with [breed = "consumers"]
+    report one-of active-turtles with [breed = consumers]
 end
 
 
@@ -681,6 +678,7 @@ to make-turtles [kind] ;run in setup
   [ ;if not compare all:
 
     create-consumers 1 [
+      ;set breed "consumers"
       set color (my-color kind) + 1.5
       setxy -32 -5 ;@check position
       set shape "person"
@@ -694,6 +692,7 @@ to make-turtles [kind] ;run in setup
     ]
 
     create-merchants 1 [
+      ;set breed "merchants"
       set color (my-color kind) - 1.5
       setxy 32 -5 ;@check position
       set trading-style kind
@@ -760,7 +759,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-2
+1
 
 SLIDER
 99
