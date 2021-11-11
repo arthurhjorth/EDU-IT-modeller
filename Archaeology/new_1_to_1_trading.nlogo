@@ -391,7 +391,7 @@ to decide-quantity
 
 end
 
-to check-utility-and-trade
+to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (doesn't work in set-price-neg right now)
   ;easier variable name:
   let deal-money ( deal-tableware * price )
 
@@ -685,7 +685,38 @@ end
 ;---LAYOUT STUFF
 
 to layout ;run in setup ;sets up the world/background
-  ;
+  ifelse price-setting = "compare all price settings" [
+    ;
+  ]
+  [
+    ;patch colors
+    ask patches [
+      if pycor < (max-pycor - 50) [set pcolor 9] ;ground
+      if pycor = (max-pycor - 50) [set pcolor 1] ;horizon line
+      if pycor < (min-pycor + 6) [set pcolor 7] ;bottom line for label
+
+      ;sky (bottom to top colors):
+      if pycor > (max-pycor - 50) [set pcolor blue - 1.5]
+      if pycor > (max-pycor - 30) [set pcolor blue - 1]
+      if pycor > (max-pycor - 20) [set pcolor blue]
+      if pycor > (max-pycor - 10) [set pcolor blue + 1]
+
+      ;condition tag
+
+
+    ]
+    ;acropolis
+    create-turtles 1 [
+     set shape "building institution" set size 18 set color white setxy 0 -7
+    ]
+
+
+
+
+  ]
+
+
+
 end
 
 
@@ -701,7 +732,7 @@ to make-turtles [kind] ;run in setup
     create-consumers 1 [
       ;set breed "consumers"
       set color (my-color kind) + 1.5
-      setxy -32 -5 ;@check position
+      setxy (min-pxcor + dist-side)(min-pycor + dist-bottom) ;@check position
       set shape "person"
       set heading 270
       set size 12
@@ -715,7 +746,7 @@ to make-turtles [kind] ;run in setup
     create-merchants 1 [
       ;set breed "merchants"
       set color (my-color kind) - 1.5
-      setxy 32 -5 ;@check position
+      setxy (max-pxcor - dist-side) (min-pycor + dist-bottom)
       set trading-style kind
       set shape "person" ;ADD TABLEWARE SHAPE@
       set size 12
@@ -733,6 +764,13 @@ to make-turtles [kind] ;run in setup
   ]
 
 
+end
+
+to-report dist-side ;for turtle placement
+  report 15
+end
+to-report dist-bottom ;for turtle placement
+  report 15
 end
 
 to-report my-color [kind] ;from make-turtles. input = trading style
@@ -780,7 +818,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-0
+3
 
 SLIDER
 99
@@ -1017,6 +1055,38 @@ Circle -7500403 true true 110 127 80
 Circle -7500403 true true 110 75 80
 Line -7500403 true 150 100 80 30
 Line -7500403 true 150 100 220 30
+
+building institution
+false
+0
+Rectangle -7500403 true true 0 60 300 270
+Rectangle -16777216 true false 130 196 168 256
+Rectangle -16777216 false false 0 255 300 270
+Polygon -7500403 true true 0 60 150 15 300 60
+Polygon -16777216 false false 0 60 150 15 300 60
+Circle -1 true false 135 26 30
+Circle -16777216 false false 135 25 30
+Rectangle -16777216 false false 0 60 300 75
+Rectangle -16777216 false false 218 75 255 90
+Rectangle -16777216 false false 218 240 255 255
+Rectangle -16777216 false false 224 90 249 240
+Rectangle -16777216 false false 45 75 82 90
+Rectangle -16777216 false false 45 240 82 255
+Rectangle -16777216 false false 51 90 76 240
+Rectangle -16777216 false false 90 240 127 255
+Rectangle -16777216 false false 90 75 127 90
+Rectangle -16777216 false false 96 90 121 240
+Rectangle -16777216 false false 179 90 204 240
+Rectangle -16777216 false false 173 75 210 90
+Rectangle -16777216 false false 173 240 210 255
+Rectangle -16777216 false false 269 90 294 240
+Rectangle -16777216 false false 263 75 300 90
+Rectangle -16777216 false false 263 240 300 255
+Rectangle -16777216 false false 0 240 37 255
+Rectangle -16777216 false false 6 90 31 240
+Rectangle -16777216 false false 0 75 37 90
+Line -16777216 false 112 260 184 260
+Line -16777216 false 105 265 196 265
 
 butterfly
 true
