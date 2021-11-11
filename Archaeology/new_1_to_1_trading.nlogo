@@ -54,9 +54,13 @@ end
 
 to go
   trade
+  print-details
+  tick
+
 
   ;ask turtles [ update-mrs ] ;only for some price-settings
 end
+
 
 
 to trade ;THE function run in go!
@@ -183,6 +187,7 @@ to set-price-mar ;market clearing. from set-price, run in trade
   plot-market-clearing
 
 end
+
 
 to plot-market-clearing
   ;brug global demand og supply lister
@@ -391,7 +396,7 @@ to check-utility-and-trade
   let deal-money ( deal-tableware * price )
 
   ; step 1: calculating the change in utility for each agent given the planned trade
-  ; @lisa: there is some problematic calculations going on with the ^s. (???) I tried to solve it, but for now without success.
+  ; @lisa: there is some problematic calculations going on with the ^s. (???)
   ask active-turtles [ ;merchant and consumer both do this
     set temp-utility 0 ;reset
     if deal-tableware > 0 [
@@ -436,8 +441,24 @@ to check-utility-and-trade
     if price-setting != "compare all price settings" [ set success-this-tick? true ]
     ;@conversate-success
   ]
-
 end
+
+
+to print-details
+  ifelse deal-tableware > 0 [
+
+  output-print (word "Price: " precision price 2 ". " )
+  output-print (word "Amount traded: " deal-tableware ". " )
+
+    ask turtles [output-print (word "My utility (" breed "): " my-utility )]
+
+  ]
+  [
+  output-print ( word "No trade this round." )
+    ]
+end
+
+
 
 to update-price-list ;run in check-utility-and-trade
   ifelse price-setting != "compare all price settings"
@@ -759,7 +780,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-1
+0
 
 SLIDER
 99
@@ -770,7 +791,7 @@ alpha-consumers
 alpha-consumers
 0.5
 1
-0.9
+0.5
 0.1
 1
 NIL
@@ -807,10 +828,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-353
-501
-525
-534
+70
+515
+242
+548
 tableware-merchants
 tableware-merchants
 0
@@ -918,6 +939,13 @@ true
 false
 "" ""
 PENS
+
+OUTPUT
+325
+485
+805
+605
+13
 
 @#$#@#$#@
 ## WHAT IS IT?
