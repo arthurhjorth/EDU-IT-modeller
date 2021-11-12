@@ -25,6 +25,7 @@ globals [
 
 breed [merchants merchant]
 breed [consumers consumer]
+breed [props prop] ;just for layout
 
 turtles-own [
   trading-style
@@ -450,7 +451,7 @@ to print-details
   output-print (word "Price: " precision price 2 ". " )
   output-print (word "Amount traded: " deal-tableware ". " )
 
-    ask turtles [output-print (word "My utility (" breed "): " my-utility )]
+    ask traders [output-print (word "My utility (" breed "): " my-utility )]
 
   ]
   [
@@ -458,6 +459,9 @@ to print-details
     ]
 end
 
+to-report traders ;doesn't include acropolis ;)
+  report (turtle-set merchants consumers)
+end
 
 
 to update-price-list ;run in check-utility-and-trade
@@ -702,11 +706,11 @@ to layout ;run in setup ;sets up the world/background
       if pycor > (max-pycor - 10) [set pcolor blue + 1]
 
       ;condition tag
-
+      if pxcor = 9 and pycor = (min-pycor + 2) [set plabel price-setting set plabel-color black]
 
     ]
     ;acropolis
-    create-turtles 1 [
+    create-props 1 [
      set shape "building institution" set size 18 set color white setxy 0 -7
     ]
 
@@ -730,7 +734,6 @@ to make-turtles [kind] ;run in setup
   [ ;if not compare all:
 
     create-consumers 1 [
-      ;set breed "consumers"
       set color (my-color kind) + 1.5
       setxy (min-pxcor + dist-side)(min-pycor + dist-bottom) ;@check position
       set shape "person"
@@ -744,11 +747,10 @@ to make-turtles [kind] ;run in setup
     ]
 
     create-merchants 1 [
-      ;set breed "merchants"
       set color (my-color kind) - 1.5
       setxy (max-pxcor - dist-side) (min-pycor + dist-bottom)
       set trading-style kind
-      set shape "person" ;ADD TABLEWARE SHAPE@
+      set shape "tableware"
       set size 12
       set heading 90
 
@@ -784,15 +786,15 @@ to-report frequency [an-item a-list]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-325
+320
 10
-803
-489
+808
+499
 -1
 -1
-5.8025
+5.93
 1
-10
+16
 1
 1
 1
@@ -811,20 +813,20 @@ ticks
 30.0
 
 CHOOSER
-39
-225
-227
-270
+10
+15
+295
+60
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-3
+1
 
 SLIDER
-99
-118
-271
-151
+155
+65
+295
+98
 alpha-consumers
 alpha-consumers
 0.5
@@ -836,10 +838,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-61
-467
-233
-500
+155
+135
+295
+168
 tableware-consumers
 tableware-consumers
 0
@@ -851,10 +853,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-46
-67
-218
-100
+10
+65
+150
+98
 alpha-merchants
 alpha-merchants
 0.1
@@ -866,10 +868,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-70
-515
-242
-548
+10
+135
+150
+168
 tableware-merchants
 tableware-merchants
 0
@@ -881,10 +883,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-47
-20
-110
-53
+10
+175
+150
+208
 NIL
 setup
 NIL
@@ -898,10 +900,10 @@ NIL
 1
 
 BUTTON
-120
-21
-183
-54
+155
+175
+295
+208
 NIL
 go
 NIL
@@ -915,10 +917,10 @@ NIL
 1
 
 SLIDER
-80
-175
-252
-208
+10
+100
+150
+133
 money-merchants
 money-merchants
 1
@@ -930,10 +932,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-80
-320
-252
-353
+155
+100
+295
+133
 money-consumers
 money-consumers
 1
@@ -979,10 +981,10 @@ false
 PENS
 
 OUTPUT
-325
-485
-805
-605
+320
+500
+810
+620
 13
 
 @#$#@#$#@
@@ -1277,6 +1279,19 @@ star
 false
 0
 Polygon -7500403 true true 151 1 185 108 298 108 207 175 242 282 151 216 59 282 94 175 3 108 116 108
+
+tableware
+false
+14
+Circle -16777216 true true 110 5 80
+Polygon -16777216 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
+Rectangle -16777216 true true 127 79 172 94
+Polygon -16777216 true true 171 109 231 64 261 79 186 139
+Polygon -16777216 true true 105 90 60 150 75 180 135 105
+Circle -1 true false 205 14 76
+Circle -7500403 false false 215 24 56
+Circle -7500403 false false 216 25 54
+Circle -7500403 false false 205 13 78
 
 target
 false
