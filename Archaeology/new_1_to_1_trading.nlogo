@@ -16,6 +16,7 @@ globals [
   price-check-list
 
   deal-tableware
+  suggested-quantity
 
   succesful-trades
   success-this-tick?
@@ -55,13 +56,16 @@ to setup
   ask traders [ update-mrs ]
   create-price-lists
   initiate-price-plot
+
+  update-visuals
+  ask no-trade-patch [set plabel ""]
 end
 
 
 to go
   trade
   print-details
-  update-counters
+  update-visuals
   tick
 
 
@@ -396,6 +400,8 @@ to decide-quantity
   ;the deal-tableware is set to the lowest offer (amount of tableware):
   set deal-tableware min list ([offer] of active-merchant) ([offer] of active-consumer)
 
+  set suggested-quantity deal-tableware ;redundant, but just adding for printing (still saved if it doesn't go through in next step)
+
 
 end
 
@@ -410,29 +416,32 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
     if deal-tableware > 0 [
       let temp-tableware ( tableware + deal-tableware ) ;tableware is turtles-own
       let temp-money ( money - deal-money ) ;same for money
-      set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas
+      set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility
+      ;show temp-utility
     ]
   ]
 
-  ; step 2: if the utility is not increased for one of the agents, the trade is cancelled.
-  ifelse any? active-traders with [temp-utility < utility] [
+  ; step 2: if the utility would be decreased for any of the agents, the trade is cancelled.
+  ifelse any? active-traders with [temp-utility < my-utility] [ ;@ida: ændrede det fra utility til my-utility
     set deal-tableware 0
   ]
   [
     set succesful-trades succesful-trades + 1
   ]
 
-  ;; step 3: if the utility is increase for both agents, the trade goes through and holdings are updated.
+  ;; step 3: if the utility is increased for both agents, the trade goes through and holdings are updated.
   if deal-tableware > 0 [
     ask active-consumer [
       set tableware (tableware + deal-tableware) ;(@assumes it's always this way around, and roles aren't reversed - check!)
       set money (money - deal-money)
+      set utility temp-utility ;@WE WANT TO ADD THIS HERE, RIGHT?! ;now using my-utility instead...
     ]
 
 
     ask active-merchant [
       set tableware (tableware - deal-tableware)
       set money (money + deal-money)
+      set utility temp-utility ;@WE WANT TO ADD THIS HERE, RIGHT?! ;now using my-utility instead...
     ]
 
     update-price-list ;add price to list to save it, when trade is successful
@@ -453,16 +462,17 @@ end
 
 
 to print-details
-  ifelse deal-tableware > 0 [
 
-  output-print (word "Price: " precision price 2 ". " )
-  output-print (word "Amount traded: " deal-tableware ". " )
+  ifelse deal-tableware > 0 [
+    output-print (word "Agreed price: " precision price 2 "." )
+    output-print (word "Amount traded: " deal-tableware "." )
 
     ask traders [output-print (word "My utility (" breed "): " my-utility )]
-
   ]
   [
-  output-print ( word "No trade this round." )
+    output-print (word "Suggested price: " precision price 2 ". Suggested amount: " suggested-quantity ".")
+    output-print (word "Utilities would have become: " item 0 [temp-utility] of consumers " (c) & " item 0 [temp-utility] of merchants " (m)")
+    ;ask traders [output-print (word "Utility would have become(" breed "): " temp-utility )]
     ]
 end
 
@@ -730,27 +740,63 @@ to layout ;run in setup ;sets up the world/background
 
   ]
 
-  update-counters
+  update-visuals
 
 end
 
-to update-counters ;in visual interface
+to update-visuals ;in visual interface
+  ask (patch-set no-trade-patch trade-patch) [set plabel ""]
+
   ask banners [set label ""]
   ask props [ask in-link-neighbors [set label ""]]
+  ask props [die] ;easy fix
 
   ask trader-patches [
-
     ;plate counter
     sprout-props 1 [
-      set shape "plate-round" set size 7 set heading 270 fd 12 set heading 180 fd 6 set heading 0 fd 8 set prop-type "plate"
+      set shape "plate-round" set size 7 set heading 270 fd 13 set heading 180 fd 6 set heading 0 fd 9.5 set prop-type "plate"
       attach-banner precision ([tableware] of min-one-of traders [distance myself]) 2 ;@added precision
     ]
     ;money counter
     sprout-props 1 [
-      set shape "coins" set size 9 set heading 270 fd 12 set heading 180 fd 6 set heading 0 fd 2 set prop-type "coins"
+      set shape "coins" set size 9 set heading 270 fd 13 set heading 180 fd 6 set heading 0 fd 5 set prop-type "coins"
       attach-banner precision ([money] of min-one-of traders [distance myself]) 2 ;@added precision
     ]
+
+    ;utility counter
+    sprout-props 1 [
+      set shape "u-shape" set size 5 set color blue set heading 270 fd 13 set heading 180 fd 7 set heading 0 fd 2 set prop-type "utility"
+      attach-banner precision ([my-utility] of min-one-of traders [distance myself]) 2 ;@added precision
+    ]
+
+    ;utility smileys
+    sprout-props 1 [
+      let emotion [utility-emotion] of min-one-of traders [distance myself]
+      let index position emotion ["sad" "neutral" "happy"]
+      set shape item index ["face sad" "face neutral" "face happy"]
+      set color item index [red yellow green]
+      set size 4
+      set prop-type "smiley"
+      set heading 0 fd 4.25
+    ]
+
+
   ]
+
+  ;trade or no trade label
+  ifelse deal-tableware > 0 [
+    ask trade-patch [
+      set plabel-color green - 1.5
+      set plabel (word "We trade " deal-tableware " plates. Price for each: " precision price 2 ". " )
+    ]
+  ]
+  [
+    ask no-trade-patch [
+        set plabel-color red - 1.5
+        set plabel "NO TRADE!"
+    ]
+  ]
+
 
   ;  ;stack of plates
 ;  ask trader-patches [
@@ -762,8 +808,21 @@ to update-counters ;in visual interface
 ;  ]
 end
 
+to-report no-trade-patch
+  report patch 6 -17
+end
+to-report trade-patch
+  report patch 19 -17
+end
+
+to-report utility-emotion ;trader reporter
+  ;@figure out cutoffs - does it even make sense?
+  if my-utility < 25 [report "sad"]
+  if my-utility >= 25 and my-utility < 75 [report "neutral"]
+  if my-utility >= 75 [report "happy"]
+end
+
 to attach-banner [x]  ;turtle procedure. for label positioning
-  show in-link-neighbors
   ask in-link-neighbors [die] ;recreates them every time
 
   hatch-banners 1 [
@@ -774,10 +833,10 @@ to attach-banner [x]  ;turtle procedure. for label positioning
       tie
       hide-link
     ]
-    ;determine label position based on label length
+    ;determine label position (plates & money) based on label length
     let l length (word x) ;label length
-    let angle item l ["zero" 95 93 93 93 93] ;for label length 1, 2, 3, 4 ...
-    let dist item l ["zero" 4 5.5 6.5 7.5 8.5] ;for label length 1, 2, 3, 4 ...
+    let angle item l ["zero" 95 93 92 93 93 93] ;for label length 1, 2, 3, 4, 5, 6 ...
+    let dist item l ["zero" 4 5.5 6.5 7.5 8.5 9.5] ;for label length 1, 2, 3, 4, 5, 6 ...
     ;95 4, 93 5.5, 93 6.5, 93 7.5, 93 8.5
 
     ;let angle banner-angle
@@ -844,7 +903,7 @@ to-report dist-side ;for turtle placement
   report 15
 end
 to-report dist-bottom ;for turtle placement
-  report 15
+  report 14
 end
 
 to-report my-color [kind] ;from make-turtles. input = trading style
@@ -858,9 +917,9 @@ to-report frequency [an-item a-list]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-320
+370
 10
-808
+858
 499
 -1
 -1
@@ -887,17 +946,17 @@ ticks
 CHOOSER
 10
 15
-295
+330
 60
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-3
+2
 
 SLIDER
 10
 65
-150
+165
 98
 alpha-consumers
 alpha-consumers
@@ -912,22 +971,22 @@ HORIZONTAL
 SLIDER
 10
 135
-150
+165
 168
 tableware-consumers
 tableware-consumers
 0
 100
-58.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-155
+175
 65
-295
+330
 98
 alpha-merchants
 alpha-merchants
@@ -940,9 +999,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-155
+175
 135
-295
+330
 168
 tableware-merchants
 tableware-merchants
@@ -957,7 +1016,7 @@ HORIZONTAL
 BUTTON
 10
 175
-150
+165
 208
 NIL
 setup
@@ -972,9 +1031,9 @@ NIL
 1
 
 BUTTON
-155
 175
-295
+175
+330
 208
 NIL
 go
@@ -989,15 +1048,15 @@ NIL
 1
 
 SLIDER
-155
+175
 100
-295
+330
 133
 money-merchants
 money-merchants
 1
 100
-86.0
+68.0
 1
 1
 NIL
@@ -1006,13 +1065,13 @@ HORIZONTAL
 SLIDER
 10
 100
-150
+165
 133
 money-consumers
 money-consumers
 1
 100
-1.0
+100.0
 1
 1
 NIL
@@ -1053,59 +1112,48 @@ false
 PENS
 
 OUTPUT
-320
+370
 500
-810
+860
 620
 13
 
-SLIDER
-20
-315
-245
-348
-banner-angle
-banner-angle
-70
-120
-95.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-25
-355
-275
-388
-banner-distance
-banner-distance
-0
-20
-4.0
-.5
-1
-NIL
-HORIZONTAL
-
-MONITOR
-145
-475
-222
-520
-NIL
-count props
-17
-1
+TEXTBOX
+75
+225
+270
+251
+@: money counter is precision 2, so some nuance is lost
 11
+0.0
+1
 
 TEXTBOX
-90
-245
-240
-271
-@: money counter is precision 2, so some nuance is lost
+40
+270
+275
+336
+@OBS: utility blev ikke gemt i utility, har ændret det til at de bruger 'my-utility' reporter nu\n... MEN det ændrer alt, før sammenlignede de bare temp-utility med 0 (som utility altid var sat til, i hvert fald i random I think
+11
+0.0
+1
+
+TEXTBOX
+40
+390
+235
+431
+VIGTIGT : HVAD ER SCALE FOR UTILITY?! (ift emotion-smileys...)\n(sættes i to-report utility-emotion)
+11
+0.0
+1
+
+TEXTBOX
+55
+480
+290
+565
+FIX BUG: operation produced a non number (i check-utility-and-trade) - ift. \"^\"\nkun under nogle indstillinger...
 11
 0.0
 1
@@ -1493,6 +1541,11 @@ Polygon -10899396 true false 105 90 75 75 55 75 40 89 31 108 39 124 60 105 75 10
 Polygon -10899396 true false 132 85 134 64 107 51 108 17 150 2 192 18 192 52 169 65 172 87
 Polygon -10899396 true false 85 204 60 233 54 254 72 266 85 252 107 210
 Polygon -7500403 true true 119 75 179 75 209 101 224 135 220 225 175 261 128 261 81 224 74 135 88 99
+
+u-shape
+false
+0
+Polygon -7500403 true true 150 195 105 195 90 150 90 45 120 45 120 150 120 165 150 165 180 165 180 150 180 45 210 45 210 150 195 195
 
 wheel
 false
