@@ -261,6 +261,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
   ask initial-bidder [
 
+
     ;;;; round 1:
     set price mrs
     decide-quantity
@@ -828,8 +829,8 @@ SLIDER
 alpha-consumers
 alpha-consumers
 0.5
-1
-0.5
+0.9
+0.9
 0.1
 1
 NIL
@@ -916,9 +917,9 @@ NIL
 
 SLIDER
 80
-175
+370
 252
-208
+403
 money-merchants
 money-merchants
 1
