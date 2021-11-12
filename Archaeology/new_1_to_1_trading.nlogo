@@ -6,7 +6,7 @@ globals [
   negotiation-price-list
   price-offered-by
 
-  active-trading-style ;used for active-turtles in compare-all
+  active-trading-style ;used for active-traders in compare-all
 
   price
 
@@ -25,7 +25,10 @@ globals [
 
 breed [merchants merchant]
 breed [consumers consumer]
+
+breed [buildings building] ;simply so akropolis isn't a prop :P
 breed [props prop] ;just for layout
+breed [banners banner] ;layout
 
 turtles-own [
   trading-style
@@ -40,14 +43,16 @@ turtles-own [
   temp-utility
 ]
 
+props-own [prop-type]
+
 
 to setup
   clear-all
   reset-ticks
-  layout
   make-turtles price-setting ;tager price setting som input
-  ask turtles [ set-partner ]
-  ask turtles [ update-mrs ]
+  layout ;make the background + props
+  ask traders [ set-partner ]
+  ask traders [ update-mrs ]
   create-price-lists
   initiate-price-plot
 end
@@ -56,6 +61,7 @@ end
 to go
   trade
   print-details
+  update-counters
   tick
 
 
@@ -131,7 +137,7 @@ to set-price-mar ;market clearing. from set-price, run in trade
   set price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
     ;n is price-temporary, i.e. each element of this price-list^^
 
-  ask turtles with[ trading-style = "market clearing" ] [
+  ask traders with[ trading-style = "market clearing" ] [
 
     let list-supply (map [n -> temporary-supply n] price-check-list)
     ;Save evert turtles supply list in a global / total list::
@@ -247,8 +253,8 @@ to set-price-ran ;random. from set-price, run in trade
   ;;;; the underlying assumption is that over time, the prices will even out that both agents get a fair price
   ;;; furthermore, the price will play a role in how many items are traded
 
-  let minMRS min [ mrs ] of active-turtles ;defining lowest MRS
-   let maxMRS max [ mrs ] of active-turtles ;and highest MRS
+  let minMRS min [ mrs ] of active-traders ;defining lowest MRS
+   let maxMRS max [ mrs ] of active-traders ;and highest MRS
     set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
 end
@@ -256,7 +262,7 @@ end
 
 to set-price-neg ;negotiation. from set-price, run in trade
 
-  let initial-bidder one-of active-turtles ;randomly decides who opens the negotiation
+  let initial-bidder one-of active-traders ;randomly decides who opens the negotiation
   let second-bidder [partner] of initial-bidder
 
 
@@ -399,7 +405,7 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
 
   ; step 1: calculating the change in utility for each agent given the planned trade
   ; @lisa: there is some problematic calculations going on with the ^s. (???)
-  ask active-turtles [ ;merchant and consumer both do this
+  ask active-traders [ ;merchant and consumer both do this
     set temp-utility 0 ;reset
     if deal-tableware > 0 [
       let temp-tableware ( tableware + deal-tableware ) ;tableware is turtles-own
@@ -409,7 +415,7 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
   ]
 
   ; step 2: if the utility is not increased for one of the agents, the trade is cancelled.
-  ifelse any? active-turtles with [temp-utility < utility] [
+  ifelse any? active-traders with [temp-utility < utility] [
     set deal-tableware 0
   ]
   [
@@ -460,8 +466,12 @@ to print-details
     ]
 end
 
-to-report traders ;doesn't include acropolis ;)
+to-report traders ;doesn't include akropolis ;)
   report (turtle-set merchants consumers)
+end
+
+to-report trader-patches ;for easier relative layouting of props
+  report patches with [any? consumers-here or any? merchants-here]
 end
 
 
@@ -489,21 +499,21 @@ to update-price-list ;run in check-utility-and-trade
 end
 
 
-to-report active-turtles ;the ones currently trading
+to-report active-traders ;the ones currently trading
   ifelse price-setting = "compare all price settings" [
-    report turtles with [trading-style = active-trading-style]
+    report traders with [trading-style = active-trading-style]
   ]
   [
-    report turtles
+    report traders
   ]
 end
 
 to-report active-merchant
-    report one-of active-turtles with [breed = merchants]
+    report one-of active-traders with [breed = merchants]
 end
 
 to-report active-consumer
-    report one-of active-turtles with [breed = consumers]
+    report one-of active-traders with [breed = consumers]
 end
 
 
@@ -710,8 +720,8 @@ to layout ;run in setup ;sets up the world/background
       if pxcor = 9 and pycor = (min-pycor + 2) [set plabel price-setting set plabel-color black]
 
     ]
-    ;acropolis
-    create-props 1 [
+    ;akropolis
+    create-buildings 1 [
      set shape "building institution" set size 18 set color white setxy 0 -7
     ]
 
@@ -720,8 +730,69 @@ to layout ;run in setup ;sets up the world/background
 
   ]
 
+  update-counters
 
+end
 
+to update-counters ;in visual interface
+  ask banners [set label ""]
+  ask props [ask in-link-neighbors [set label ""]]
+
+  ask trader-patches [
+
+    ;plate counter
+    sprout-props 1 [
+      set shape "plate-round" set size 7 set heading 270 fd 12 set heading 180 fd 6 set heading 0 fd 8 set prop-type "plate"
+      attach-banner precision ([tableware] of min-one-of traders [distance myself]) 2 ;@added precision
+    ]
+    ;money counter
+    sprout-props 1 [
+      set shape "coins" set size 9 set heading 270 fd 12 set heading 180 fd 6 set heading 0 fd 2 set prop-type "coins"
+      attach-banner precision ([money] of min-one-of traders [distance myself]) 2 ;@added precision
+    ]
+  ]
+
+  ;  ;stack of plates
+;  ask trader-patches [
+;    foreach (range 1 5) [ ;1 2 3 4
+;      x ->
+;      let up-dist position x (range 1 5)
+;      sprout-props 1 [set shape "plate-standing" set size 18 set heading 270 fd 8 set heading 180 fd 6 set heading 0 fd up-dist] ;standing plate
+;    ]
+;  ]
+end
+
+to attach-banner [x]  ;turtle procedure. for label positioning
+  show in-link-neighbors
+  ask in-link-neighbors [die] ;recreates them every time
+
+  hatch-banners 1 [
+    set size 0
+    set label-color black
+    set label x
+    create-link-from myself [
+      tie
+      hide-link
+    ]
+    ;determine label position based on label length
+    let l length (word x) ;label length
+    let angle item l ["zero" 95 93 93 93 93] ;for label length 1, 2, 3, 4 ...
+    let dist item l ["zero" 4 5.5 6.5 7.5 8.5] ;for label length 1, 2, 3, 4 ...
+    ;95 4, 93 5.5, 93 6.5, 93 7.5, 93 8.5
+
+    ;let angle banner-angle
+    ;let dist banner-distance
+    reposition angle dist
+  ]
+end
+
+to reposition [angle dist]  ; banner procedure
+  move-to one-of in-link-neighbors
+  set heading angle
+  fd dist
+
+  ;set heading banner-angle
+  ;fd banner-distance
 end
 
 
@@ -795,7 +866,7 @@ GRAPHICS-WINDOW
 -1
 5.93
 1
-16
+15
 1
 1
 1
@@ -821,12 +892,12 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-1
+3
 
 SLIDER
-155
+10
 65
-295
+150
 98
 alpha-consumers
 alpha-consumers
@@ -839,24 +910,24 @@ NIL
 HORIZONTAL
 
 SLIDER
-155
+10
 135
-295
+150
 168
 tableware-consumers
 tableware-consumers
 0
 100
-50.0
+58.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-10
+155
 65
-150
+295
 98
 alpha-merchants
 alpha-merchants
@@ -869,15 +940,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-10
+155
 135
-150
+295
 168
 tableware-merchants
 tableware-merchants
 0
 100
-50.0
+100.0
 1
 1
 NIL
@@ -918,40 +989,40 @@ NIL
 1
 
 SLIDER
-10
+155
 100
-150
+295
 133
 money-merchants
 money-merchants
 1
 100
-50.0
+86.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-155
+10
 100
-295
+150
 133
 money-consumers
 money-consumers
 1
 100
-50.0
+1.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-870
-115
-1180
+900
 290
+1285
+495
 Demand and Supply Plot
 NIL
 NIL
@@ -965,10 +1036,10 @@ false
 PENS
 
 PLOT
-870
-295
-1180
-460
+900
+80
+1285
+285
 Price plot
 NIL
 NIL
@@ -987,6 +1058,57 @@ OUTPUT
 810
 620
 13
+
+SLIDER
+20
+315
+245
+348
+banner-angle
+banner-angle
+70
+120
+95.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+25
+355
+275
+388
+banner-distance
+banner-distance
+0
+20
+4.0
+.5
+1
+NIL
+HORIZONTAL
+
+MONITOR
+145
+475
+222
+520
+NIL
+count props
+17
+1
+11
+
+TEXTBOX
+90
+245
+240
+271
+@: money counter is precision 2, so some nuance is lost
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1124,6 +1246,16 @@ false
 Circle -7500403 true true 0 0 300
 Circle -16777216 true false 30 30 240
 
+coins
+false
+6
+Circle -1184463 true false 99 114 42
+Circle -1184463 true false 144 88 42
+Circle -1184463 true false 144 144 42
+Circle -16777216 false false 99 114 42
+Circle -16777216 false false 144 88 42
+Circle -16777216 false false 144 144 42
+
 cow
 false
 0
@@ -1248,6 +1380,19 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
+
+plate-round
+true
+1
+Circle -1 true false 75 75 150
+Circle -7500403 false false 75 75 150
+Circle -7500403 false false 85 85 128
+
+plate-standing
+true
+1
+Rectangle -1 true false 111 135 180 150
+Rectangle -7500403 false false 110 135 180 150
 
 sheep
 false
