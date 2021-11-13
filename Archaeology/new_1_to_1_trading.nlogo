@@ -66,6 +66,7 @@ to go
   trade
   print-details
   update-visuals
+  update-price-plot
   tick
 
 
@@ -122,12 +123,12 @@ to-report temporary-optimal [n] ;Optimal holding of tableware
   report round ( temporary-budget n * alpha / n ) ;budget [ foreslået pris ] * alpha / foreslået pris
 end
 
-to-report temporary-demand [n]
+to-report temporary-demand [n] ;how many plates am I missing to have my optimal nr of plates
   let demandd (temporary-optimal n - tableware)
   report ifelse-value demandd > 0 [demandd] [0]
 end
 
-to-report temporary-supply [n]
+to-report temporary-supply [n] ;how many excess plates have I, more than my optimal holding (at this price)
   let supplyy (tableware - temporary-optimal n)
   report ifelse-value supplyy > 0 [supplyy] [0]
 end
@@ -144,50 +145,48 @@ to set-price-mar ;market clearing. from set-price, run in trade
   ask traders with [ trading-style = "market clearing" ] [
 
     let list-supply (map [n -> temporary-supply n] price-check-list)
-    ;Save evert turtles supply list in a global / total list::
+    ;Save every trader's supply list in a global / total list::
         ifelse length total-supply-list > 0 [
-      set total-supply-list (map + list-supply total-supply-list)
+      set total-supply-list (map + list-supply total-supply-list) ;adding the two supply lists together - so it's the TOTAL supply
     ]
     [
-      set total-supply-list list-supply ;First turtle cannot map as there is nothing in the tota-supply-list initially
+      set total-supply-list list-supply ;First turtle cannot map as there is nothing in the total-supply-list initially
     ]
 
-
-
     let list-demand (map [n -> temporary-demand n] price-check-list)
-    ;Save evert turtles demand list in a global / total list::
+    ;Save every trader's demand list in a global / total list::
         ifelse length total-demand-list > 0 [
-      set total-demand-list (map + list-demand total-demand-list)
+      set total-demand-list (map + list-demand total-demand-list) ;adding the two demand lists together - so it's the TOTAL demand
     ]
     [
       set total-demand-list list-demand ;First turtle cannot map as there is nothing in the tota-supply-list initially
     ]
 
-  ;  show list-supply
-  ;  show list-demand
-
     ;lav ny liste med FORSKELLEN på de to:
-    let list-forskel (map + list-supply list-demand)
+    ;list-supply and list-demand: for one trader, one of them will always be 0 at every price! - while the other has an actual nr! (EITHER you have too many or too few!)
+
+    ;show (word "my sup: " list-supply) show (word "my dem: " list-demand)
+
+    let list-forskel (map + list-supply list-demand) ;adding supply and demand FOR THIS TRADER ONLY (so just results in whichever one of the lists has the nr)
 
     ifelse length global-difference-list > 0 [
-      set global-difference-list (map - global-difference-list list-forskel) ;Minus, as we want to find where the difference is the lowest. HOWEVER, when there are more than 2 agents we need another solution @@@@@
+      set global-difference-list (map - global-difference-list list-forskel) ;second trader runs this
+      ;Minus, as we want to find where the difference is the lowest. HOWEVER, if there were more than 2 agents we'd need another solution@
     ]
     [
       set global-difference-list list-forskel ;den første turtle til at gøre det (kan ikke mappe på tom liste)
     ]
-  ] ;END of ask turtles
+  ] ;END of ask traders (EACH trader runs all of the above!)
 
   set global-difference-list (map abs global-difference-list)
- ; show global-difference-list
+  ;print (word "glob dif list: " global-difference-list)
 
   ;når vi har den forskels-liste for hver turtle, skal vi finde der, hvor summen af 'kolonnen' (samme liste-index) er mindst - altså den overall bedste pris
-
   let min-forskel min global-difference-list
   let nr-occurences frequency min-forskel global-difference-list ;bruger frequency funktion/reporter
 
   let first-index position min-forskel global-difference-list ;index for første appearance af min i listen
   let last-index first-index + nr-occurences
-
 
   let min-differences sublist price-check-list first-index last-index
  ; show min-differences
@@ -202,32 +201,36 @@ end
 
 to plot-market-clearing
   ;brug global demand og supply lister
-
   set-current-plot "Demand and Supply Plot"
   clear-plot
-  create-temporary-plot-pen "supply"
-  set-current-plot-pen "supply"
-  set-plot-pen-color 15
-  set-plot-x-range 0.1 20
+  set-plot-y-range 0.1 20 ;price
   let upper-bound ( money-merchants + money-consumers + tableware-merchants + tableware-consumers ) / 2
-  set-plot-y-range 0 upper-bound
+  set-plot-x-range 0 upper-bound
+  ;set-plot-x-range 0 200 ;tableware
   ;plotxy price-check-list total-supply-list
+  show total-supply-list
+  show total-demand-list
 
   ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
 
-  (foreach price-check-list total-supply-list
+  ;PLOT SUPPLY:
+  create-temporary-plot-pen "supply"
+  set-current-plot-pen "supply"
+  set-plot-pen-color 15
+
+  (foreach total-supply-list price-check-list ;@switched it around, now price on y axis
     [
       [x y] ->
       plotxy x y
 
     ])
 
+  ;PLOT DEMAND:
   create-temporary-plot-pen "demand"
   set-current-plot-pen "demand"
   set-plot-pen-color 105
-   set-plot-x-range 0.1 20
 
-  (foreach price-check-list total-demand-list
+  (foreach total-demand-list price-check-list ;@switched it around, now price on y axis
     [
       [x y] ->
       plotxy x y
@@ -269,7 +272,6 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
 
   ask initial-bidder [
-
 
     ;;;; round 1:
     set price mrs
@@ -340,8 +342,6 @@ to set-price-neg ;negotiation. from set-price, run in trade
                 stop ]
 
 
-
-
               [
                 ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
                 set price mrs + mrs-price-difference * 0.5
@@ -363,8 +363,6 @@ to set-price-neg ;negotiation. from set-price, run in trade
       ]
     ]
   ]
-
-
 end
 
 
@@ -401,6 +399,7 @@ to decide-quantity
   ;the deal-tableware is set to the lowest offer (amount of tableware):
   print (word "offer-tableware of C: " ([offer-tableware] of active-consumer) )
   print ( word "offer-tableware of M: " ([offer-tableware] of active-merchant) )
+
   ;show list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer)
   set deal-tableware min list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer) ;the min of the two offers
   if deal-tableware <= 0 [ set deal-tableware max list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer) ] ;if <0, choose the other offer
@@ -582,11 +581,10 @@ end
 
 to initiate-price-plot ;run in setup
   set-current-plot "Price plot"
-  set-plot-y-range 0 3
+  ;set-plot-y-range 0 3
 
-  ;create the plot pens to use:
+  ;CREATE PLOT PENS
   ifelse price-setting = "compare all price settings" [
-
     ;@plot latest or mean? (for quantity)
     create-temporary-plot-pen "Market-clearing success"
     set-plot-pen-color red
@@ -612,18 +610,19 @@ to initiate-price-plot ;run in setup
     set-plot-pen-color violet
     set-plot-pen-mode 2
   ]
-  [
+  [ ;if not compare all:
     create-temporary-plot-pen "Price trade successful"
     set-plot-pen-color green
-    set-plot-pen-mode 2
+    ;set-plot-pen-mode 2 ;point mode
 
     ;@FIGURE OUT HOW TO BEST VISUALISE - LINES, DOTS, ETC !!! (change dot size???)
 
     create-temporary-plot-pen "Price trade unsuccessful"
     set-plot-pen-color red
-    set-plot-pen-mode 2 ;point mode
+    ;set-plot-pen-mode 2 ;point mode
 
     create-temporary-plot-pen "Mean price successful trades" ;kvantitet?
+    ;@could make rolling window?
     set-plot-pen-color blue
   ]
 end
@@ -647,11 +646,11 @@ to update-price-plot
 
     if length equilibrium-price-list > 0 [
       set-current-plot-pen "Equilibrium success"
-      ;set-plot-pen-mode 1
+      set-plot-pen-mode 1
       plotxy ticks (mean equilibrium-price-list)
 
       set-current-plot-pen "Equilibrium success2"
-      ;set-plot-pen-mode 2
+      set-plot-pen-mode 2
       plotxy ticks ( first equilibrium-price-list )
     ]
 
@@ -752,7 +751,7 @@ to layout ;run in setup ;sets up the world/background
       if pycor > (max-pycor - 10) [set pcolor blue + 1]
 
       ;condition tag
-      if pxcor = 9 and pycor = (min-pycor + 2) [set plabel price-setting set plabel-color black]
+      if pxcor = 7 and pycor = (min-pycor + 2) [set plabel price-setting set plabel-color black]
 
     ]
     ;akropolis
@@ -821,16 +820,6 @@ to update-visuals ;in visual interface
         set plabel "NO TRADE!"
     ]
   ]
-
-
-  ;  ;stack of plates
-;  ask trader-patches [
-;    foreach (range 1 5) [ ;1 2 3 4
-;      x ->
-;      let up-dist position x (range 1 5)
-;      sprout-props 1 [set shape "plate-standing" set size 18 set heading 270 fd 8 set heading 180 fd 6 set heading 0 fd up-dist] ;standing plate
-;    ]
-;  ]
 end
 
 to-report no-trade-patch
@@ -971,17 +960,17 @@ ticks
 CHOOSER
 10
 15
-330
+350
 60
 price-setting
 price-setting
-"market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-0
+"market clearing" "random" "negotiation" "compare all price settings"
+2
 
 SLIDER
 10
 65
-165
+175
 98
 alpha-consumers
 alpha-consumers
@@ -996,22 +985,22 @@ HORIZONTAL
 SLIDER
 10
 135
-165
+175
 168
 tableware-consumers
 tableware-consumers
 0
 100
-14.0
+50.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-175
+185
 65
-330
+350
 98
 alpha-merchants
 alpha-merchants
@@ -1024,15 +1013,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-175
+185
 135
-330
+350
 168
 tableware-merchants
 tableware-merchants
 0
 100
-10.0
+50.0
 1
 1
 NIL
@@ -1041,7 +1030,7 @@ HORIZONTAL
 BUTTON
 10
 175
-165
+175
 208
 NIL
 setup
@@ -1056,9 +1045,9 @@ NIL
 1
 
 BUTTON
+185
 175
-175
-330
+350
 208
 NIL
 go
@@ -1073,15 +1062,15 @@ NIL
 1
 
 SLIDER
-175
+185
 100
-330
+350
 133
 money-merchants
 money-merchants
 1
 100
-100.0
+50.0
 1
 1
 NIL
@@ -1090,7 +1079,7 @@ HORIZONTAL
 SLIDER
 10
 100
-165
+175
 133
 money-consumers
 money-consumers
@@ -1104,35 +1093,35 @@ HORIZONTAL
 
 PLOT
 900
-290
-1285
-495
+325
+1340
+550
 Demand and Supply Plot
-NIL
-NIL
+Tableware
+Price
 0.0
-10.0
 0.0
-10.0
-true
+0.0
+0.0
 false
+true
 "" ""
 PENS
 
 PLOT
 900
-80
-1285
-285
+65
+1430
+305
 Price plot
-NIL
-NIL
+Time
+Price per item
 0.0
 10.0
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
 
