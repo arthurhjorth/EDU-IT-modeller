@@ -37,7 +37,7 @@ turtles-own [
   beta ;preference for money
   money
   tableware
-  mrs ;marginal rate of substitution ;hvor mange penge er EN tallerken værd (neutralt/ligegyldigt punkt)
+  ;mrs ;marginal rate of substitution ;hvor mange penge er EN tallerken værd for mig? (neutralt/ligegyldigt punkt). Baseret på alpha, beta og current money og tableware.
   partner
   utility ;current utility
   offer-tableware ;used in decide-quantity
@@ -53,7 +53,7 @@ to setup
   make-turtles price-setting ;tager price setting som input
   layout ;make the background + props
   ask traders [ set-partner ]
-  ask traders [ update-mrs ]
+  ;ask traders [ update-mrs ]
   create-price-lists
   initiate-price-plot
 
@@ -258,8 +258,8 @@ to set-price-ran ;random. from set-price, run in trade
   ;;;; the underlying assumption is that over time, the prices will even out that both agents get a fair price
   ;;; furthermore, the price will play a role in how many items are traded
 
-  let minMRS min [ mrs ] of active-traders ;defining lowest MRS
-   let maxMRS max [ mrs ] of active-traders ;and highest MRS
+  let minMRS min [ my-mrs ] of active-traders ;defining lowest MRS
+   let maxMRS max [ my-mrs ] of active-traders ;and highest MRS
     set price  minMRS + ( random ( 100 * ( maxMRS - minMRS ) ) / 100 ) ; because random produces integers
 
 end
@@ -274,7 +274,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
   ask initial-bidder [
 
     ;;;; round 1:
-    set price mrs
+    set price my-mrs
     if price < 0 [print "oh no, price is under 0!"]
     decide-quantity
     ;possible to make an ifelse about deal-tableware here already to save computing
@@ -289,7 +289,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
       ;;;; else, start round 2:
       ;if the first deal-tableware is not accepted, partner suggests its mrs instead and the trading evaluation runs again
 
-      set price [mrs] of partner
+      set price [my-mrs] of partner
       decide-quantity
       check-utility-and-trade
       ifelse deal-tableware > 0 [
@@ -301,8 +301,8 @@ to set-price-neg ;negotiation. from set-price, run in trade
       [
         ;;;; else, start round 3:
         ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
-        let mrs-price-difference ( mrs - [mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
-        set price mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
+        let mrs-price-difference ( my-mrs - [my-mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
+        set price my-mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
         decide-quantity
         check-utility-and-trade
         ifelse deal-tableware > 0 [
@@ -313,7 +313,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
         [
           ;;;; else, start round 4:
           ; agent2 does the same
-          set price ( [mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
+          set price ( [my-mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
           decide-quantity
           check-utility-and-trade
           ifelse deal-tableware > 0 [
@@ -323,7 +323,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
           [
             ;;; round 5, agent 1 with 40%
-            set price mrs + (mrs-price-difference * 0.4 )
+            set price my-mrs + (mrs-price-difference * 0.4 )
             decide-quantity
             check-utility-and-trade
             ifelse deal-tableware > 0 [
@@ -333,7 +333,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
             [
               ; round 6, agent2 does the same
-              set price ( [mrs] of partner + mrs-price-difference * 0.4 )
+              set price ( [my-mrs] of partner + mrs-price-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
               ifelse deal-tableware > 0 [
@@ -344,7 +344,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
               [
                 ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
-                set price mrs + mrs-price-difference * 0.5
+                set price my-mrs + mrs-price-difference * 0.5
                 decide-quantity
                 check-utility-and-trade
                 if deal-tableware > 0
@@ -551,14 +551,14 @@ to-report active-consumer
 end
 
 
-to update-mrs ;turtle procedure. Run in setup and go. ;only used for equilibrium?
-  ifelse tableware = 0 [
-    set mrs "no tableware left"
-  ]
-  [
-    set mrs precision ( (alpha * money) / (beta * tableware) ) 3
-  ]
-end
+;to update-mrs ;MOVED TO REPORTER INSTEAD!
+;  ifelse tableware = 0 [
+;    set mrs "no tableware left"
+;  ]
+;  [
+;    set mrs precision ( (alpha * money) / (beta * tableware) ) 3
+;  ]
+;end
 
 
 
@@ -721,13 +721,22 @@ end
 
 
 
-;---TURTLE REPORTERS
+;---TRADER REPORTERS
 
 to-report my-utility ;turtle reporter ;current utility
   ; Cobb-Douglas utility function ;;;copied from red cross parcels model
   ;As i understand the utility hereby is a measure of the total quantity of tableware and money, modified by the alpha and betas. Meaning that the weight of money+tableware is modified by the alphas + betas.
   ;in short, an individual utility function dependant on alphas and betas.
   report precision ( ( tableware ^ alpha ) * ( money ^ beta ) ) 2
+end
+
+to-report my-mrs ;trader reporter
+  ifelse tableware = 0 [ ;can not divide by 0!
+    report "no tableware left"
+  ]
+  [
+    report precision ( (alpha * money) / (beta * tableware) ) 2
+  ]
 end
 
 
@@ -803,6 +812,8 @@ to update-visuals ;in visual interface
       set prop-type "smiley"
       set heading 0 fd 4.25
     ]
+
+    ;MRS
 
 
   ]
