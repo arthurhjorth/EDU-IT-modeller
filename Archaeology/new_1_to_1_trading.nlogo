@@ -19,9 +19,11 @@ globals [
   suggested-quantity
 
   succesful-trades
-  success-this-tick?
+  successful-trade?
   unsuccessful-price
   recorded-time
+
+  bid-list ;for negotiation
 ]
 
 breed [merchants merchant]
@@ -89,7 +91,6 @@ to trade ;THE function run in go!
   if price-setting = "negotiation" [
     set active-trading-style price-setting
     set-price
-    ;print-trade-details
   ]
 
   if price-setting = "compare all price settings" [
@@ -204,7 +205,7 @@ to plot-market-clearing
   set-current-plot "Demand and Supply Plot"
   clear-plot
   set-plot-y-range 0.1 20 ;price
-  let upper-bound ( money-merchants + money-consumers + tableware-merchants + tableware-consumers ) / 2
+  let upper-bound ( money-merchants + money-consumers + pots-merchants + pots-consumers ) / 2
   set-plot-x-range 0 upper-bound
   ;set-plot-x-range 0 200 ;tableware
   ;plotxy price-check-list total-supply-list
@@ -265,17 +266,64 @@ to set-price-ran ;random. from set-price, run in trade
 end
 
 
-to set-price-neg ;negotiation. from set-price, run in trade
+to set-price-neg ;trying to be smarter
+
+  let mrs-difference [my-mrs] of active-consumer - [my-mrs] of active-merchant ;consumer mrs is always highest
+  let mer-mrs [my-mrs] of active-merchant
+  let con-mrs [my-mrs] of active-consumer
+
+  let bid-list-merchant (list
+    mer-mrs
+    con-mrs
+    precision (mer-mrs + 0.2 * mrs-difference) 2
+    precision (con-mrs - 0.2 * mrs-difference) 2
+    precision (mer-mrs + 0.4 * mrs-difference) 2
+    precision (con-mrs - 0.4 * mrs-difference) 2
+    precision (con-mrs - 0.5 * mrs-difference) 2
+  )
+
+  let bid-list-consumer (list
+    con-mrs
+    mer-mrs
+    precision (con-mrs - 0.2 * mrs-difference) 2
+    precision (mer-mrs + 0.2 * mrs-difference) 2
+    precision (con-mrs - 0.4 * mrs-difference) 2
+    precision (mer-mrs + 0.4 * mrs-difference) 2
+    precision (con-mrs - 0.5 * mrs-difference) 2
+  )
+
+  set bid-list one-of list bid-list-consumer bid-list-merchant ;random who starts the bidding
+  print bid-list
+  set successful-trade? false ;reset before loop di doop
+
+  foreach bid-list [
+    bid ->
+    if not successful-trade? [
+      set price bid
+      decide-quantity
+      check-utility-and-trade ;this is where success-this-tick? is set
+
+      print-details ;@why print twice??? :O
+    ]
+  ]
+
+
+
+
+
+end
+
+
+to set-price-neg-old ;negotiation. from set-price, run in trade
 
   let initial-bidder one-of active-traders ;randomly decides who opens the negotiation
   let second-bidder [partner] of initial-bidder
 
-
   ask initial-bidder [
 
     ;;;; round 1:
+    print "round 1"
     set price my-mrs
-    if price < 0 [print "oh no, price is under 0!"]
     decide-quantity
     ;possible to make an ifelse about deal-tableware here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal-tableware actually pulls through
@@ -288,7 +336,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
     [
       ;;;; else, start round 2:
       ;if the first deal-tableware is not accepted, partner suggests its mrs instead and the trading evaluation runs again
-
+      print "round 2"
       set price [my-mrs] of partner
       decide-quantity
       check-utility-and-trade
@@ -300,6 +348,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
       [
         ;;;; else, start round 3:
+        print "round 3"
         ;agent1 now gets to set the price again. This time she sets it according to the principle: My optimal price + 20% of the price difference between the intial two offers
         let mrs-price-difference ( my-mrs - [my-mrs] of partner ) ;might be a positive or negative number - that is great for these calculations
         set price my-mrs + (mrs-price-difference * 0.2 ) ;this could also be the bid of the other agent depending on whether the mrs-difference is a positive or negative. In practice shouldn't matter
@@ -312,6 +361,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
         [
           ;;;; else, start round 4:
+          print "round 4"
           ; agent2 does the same
           set price ( [my-mrs] of partner + mrs-price-difference * 0.2 ) ;oops, for the merchant subtraction is needed. How can we do this smart?
           decide-quantity
@@ -323,6 +373,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
           [
             ;;; round 5, agent 1 with 40%
+            print "round 5"
             set price my-mrs + (mrs-price-difference * 0.4 )
             decide-quantity
             check-utility-and-trade
@@ -333,6 +384,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
             [
               ; round 6, agent2 does the same
+              print "round 6"
               set price ( [my-mrs] of partner + mrs-price-difference * 0.4 )
               decide-quantity
               check-utility-and-trade
@@ -344,6 +396,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
               [
                 ;final round - agent1 offers to meet halfway. If this is a no-deal, there will be no trade.
+                print "round 7 (final)"
                 set price my-mrs + mrs-price-difference * 0.5
                 decide-quantity
                 check-utility-and-trade
@@ -475,12 +528,10 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
   ifelse deal-tableware = 0 [
     set unsuccessful-price price
     set recorded-time ( ticks )
-    if price-setting != "compare all price settings" [ set success-this-tick? false ]
-    ;@conversate-fail
+    set successful-trade? false
   ]
   [ ;if a deal:
-    if price-setting != "compare all price settings" [ set success-this-tick? true ]
-    ;@conversate-success
+    set successful-trade? true
   ]
 end
 
@@ -679,10 +730,7 @@ to update-price-plot
     ]
 
 
-    if (max price-list > 3) [ set-plot-y-range 0 (round (max price-list) + 0.5)] ;maybe udvid the y akse
-
-
-    ifelse success-this-tick? [
+    ifelse successful-trade? [
       set-current-plot-pen "Price trade successful"
       ;plot-pen-down
       plotxy ticks (first price-list) ;x and y, using custom function for big dots
@@ -700,7 +748,7 @@ to update-price-plot
 
   ;2 i 1 approach:
   ;    set-current-plot-pen "Price trade"
-;    ifelse success-this-tick? [
+;    ifelse successful-trade? [
 ;      set-plot-pen-color green
 ;      plotxy ticks (first price-list) ;plot latest successful price
 ;    ]
@@ -785,9 +833,9 @@ to update-visuals ;in visual interface
   ask props [die] ;easy fix
 
   ask trader-patches [
-    ;plate counter
+    ;pot counter
     sprout-props 1 [
-      set shape "plate-round" set size 7 set heading 270 fd 13 set heading 180 fd 6 set heading 0 fd 9.5 set prop-type "plate"
+      set shape "pot" set color 35.5 set size 7 set heading 270 fd 13 set heading 180 fd 6 set heading 0 fd 9.5 set prop-type "plate"
       attach-banner precision ([tableware] of min-one-of traders [distance myself]) 2 ;@added precision
     ]
     ;money counter
@@ -803,17 +851,25 @@ to update-visuals ;in visual interface
     ]
 
     ;utility smileys
-    sprout-props 1 [
-      let emotion [utility-emotion] of min-one-of traders [distance myself]
-      let index position emotion ["sad" "neutral" "happy"]
-      set shape item index ["face sad" "face neutral" "face happy"]
-      set color item index [red yellow green]
-      set size 4
-      set prop-type "smiley"
-      set heading 0 fd 4.25
-    ]
+;    sprout-props 1 [
+;      let emotion [utility-emotion] of min-one-of traders [distance myself]
+;      let index position emotion ["sad" "neutral" "happy"]
+;      set shape item index ["face sad" "face neutral" "face happy"]
+;      set color item index [red yellow green]
+;      set size 4
+;      set prop-type "smiley"
+;      set heading 0 fd 4.25
+;    ]
 
     ;MRS
+    sprout-props 1 [
+      set prop-type "mrs"
+      set size 0
+      set heading 3 fd 8
+      set label "MRS:"
+      set label-color black
+      attach-banner ([my-mrs] of min-one-of traders [distance myself])
+    ]
 
 
   ]
@@ -840,34 +896,54 @@ to-report trade-patch
   report patch 19 -17
 end
 
-to-report utility-emotion ;trader reporter
-  ;@figure out cutoffs - does it even make sense?
-  if my-utility < 25 [report "sad"]
-  if my-utility >= 25 and my-utility < 75 [report "neutral"]
-  if my-utility >= 75 [report "happy"]
-end
+;to-report utility-emotion ;trader reporter
+;  ;@figure out cutoffs - does it even make sense?
+;  if my-utility < 25 [report "sad"]
+;  if my-utility >= 25 and my-utility < 75 [report "neutral"]
+;  if my-utility >= 75 [report "happy"]
+;end
 
 to attach-banner [x]  ;turtle procedure. for label positioning
   ask in-link-neighbors [die] ;recreates them every time
 
-  hatch-banners 1 [
-    set size 0
-    set label-color black
-    set label x
-    create-link-from myself [
-      tie
-      hide-link
+  ifelse prop-type = "mrs" [
+    hatch-banners 1 [
+      set size 0
+      set label-color black
+      set label x
+      create-link-from myself [
+        tie
+        hide-link
+      ]
+      let l length (word x)
+      if l > 15 [set label "-" set l 1] ;if for example tableware=0 so mrs = "no tableware left"
+      let angle 90
+      let dist item l ["zero" 2 3 4 5.5 6.5 7.5 8.5 9.5] ;for label length 1, 2, 3, 4, 5, 6 ...
+      reposition angle dist
     ]
-    ;determine label position (plates & money) based on label length
-    let l length (word x) ;label length
-    let angle item l ["zero" 95 93 92 93 93 93] ;for label length 1, 2, 3, 4, 5, 6 ...
-    let dist item l ["zero" 4 5.5 6.5 7.5 8.5 9.5] ;for label length 1, 2, 3, 4, 5, 6 ...
-    ;95 4, 93 5.5, 93 6.5, 93 7.5, 93 8.5
-
-    ;let angle banner-angle
-    ;let dist banner-distance
-    reposition angle dist
   ]
+  [ ;if prop type isn't mrs (so one of the three icons instead):
+    hatch-banners 1 [
+      set size 0
+      set label-color black
+      set label x
+      create-link-from myself [
+        tie
+        hide-link
+      ]
+      ;determine label position (plates & money) based on label length
+      let l length (word x) ;label length
+      let angle item l ["zero" 95 93 92 93 93 93] ;for label length 1, 2, 3, 4, 5, 6 ...
+      let dist item l ["zero" 4 5.5 6.5 7.5 8.5 9.5] ;for label length 1, 2, 3, 4, 5, 6 ...
+                                                     ;95 4, 93 5.5, 93 6.5, 93 7.5, 93 8.5
+
+      ;let angle banner-angle
+      ;let dist banner-distance
+      reposition angle dist
+    ]
+  ]
+
+
 end
 
 to reposition [angle dist]  ; banner procedure
@@ -898,7 +974,7 @@ to make-turtles [kind] ;run in setup
       set alpha alpha-consumers
       set beta precision ( 1 - alpha-consumers ) 3
       set money money-consumers
-      set tableware tableware-consumers
+      set tableware pots-consumers
       set trading-style kind
     ]
 
@@ -906,14 +982,22 @@ to make-turtles [kind] ;run in setup
       set color (my-color kind) - 1.5
       setxy (max-pxcor - dist-side) (min-pycor + dist-bottom)
       set trading-style kind
-      set shape "tableware"
+      set shape "person-holding"
       set size 12
       set heading 90
 
       set alpha alpha-merchants
       set beta precision ( 1 - alpha-merchants ) 3
       set money money-merchants
-      set tableware tableware-merchants
+      set tableware pots-merchants
+
+      ;pot in merchant's hand (just layout):
+      hatch-buildings 1 [
+        set shape "pot" set size 8.5 set color 35.5
+        set heading 90 fd 4.5
+        set heading 0 fd 4.5
+      ]
+
     ]
 
 
@@ -942,9 +1026,9 @@ to-report frequency [an-item a-list]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-370
+395
 10
-858
+883
 499
 -1
 -1
@@ -971,7 +1055,7 @@ ticks
 CHOOSER
 10
 15
-350
+375
 60
 price-setting
 price-setting
@@ -981,13 +1065,13 @@ price-setting
 SLIDER
 10
 65
-175
+190
 98
 alpha-consumers
 alpha-consumers
 0.5
 0.9
-0.9
+0.5
 0.1
 1
 NIL
@@ -996,43 +1080,43 @@ HORIZONTAL
 SLIDER
 10
 135
-175
+190
 168
-tableware-consumers
-tableware-consumers
+pots-consumers
+pots-consumers
 0
 100
-50.0
+5.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-185
+195
 65
-350
+375
 98
 alpha-merchants
 alpha-merchants
 0.1
-0.5
-0.1
+0.4
+0.4
 0.1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-185
+195
 135
-350
+375
 168
-tableware-merchants
-tableware-merchants
+pots-merchants
+pots-merchants
 0
 100
-50.0
+95.0
 1
 1
 NIL
@@ -1041,7 +1125,7 @@ HORIZONTAL
 BUTTON
 10
 175
-175
+190
 208
 NIL
 setup
@@ -1056,9 +1140,9 @@ NIL
 1
 
 BUTTON
-185
+195
 175
-350
+375
 208
 NIL
 go
@@ -1073,15 +1157,15 @@ NIL
 1
 
 SLIDER
-185
+195
 100
-350
+375
 133
 money-merchants
 money-merchants
 1
 100
-50.0
+100.0
 1
 1
 NIL
@@ -1090,25 +1174,25 @@ HORIZONTAL
 SLIDER
 10
 100
-175
+190
 133
 money-consumers
 money-consumers
 1
 100
-50.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-900
+925
 325
-1340
+1365
 550
 Demand and Supply Plot
-Tableware
+Pots
 Price
 0.0
 0.0
@@ -1120,13 +1204,13 @@ true
 PENS
 
 PLOT
-900
+925
 65
-1430
+1455
 305
 Price plot
 Time
-Price per item
+Price per pot
 0.0
 10.0
 0.0
@@ -1137,21 +1221,22 @@ true
 PENS
 
 OUTPUT
-370
+395
 500
-860
+885
 620
 13
 
-TEXTBOX
-40
-390
-235
-431
-VIGTIGT : HVAD ER SCALE FOR UTILITY?! (ift emotion-smileys...)\n(sættes i to-report utility-emotion)
-11
-0.0
+MONITOR
+80
+230
+335
+275
+NIL
+bid-list
+17
 1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1204,6 +1289,27 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+bee 2
+true
+0
+Polygon -1184463 true false 195 150 105 150 90 165 90 225 105 270 135 300 165 300 195 270 210 225 210 165 195 150
+Rectangle -16777216 true false 90 165 212 185
+Polygon -16777216 true false 90 207 90 226 210 226 210 207
+Polygon -16777216 true false 103 266 198 266 203 246 96 246
+Polygon -6459832 true false 120 150 105 135 105 75 120 60 180 60 195 75 195 135 180 150
+Polygon -6459832 true false 150 15 120 30 120 60 180 60 180 30
+Circle -16777216 true false 105 30 30
+Circle -16777216 true false 165 30 30
+Polygon -7500403 true true 120 90 75 105 15 90 30 75 120 75
+Polygon -16777216 false false 120 75 30 75 15 90 75 105 120 90
+Polygon -7500403 true true 180 75 180 90 225 105 285 90 270 75
+Polygon -16777216 false false 180 75 270 75 285 90 225 105 180 90
+Polygon -7500403 true true 180 75 180 90 195 105 240 195 270 210 285 210 285 150 255 105
+Polygon -16777216 false false 180 75 255 105 285 150 285 210 270 210 240 195 195 105 180 90
+Polygon -7500403 true true 120 75 45 105 15 150 15 210 30 210 60 195 105 105 120 90
+Polygon -16777216 false false 120 75 45 105 15 150 15 210 30 210 60 195 105 105 120 90
+Polygon -16777216 true false 135 300 165 300 180 285 120 285
 
 box
 false
@@ -1412,6 +1518,15 @@ Rectangle -7500403 true true 127 79 172 94
 Polygon -7500403 true true 195 90 240 150 225 180 165 105
 Polygon -7500403 true true 105 90 60 150 75 180 135 105
 
+person-holding
+false
+14
+Circle -16777216 true true 110 5 80
+Polygon -16777216 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
+Rectangle -16777216 true true 127 79 172 94
+Polygon -16777216 true true 171 109 231 64 261 79 186 139
+Polygon -16777216 true true 105 90 60 150 75 180 135 105
+
 plant
 false
 0
@@ -1436,6 +1551,15 @@ true
 1
 Rectangle -1 true false 111 135 180 150
 Rectangle -7500403 false false 110 135 180 150
+
+pot
+true
+0
+Polygon -16777216 true false 180 75 120 75 150 105 180 75 165 75
+Polygon -7500403 true true 120 210 90 180 90 120 120 105 180 105 210 120 210 180 180 210
+Polygon -7500403 true true 150 90 120 75 120 135 180 135 180 75
+Polygon -7500403 true true 195 120 225 105 240 120 240 165 210 180 210 165 225 150 225 120 210 135 210 120
+Polygon -7500403 true true 105 120 75 105 60 120 60 165 90 180 90 165 75 150 75 120 90 135 90 120
 
 sheep
 false
