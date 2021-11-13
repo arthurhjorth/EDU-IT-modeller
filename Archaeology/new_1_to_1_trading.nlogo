@@ -40,7 +40,7 @@ turtles-own [
   mrs ;marginal rate of substitution ;hvor mange penge er EN tallerken værd (neutralt/ligegyldigt punkt)
   partner
   utility ;current utility
-  offer ;used in decide-quantity
+  offer-tableware ;used in decide-quantity
   temp-utility
 ]
 
@@ -141,7 +141,7 @@ to set-price-mar ;market clearing. from set-price, run in trade
   set price-check-list map [i -> precision i 2] (range 0.1 20.1 .1) ;listen ser sådan her ud: [0.1 0.2 0.3 0.4 ... 20]
     ;n is price-temporary, i.e. each element of this price-list^^
 
-  ask traders with[ trading-style = "market clearing" ] [
+  ask traders with [ trading-style = "market clearing" ] [
 
     let list-supply (map [n -> temporary-supply n] price-check-list)
     ;Save evert turtles supply list in a global / total list::
@@ -246,13 +246,11 @@ to set-price-equ ;equilibrium. from set-price, run in trade
     set price  precision (
       ( ( alpha * tableware ) + [ alpha * tableware ] of partner )  /
       ( ( beta * money ) + [ beta  * money ] of partner ) )    2
-
   ]
 
 end
 
 to set-price-ran ;random. from set-price, run in trade
-
   ;;;; we establish which trading rates each agent would like, and then pick a price at random in this interval
   ;;;; the underlying assumption is that over time, the prices will even out that both agents get a fair price
   ;;; furthermore, the price will play a role in how many items are traded
@@ -275,6 +273,7 @@ to set-price-neg ;negotiation. from set-price, run in trade
 
     ;;;; round 1:
     set price mrs
+    if price < 0 [print "oh no, price is under 0!"]
     decide-quantity
     ;possible to make an ifelse about deal-tableware here already to save computing
     check-utility-and-trade ;write out the outputs. No interesting until the deal-tableware actually pulls through
@@ -372,36 +371,52 @@ end
 to decide-quantity
   ;;;; given my a) current holding, b) the set price and c) my preferences (alpha and beta),
   ;;;; how many pieces of tableware do I wish to trade this round?
+  print (word "--- " price-setting " ---")
+  print (word "price: " price)
   ask active-consumer [ ;@PROBLEMS START HERE (at least for random)
     ifelse  price = 0 [
-      set offer 0 ;undgå ulovlig division. Vi kan assume at offer er 0 hvis pris er 0, idet agenter aldrig vil give væk gratis ("more is always better" -economy)
+      set offer-tableware 0 ;undgå ulovlig division. Vi kan assume at offer-tableware er 0 hvis pris er 0, idet agenter aldrig vil give væk gratis ("more is always better" -economy)
     ]
     ; if price not 0:
     [
       let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
       let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
-      set offer floor ( optimal - tableware )  ;offer to buy the number of tableware optimal with current holding subtracted (floor = integers rounded down)
-      if offer * price > money [set offer ( money / price ) ] ;ensures that the consumer never offers more tableware than they can afford - instead offers the max they can afford
+      set offer-tableware floor ( optimal - tableware )  ;offer-tableware to buy the number of tableware optimal with current holding subtracted (floor = integers rounded down)
+      if offer-tableware * price > money [set offer-tableware ( money / price ) ] ;ensures that the consumer never offers more tableware than they can afford - instead offers the max they can afford
     ]
   ]
 
   ask active-merchant [
     ifelse price = 0 [
-      set offer 0
+      set offer-tableware 0
     ]
     [
       let budget ( tableware * price ) + money
       let optimal ( budget * alpha / price )
-      set offer floor ( tableware - optimal ) ;floor = integer rounded down
-      if offer > tableware [ set offer tableware ] ; ensures that the merchant won't offer more than it currently has in its holding (can at most sell all the tableware they have)
+      set offer-tableware floor ( tableware - optimal ) ;floor = integer rounded down
+      if offer-tableware > tableware [ set offer-tableware tableware ] ; ensures that the merchant won't offer more than it currently has in its holding (can at most sell all the tableware they have)
     ]
   ]
 
   ;the deal-tableware is set to the lowest offer (amount of tableware):
-  set deal-tableware min list ([offer] of active-merchant) ([offer] of active-consumer)
+  print (word "offer-tableware of C: " ([offer-tableware] of active-consumer) )
+  print ( word "offer-tableware of M: " ([offer-tableware] of active-merchant) )
+  ;show list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer)
+  set deal-tableware min list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer) ;the min of the two offers
+  if deal-tableware <= 0 [ set deal-tableware max list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer) ] ;if <0, choose the other offer
+  if deal-tableware < 0 [set deal-tableware 0] ;if still 0, set it to 0
+
+  ;make sure consumer can afford it (if consumer's offer was negative, and merchant's was chosen - which consumer hasn't checked yet):
+  if deal-tableware * price > [money] of active-consumer [
+    set deal-tableware floor ( ([money] of active-consumer) / price )
+  ]
+  ;and likewise make sure merchant actually has the tableware! (if consumer's offer is chosen):
+  if deal-tableware > [tableware] of active-merchant [
+    set deal-tableware [tableware] of active-merchant
+  ]
+
 
   set suggested-quantity deal-tableware ;redundant, but just adding for printing (still saved if it doesn't go through in next step)
-
 
 end
 
@@ -413,12 +428,22 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
   ; @lisa: there is some problematic calculations going on with the ^s. (???)
   ask active-traders [ ;merchant and consumer both do this
     set temp-utility 0 ;reset
-    if deal-tableware > 0 [
-      let temp-tableware ( tableware + deal-tableware ) ;tableware is turtles-own
-      let temp-money ( money - deal-money ) ;same for money
-      set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility
+
+      ifelse breed = merchants [
+        let temp-tableware ( tableware - deal-tableware ) ;tableware is turtles-own
+        let temp-money ( money + deal-money ) ;same for money
+      print (word "M temp table: " temp-tableware )
+      print (word "M temp money: " temp-money )
+        set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility
+      ]
+      [ ;consumer:
+        let temp-tableware ( tableware + deal-tableware ) ;tableware is turtles-own
+        let temp-money ( money - deal-money ) ;same for money
+      print (word "C temp table: " temp-tableware )
+      print (word "C temp money: " temp-money )
+        set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility
+      ]
       ;show temp-utility
-    ]
   ]
 
   ; step 2: if the utility would be decreased for any of the agents, the trade is cancelled.
@@ -951,7 +976,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "equilibrium" "random" "negotiation" "compare all price settings"
-2
+0
 
 SLIDER
 10
@@ -977,7 +1002,7 @@ tableware-consumers
 tableware-consumers
 0
 100
-100.0
+14.0
 1
 1
 NIL
@@ -1007,7 +1032,7 @@ tableware-merchants
 tableware-merchants
 0
 100
-100.0
+10.0
 1
 1
 NIL
@@ -1056,7 +1081,7 @@ money-merchants
 money-merchants
 1
 100
-68.0
+100.0
 1
 1
 NIL
@@ -1071,7 +1096,7 @@ money-consumers
 money-consumers
 1
 100
-100.0
+50.0
 1
 1
 NIL
@@ -1119,41 +1144,11 @@ OUTPUT
 13
 
 TEXTBOX
-75
-225
-270
-251
-@: money counter is precision 2, so some nuance is lost
-11
-0.0
-1
-
-TEXTBOX
-40
-270
-275
-336
-@OBS: utility blev ikke gemt i utility, har ændret det til at de bruger 'my-utility' reporter nu\n... MEN det ændrer alt, før sammenlignede de bare temp-utility med 0 (som utility altid var sat til, i hvert fald i random I think
-11
-0.0
-1
-
-TEXTBOX
 40
 390
 235
 431
 VIGTIGT : HVAD ER SCALE FOR UTILITY?! (ift emotion-smileys...)\n(sættes i to-report utility-emotion)
-11
-0.0
-1
-
-TEXTBOX
-55
-480
-290
-565
-FIX BUG: operation produced a non number (i check-utility-and-trade) - ift. \"^\"\nkun under nogle indstillinger...
 11
 0.0
 1
