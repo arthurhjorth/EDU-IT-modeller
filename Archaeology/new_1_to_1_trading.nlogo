@@ -24,6 +24,8 @@ globals [
   recorded-time
 
   bid-list ;for negotiation
+
+  pot-wearout ;only for consumer
 ]
 
 breed [merchants merchant]
@@ -67,10 +69,25 @@ end
 to go
   trade
   print-details
-  update-visuals
-  update-price-plot
+
+  ;earn money and produce pots:
+  ask consumers [set money (money + consumer-daily-earnings)]
+  ask merchants [set tableware (tableware) + merchant-daily-pot-production]
+
+  ;pot breakage (@FIX FOR COMPARE ALL?):
+  set pot-wearout (pot-wearout + consumer-pot-breakage-per-day)
+  let to-be-broken floor pot-wearout
+  ask active-consumer [
+    set tableware (tableware - to-be-broken)
+
+    if tableware <= 0 [set tableware 0 set pot-wearout 0]
+  ]
+  set pot-wearout pot-wearout - to-be-broken
+
   tick
 
+  update-visuals
+  update-price-plot
 
   ;ask turtles [ update-mrs ] ;only for some price-settings
 end
@@ -933,8 +950,8 @@ to attach-banner [x]  ;turtle procedure. for label positioning
       ]
       ;determine label position (plates & money) based on label length
       let l length (word x) ;label length
-      let angle item l ["zero" 95 93 92 93 93 93] ;for label length 1, 2, 3, 4, 5, 6 ...
-      let dist item l ["zero" 4 5.5 6.5 7.5 8.5 9.5] ;for label length 1, 2, 3, 4, 5, 6 ...
+      let angle item l ["zero" 95 93 92 93 93 93 93 93 93 93 93 93 93 93 93 93 93 93 93 93 93 93] ;for label length 1, 2, 3, 4, 5, 6 ...
+      let dist item l ["zero" 4 5.5 6.5 7.5 8.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5 9.5] ;for label length 1, 2, 3, 4, 5, 6 ...
                                                      ;95 4, 93 5.5, 93 6.5, 93 7.5, 93 8.5
 
       ;let angle banner-angle
@@ -1060,7 +1077,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "random" "negotiation" "compare all price settings"
-2
+0
 
 SLIDER
 10
@@ -1188,9 +1205,9 @@ HORIZONTAL
 
 PLOT
 925
-325
-1365
-550
+395
+1455
+620
 Demand and Supply Plot
 Pots
 Price
@@ -1205,16 +1222,16 @@ PENS
 
 PLOT
 925
-65
+150
 1455
-305
+390
 Price plot
 Time
 Price per pot
 0.0
-10.0
 0.0
-10.0
+0.0
+0.0
 true
 true
 "" ""
@@ -1227,16 +1244,81 @@ OUTPUT
 620
 13
 
-MONITOR
-80
-230
-335
-275
+SLIDER
+15
+315
+235
+348
+consumer-daily-earnings
+consumer-daily-earnings
+0
+20
+0.0
+1
+1
 NIL
-bid-list
+HORIZONTAL
+
+SLIDER
+15
+350
+235
+383
+merchant-daily-pot-production
+merchant-daily-pot-production
+0
+20
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+75
+470
+370
+503
+consumer-pot-breakage-per-day
+consumer-pot-breakage-per-day
+0
+10
+0.0
+0.1
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+130
+510
+280
+526
+CHANGE NAME
+15
+13.0
+1
+
+MONITOR
+300
+345
+382
+390
+NIL
+pot-wearout
 17
 1
 11
+
+TEXTBOX
+1005
+65
+1155
+91
+PLOT: money & tableware over tid
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1394,6 +1476,15 @@ false
 0
 Circle -7500403 true true 0 0 300
 Circle -16777216 true false 30 30 240
+
+cloud
+false
+0
+Circle -7500403 true true 13 118 94
+Circle -7500403 true true 86 101 127
+Circle -7500403 true true 51 51 108
+Circle -7500403 true true 118 43 95
+Circle -7500403 true true 158 68 134
 
 coins
 false
