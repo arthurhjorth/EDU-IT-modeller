@@ -60,6 +60,7 @@ to setup
   ;ask traders [ update-mrs ]
   create-price-lists
   initiate-price-plot
+  initiate-utility-plot
   if price-setting != "compare all price settings" [
     initiate-goods-plot
     update-goods-plot
@@ -80,19 +81,22 @@ to go
     ask merchants [set tableware (tableware) + merchant-daily-pot-production]
 
     ;pot breakage (@FIX FOR COMPARE ALL?):
+
     set pot-wearout (pot-wearout + consumer-pot-breakage-per-day)
     let to-be-broken floor pot-wearout
-    ask active-consumer [
-      set tableware (tableware - to-be-broken)
+    set pot-wearout pot-wearout - to-be-broken
 
+    ask consumers [
+      set tableware (tableware - to-be-broken)
       if tableware <= 0 [set tableware 0 set pot-wearout 0]
     ]
-    set pot-wearout pot-wearout - to-be-broken
+
 
     ;tick
 
     update-visuals
     update-price-plot
+    update-utility-plot
     if price-setting != "compare all price settings" [update-goods-plot] ;@there is code for compare all... but waaay too much - figure out what to show!
 
     tick
@@ -470,7 +474,7 @@ to decide-quantity
       let budget (tableware * price ) + money  ;calculating budget based on tableware owned and price-setting and current holding of money. Price is retrieved from previous price-setting functions
       let optimal round (budget * alpha / price)  ;optimal number of tableware to HOLD given the current price
       set offer-tableware floor ( optimal - tableware )  ;offer-tableware to buy the number of tableware optimal with current holding subtracted (floor = integers rounded down)
-      if offer-tableware * price > money [set offer-tableware ( money / price ) ] ;ensures that the consumer never offers more tableware than they can afford - instead offers the max they can afford
+      if offer-tableware * price > money [set offer-tableware floor ( money / price ) ] ;ensures that the consumer never offers more tableware than they can afford - instead offers the max they can afford
     ]
   ]
 
@@ -658,15 +662,66 @@ to create-price-lists ;run in setup
   set price-offered-by []
 end
 
+to initiate-utility-plot
+  set-current-plot "Utility over time"
+  set-plot-x-range -1 ticks
+
+  ifelse price-setting = "compare all price settings" [
+
+    create-temporary-plot-pen "Con mar" set-plot-pen-color red - 1
+    plotxy -1 [my-utility] of one-of consumers with [trading-style = "market clearing"]
+    create-temporary-plot-pen "Mer mar" set-plot-pen-color red + 1
+    plotxy -1 [my-utility] of one-of merchants with [trading-style = "market clearing"]
+    create-temporary-plot-pen "Con ran" set-plot-pen-color green - 1
+    plotxy -1 [my-utility] of one-of consumers with [trading-style = "random"]
+    create-temporary-plot-pen "Mer ran" set-plot-pen-color green + 1
+    plotxy -1 [my-utility] of one-of merchants with [trading-style = "random"]
+    create-temporary-plot-pen "Con neg" set-plot-pen-color violet - 1
+    plotxy -1 [my-utility] of one-of consumers with [trading-style = "negotiation"]
+    create-temporary-plot-pen "Mer neg" set-plot-pen-color violet + 1
+    plotxy -1 [my-utility] of one-of merchants with [trading-style = "negotiation"]
+  ]
+  [
+    create-temporary-plot-pen "Consumer" set-plot-pen-color blue
+    create-temporary-plot-pen "Merchant" set-plot-pen-color orange
+  ]
+
+end
+
+to update-utility-plot
+  set-current-plot "Utility over time"
+
+  ifelse price-setting = "compare all price settings" [
+   set-current-plot-pen "Con mar" plotxy ticks [my-utility] of one-of consumers with [trading-style = "market clearing"]
+   set-current-plot-pen "Mer mar" plotxy ticks [my-utility] of one-of merchants with [trading-style = "market clearing"]
+   set-current-plot-pen "Con ran" plotxy ticks [my-utility] of one-of consumers with [trading-style = "random"]
+   set-current-plot-pen "Mer ran" plotxy ticks [my-utility] of one-of merchants with [trading-style = "random"]
+   set-current-plot-pen "Con neg" plotxy ticks [my-utility] of one-of consumers with [trading-style = "negotiation"]
+   set-current-plot-pen "Mer neg" plotxy ticks [my-utility] of one-of merchants with [trading-style = "negotiation"]
+  ]
+  [ ;if not compare all:
+    set-current-plot-pen "Consumer" plotxy ticks [my-utility] of one-of consumers with [trading-style = price-setting]
+    set-current-plot-pen "Merchant" plotxy ticks [my-utility] of one-of merchants with [trading-style = price-setting]
+  ]
+
+
+end
+
+
+
 to initiate-price-plot ;run in setup
   set-current-plot "Price plot"
+  set-plot-x-range -1 ticks
   ;set-plot-y-range 0 3
 
   ifelse price-setting = "compare all price settings" [
 
     create-temporary-plot-pen "Market-clearing success" set-plot-pen-color red
+    plotxy -1 0
     create-temporary-plot-pen "Random success" set-plot-pen-color green
+    plotxy -1 0
     create-temporary-plot-pen "Negotiation success" set-plot-pen-color violet
+    plotxy -1 0
   ]
 
   [ ;if not compare all:
@@ -750,23 +805,30 @@ to update-price-plot
   set-current-plot "Price plot"
 
   ifelse price-setting = "compare all price settings" [
+    ;set-plot-x-range -1 ticks
 
     if length market-clearing-price-list > 0 [
       set-current-plot-pen "Market-clearing success"
       ;plotxy ticks (mean market-clearing-price-list)
-      plotxy ticks (first market-clearing-price-list)
+      if successful-trade? [
+        plotxy ticks (first market-clearing-price-list)
+      ]
     ]
 
     if length random-price-list > 0 [
       set-current-plot-pen "Random success"
       ;plotxy ticks (mean random-price-list)
-      plotxy ticks (first random-price-list)
+      if successful-trade? [
+        plotxy ticks (first random-price-list)
+      ]
     ]
 
     if length negotiation-price-list > 0 [
       set-current-plot-pen "Negotiation success"
       ;plotxy ticks (mean negotiation-price-list)
-      plotxy ticks (first negotiation-price-list)
+      if successful-trade? [
+        plotxy ticks (first negotiation-price-list)
+      ]
     ]
 
   ]
@@ -1407,9 +1469,9 @@ NIL
 HORIZONTAL
 
 PLOT
-925
+930
 395
-1455
+1460
 620
 Demand and Supply Plot
 Pots
@@ -1424,9 +1486,9 @@ true
 PENS
 
 PLOT
-925
+930
 205
-1455
+1460
 395
 Price plot
 Time
@@ -1444,14 +1506,14 @@ OUTPUT
 395
 500
 885
-620
+585
 13
 
 SLIDER
 15
-315
-235
-348
+280
+320
+313
 consumer-daily-earnings
 consumer-daily-earnings
 0
@@ -1464,9 +1526,9 @@ HORIZONTAL
 
 SLIDER
 15
-350
-235
-383
+320
+320
+353
 merchant-daily-pot-production
 merchant-daily-pot-production
 0
@@ -1479,9 +1541,9 @@ HORIZONTAL
 
 SLIDER
 15
-400
-235
-433
+360
+320
+393
 consumer-pot-breakage-per-day
 consumer-pot-breakage-per-day
 0
@@ -1493,9 +1555,9 @@ NIL
 HORIZONTAL
 
 PLOT
-925
+930
 10
-1455
+1460
 200
 Money & pots over time
 Time
@@ -1524,6 +1586,73 @@ NIL
 NIL
 NIL
 NIL
+1
+
+TEXTBOX
+15
+230
+320
+251
+Dynamics
+18
+0.0
+1
+
+TEXTBOX
+15
+255
+390
+275
+Try changing these parameters while the model is running.
+13
+0.0
+1
+
+PLOT
+15
+405
+385
+585
+Utility over time
+Time
+Utility
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+
+TEXTBOX
+420
+585
+895
+625
+(text output to be deleted - unless we find it useful for something?)
+14
+0.0
+1
+
+TEXTBOX
+65
+590
+355
+616
+(does a plot of utility over time make sense???)
+13
+0.0
+1
+
+TEXTBOX
+955
+625
+1265
+676
+Demand & Supply plot: ONLY for Market Clearing
+14
+0.0
 1
 
 @#$#@#$#@
