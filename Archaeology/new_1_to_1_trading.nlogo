@@ -60,36 +60,45 @@ to setup
   ;ask traders [ update-mrs ]
   create-price-lists
   initiate-price-plot
+  if price-setting != "compare all price settings" [
+    initiate-goods-plot
+    update-goods-plot
+  ]
 
   update-visuals
-  ask no-trade-patch [set plabel ""]
+  ask (patch-set smiley-patch no-trade-patch) [set plabel "" ask props-here [die]] ;clear smiley and text when model is first set up (so no 'no trade! :(')
 end
 
 
 to go
-  trade
-  print-details
+  every .2 [
+    trade
+    print-details
 
-  ;earn money and produce pots:
-  ask consumers [set money (money + consumer-daily-earnings)]
-  ask merchants [set tableware (tableware) + merchant-daily-pot-production]
+    ;earn money and produce pots:
+    ask consumers [set money (money + consumer-daily-earnings)]
+    ask merchants [set tableware (tableware) + merchant-daily-pot-production]
 
-  ;pot breakage (@FIX FOR COMPARE ALL?):
-  set pot-wearout (pot-wearout + consumer-pot-breakage-per-day)
-  let to-be-broken floor pot-wearout
-  ask active-consumer [
-    set tableware (tableware - to-be-broken)
+    ;pot breakage (@FIX FOR COMPARE ALL?):
+    set pot-wearout (pot-wearout + consumer-pot-breakage-per-day)
+    let to-be-broken floor pot-wearout
+    ask active-consumer [
+      set tableware (tableware - to-be-broken)
 
-    if tableware <= 0 [set tableware 0 set pot-wearout 0]
+      if tableware <= 0 [set tableware 0 set pot-wearout 0]
+    ]
+    set pot-wearout pot-wearout - to-be-broken
+
+    ;tick
+
+    update-visuals
+    update-price-plot
+    if price-setting != "compare all price settings" [update-goods-plot] ;@there is code for compare all... but waaay too much - figure out what to show!
+
+    tick
+    ;ask turtles [ update-mrs ] ;only for some price-settings
+
   ]
-  set pot-wearout pot-wearout - to-be-broken
-
-  tick
-
-  update-visuals
-  update-price-plot
-
-  ;ask turtles [ update-mrs ] ;only for some price-settings
 end
 
 
@@ -111,8 +120,12 @@ to trade ;THE function run in go!
   ]
 
   if price-setting = "compare all price settings" [
-    foreach ["market clearing" "equilibrium" "random" "negotiation"] [
+
+    print "starting"
+    foreach ["market clearing" "random" "negotiation"] [
       style ->
+      print "here"
+      print style
       set active-trading-style style
 
       set-price ;@include all
@@ -121,6 +134,8 @@ to trade ;THE function run in go!
         decide-quantity
         check-utility-and-trade ;@remove from negotiation if included here
       ]
+
+      ask active-merchant [ update-result-label ] ;doesn't matter if it's consumer or merchant
     ]
 
   ]
@@ -218,42 +233,46 @@ end
 
 
 to plot-market-clearing
-  ;brug global demand og supply lister
-  set-current-plot "Demand and Supply Plot"
-  clear-plot
-  set-plot-y-range 0.1 20 ;price
-  let upper-bound ( money-merchants + money-consumers + pots-merchants + pots-consumers ) / 2
-  set-plot-x-range 0 upper-bound
-  ;set-plot-x-range 0 200 ;tableware
-  ;plotxy price-check-list total-supply-list
-  show total-supply-list
-  show total-demand-list
+  if price-setting != "compare all price settings" [
 
-  ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
+    ;brug global demand og supply lister
+    set-current-plot "Demand and Supply Plot"
+    clear-plot
+    set-plot-y-range 0.1 20 ;price
+    let upper-bound ( money-merchants + money-consumers + pots-merchants + pots-consumers ) / 2
+    set-plot-x-range 0 upper-bound
+    ;set-plot-x-range 0 200 ;tableware
+    ;plotxy price-check-list total-supply-list
+    ;show total-supply-list
+    ;show total-demand-list
 
-  ;PLOT SUPPLY:
-  create-temporary-plot-pen "supply"
-  set-current-plot-pen "supply"
-  set-plot-pen-color 15
+    ;(map [[a b] -> plotxy a b] price-check-list total-supply-list)
 
-  (foreach total-supply-list price-check-list ;@switched it around, now price on y axis
-    [
-      [x y] ->
-      plotxy x y
+    ;PLOT SUPPLY:
+    create-temporary-plot-pen "supply"
+    set-current-plot-pen "supply"
+    set-plot-pen-color 15
+
+    (foreach total-supply-list price-check-list ;@switched it around, now price on y axis
+      [
+        [x y] ->
+        plotxy x y
+
+    ])
+
+    ;PLOT DEMAND:
+    create-temporary-plot-pen "demand"
+    set-current-plot-pen "demand"
+    set-plot-pen-color 105
+
+    (foreach total-demand-list price-check-list ;@switched it around, now price on y axis
+      [
+        [x y] ->
+        plotxy x y
 
     ])
 
-  ;PLOT DEMAND:
-  create-temporary-plot-pen "demand"
-  set-current-plot-pen "demand"
-  set-plot-pen-color 105
-
-  (foreach total-demand-list price-check-list ;@switched it around, now price on y axis
-    [
-      [x y] ->
-      plotxy x y
-
-    ])
+  ]
 
 end
 
@@ -284,10 +303,11 @@ end
 
 
 to set-price-neg ;trying to be smarter
+  ;if no mrs (since no tableware), set mrs to 0:
+  let mer-mrs ifelse-value ([my-mrs] of active-merchant = "no tableware left") [ 0 ] [ [my-mrs] of active-merchant ] ;if the string, make it 0
+  let con-mrs ifelse-value ([my-mrs] of active-consumer = "no tableware left") [ 0 ] [ [my-mrs] of active-consumer ] ;if the string, make it 0
 
-  let mrs-difference [my-mrs] of active-consumer - [my-mrs] of active-merchant ;consumer mrs is always highest
-  let mer-mrs [my-mrs] of active-merchant
-  let con-mrs [my-mrs] of active-consumer
+  let mrs-difference con-mrs - mer-mrs ;consumer mrs is always highest
 
   let bid-list-merchant (list
     mer-mrs
@@ -310,7 +330,7 @@ to set-price-neg ;trying to be smarter
   )
 
   set bid-list one-of list bid-list-consumer bid-list-merchant ;random who starts the bidding
-  print bid-list
+  ;print bid-list
   set successful-trade? false ;reset before loop di doop
 
   foreach bid-list [
@@ -439,8 +459,8 @@ end
 to decide-quantity
   ;;;; given my a) current holding, b) the set price and c) my preferences (alpha and beta),
   ;;;; how many pieces of tableware do I wish to trade this round?
-  print (word "--- " price-setting " ---")
-  print (word "price: " price)
+  ;print (word "--- " price-setting " ---")
+  ;print (word "price: " price)
   ask active-consumer [ ;@PROBLEMS START HERE (at least for random)
     ifelse  price = 0 [
       set offer-tableware 0 ;undgå ulovlig division. Vi kan assume at offer-tableware er 0 hvis pris er 0, idet agenter aldrig vil give væk gratis ("more is always better" -economy)
@@ -467,8 +487,8 @@ to decide-quantity
   ]
 
   ;the deal-tableware is set to the lowest offer (amount of tableware):
-  print (word "offer-tableware of C: " ([offer-tableware] of active-consumer) )
-  print ( word "offer-tableware of M: " ([offer-tableware] of active-merchant) )
+  ;print (word "offer-tableware of C: " ([offer-tableware] of active-consumer) )
+  ;print ( word "offer-tableware of M: " ([offer-tableware] of active-merchant) )
 
   ;show list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer)
   set deal-tableware min list ([offer-tableware] of active-merchant) ([offer-tableware] of active-consumer) ;the min of the two offers
@@ -483,7 +503,6 @@ to decide-quantity
   if deal-tableware > [tableware] of active-merchant [
     set deal-tableware [tableware] of active-merchant
   ]
-
 
   set suggested-quantity deal-tableware ;redundant, but just adding for printing (still saved if it doesn't go through in next step)
 
@@ -501,15 +520,15 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
       ifelse breed = merchants [
         let temp-tableware ( tableware - deal-tableware ) ;tableware is turtles-own
         let temp-money ( money + deal-money ) ;same for money
-      print (word "M temp table: " temp-tableware )
-      print (word "M temp money: " temp-money )
+      ;print (word "M temp table: " temp-tableware )
+      ;print (word "M temp money: " temp-money )
         set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility
       ]
       [ ;consumer:
         let temp-tableware ( tableware + deal-tableware ) ;tableware is turtles-own
         let temp-money ( money - deal-money ) ;same for money
-      print (word "C temp table: " temp-tableware )
-      print (word "C temp money: " temp-money )
+      ;print (word "C temp table: " temp-tableware )
+      ;print (word "C temp money: " temp-money )
         set temp-utility precision ( ( temp-tableware ^ alpha ) * ( temp-money ^ beta ) ) 2 ;cobb-douglas utility
       ]
       ;show temp-utility
@@ -531,13 +550,11 @@ to check-utility-and-trade ;@maybe make this a turtle procedure instead??? (does
       set utility temp-utility ;@WE WANT TO ADD THIS HERE, RIGHT?! ;now using my-utility instead...
     ]
 
-
     ask active-merchant [
       set tableware (tableware - deal-tableware)
       set money (money + deal-money)
       set utility temp-utility ;@WE WANT TO ADD THIS HERE, RIGHT?! ;now using my-utility instead...
     ]
-
     update-price-list ;add price to list to save it, when trade is successful
   ]
 
@@ -578,24 +595,18 @@ end
 
 
 to update-price-list ;run in check-utility-and-trade
-  ifelse price-setting != "compare all price settings"
-  [
+  ifelse price-setting != "compare all price settings" [
     set price-list fput price price-list
   ]
   [ ;if compare all:
+    print "ooone"
+    ask active-consumer [
+      if trading-style = "market clearing" [ set market-clearing-price-list fput price market-clearing-price-list ]
+      if trading-style = "random" [set random-price-list fput price random-price-list]
+      if trading-style = "negotiation" [set negotiation-price-list fput price negotiation-price-list]
 
-    ask active-consumer with [trading-style = "market clearing"] [
-      set market-clearing-price-list fput price market-clearing-price-list
     ]
-    ask active-consumer with [trading-style = "equilibrium"] [
-      set equilibrium-price-list fput price equilibrium-price-list
-    ]
-    ask active-consumer with [trading-style = "random"] [
-      set random-price-list fput price random-price-list
-    ]
-    ask active-consumer with [trading-style = "negotiation"] [
-      set negotiation-price-list fput price negotiation-price-list
-    ]
+    print "twooo"
 
   ]
 end
@@ -651,48 +662,86 @@ to initiate-price-plot ;run in setup
   set-current-plot "Price plot"
   ;set-plot-y-range 0 3
 
-  ;CREATE PLOT PENS
   ifelse price-setting = "compare all price settings" [
-    ;@plot latest or mean? (for quantity)
-    create-temporary-plot-pen "Market-clearing success"
-    set-plot-pen-color red
-    create-temporary-plot-pen "Market-clearing success2"
-    set-plot-pen-color red
-    set-plot-pen-mode 2
 
-    create-temporary-plot-pen "Equilibrium success"
-    set-plot-pen-color yellow
-    create-temporary-plot-pen "Equilibrium success2"
-    set-plot-pen-color yellow
-    set-plot-pen-mode 2
-
-    create-temporary-plot-pen "Random success"
-    set-plot-pen-color green
-    create-temporary-plot-pen "Random success2"
-    set-plot-pen-color green
-    set-plot-pen-mode 2
-
-    create-temporary-plot-pen "Negotiation success"
-    set-plot-pen-color violet
-    create-temporary-plot-pen "Negotiation success2"
-    set-plot-pen-color violet
-    set-plot-pen-mode 2
+    create-temporary-plot-pen "Market-clearing success" set-plot-pen-color red
+    create-temporary-plot-pen "Random success" set-plot-pen-color green
+    create-temporary-plot-pen "Negotiation success" set-plot-pen-color violet
   ]
+
   [ ;if not compare all:
     create-temporary-plot-pen "Price trade successful"
     set-plot-pen-color green
-    ;set-plot-pen-mode 2 ;point mode
 
     ;@FIGURE OUT HOW TO BEST VISUALISE - LINES, DOTS, ETC !!! (change dot size???)
 
-    create-temporary-plot-pen "Price trade unsuccessful"
-    set-plot-pen-color red
-    ;set-plot-pen-mode 2 ;point mode
+;    create-temporary-plot-pen "Price trade unsuccessful"
+;    set-plot-pen-color red
 
-    create-temporary-plot-pen "Mean price successful trades" ;kvantitet?
-    ;@could make rolling window?
-    set-plot-pen-color blue
+;    create-temporary-plot-pen "Mean price successful trades" ;kvantitet?
+;    ;@could make rolling window?
+;    set-plot-pen-color blue
   ]
+end
+
+to initiate-goods-plot
+  set-current-plot "Money & pots over time"
+
+  ifelse price-setting = "compare all price settings" [
+    create-temporary-plot-pen "Mer money mar" set-plot-pen-color red + 3
+    create-temporary-plot-pen "Mer pots mar" set-plot-pen-color red + 1
+    create-temporary-plot-pen "Con money mar" set-plot-pen-color red - 1
+    create-temporary-plot-pen "Con pots mar" set-plot-pen-color red - 3
+
+    create-temporary-plot-pen "Mer money ran" set-plot-pen-color green + 3
+    create-temporary-plot-pen "Mer pots ran" set-plot-pen-color green + 1
+    create-temporary-plot-pen "Con money ran" set-plot-pen-color green - 1
+    create-temporary-plot-pen "Con pots ran" set-plot-pen-color green - 3
+
+    create-temporary-plot-pen "Mer money neg" set-plot-pen-color violet + 3
+    create-temporary-plot-pen "Mer pots neg" set-plot-pen-color violet + 1
+    create-temporary-plot-pen "Con money neg" set-plot-pen-color violet - 1
+    create-temporary-plot-pen "Con pots neg" set-plot-pen-color violet - 3
+  ]
+
+  [ ;if not compare all:
+    create-temporary-plot-pen "Mer money" set-plot-pen-color orange
+    create-temporary-plot-pen "Mer pots" set-plot-pen-color brown - 2
+    create-temporary-plot-pen "Con money" set-plot-pen-color yellow
+    create-temporary-plot-pen "Con pots" set-plot-pen-color brown + 1
+  ]
+end
+
+to update-goods-plot
+  set-current-plot "Money & pots over time"
+
+  ifelse price-setting = "compare all price settings" [
+    set-current-plot-pen "Mer money mar" plotxy ticks [money] of one-of merchants with [trading-style = "market clearing"]
+    set-current-plot-pen "Mer pots mar" plotxy ticks [tableware] of one-of merchants with [trading-style = "market clearing"]
+    set-current-plot-pen "Con money mar" plotxy ticks [money] of one-of consumers with [trading-style = "market clearing"]
+    set-current-plot-pen "Con pots mar" plotxy ticks [tableware] of one-of consumers with [trading-style = "market clearing"]
+
+    set-current-plot-pen "Mer money ran" plotxy ticks [money] of one-of merchants with [trading-style = "random"]
+    set-current-plot-pen "Mer pots ran" plotxy ticks [tableware] of one-of merchants with [trading-style = "random"]
+    set-current-plot-pen "Con money ran" plotxy ticks [money] of one-of consumers with [trading-style = "random"]
+    set-current-plot-pen "Con pots ran" plotxy ticks [tableware] of one-of consumers with [trading-style = "random"]
+
+    set-current-plot-pen "Mer money neg" plotxy ticks [money] of one-of merchants with [trading-style = "negotiation"]
+    set-current-plot-pen "Mer pots neg" plotxy ticks [tableware] of one-of merchants with [trading-style = "negotiation"]
+    set-current-plot-pen "Con money neg" plotxy ticks [money] of one-of consumers with [trading-style = "negotiation"]
+    set-current-plot-pen "Con pots neg" plotxy ticks [tableware] of one-of consumers with [trading-style = "negotiation"]
+
+
+  ]
+  [
+    set-current-plot-pen "Mer money" plotxy ticks [money] of active-merchant
+    set-current-plot-pen "Mer pots" plotxy ticks [tableware] of active-merchant
+    set-current-plot-pen "Con money" plotxy ticks [money] of active-consumer
+    set-current-plot-pen "Con pots" plotxy ticks [tableware] of active-consumer
+
+
+  ]
+
 end
 
 to update-price-plot
@@ -703,42 +752,22 @@ to update-price-plot
   ifelse price-setting = "compare all price settings" [
 
     if length market-clearing-price-list > 0 [
-      set-current-plot-pen "Market-clearing success" ;;@@;;@@ Change names for mean if we choose for mean to be the best representation.
-      ;set-plot-pen-mode 1
-      plotxy ticks (mean market-clearing-price-list)
-
-      set-current-plot-pen "Market-clearing success2"
-      ;set-plot-pen-mode 2
-      plotxy ticks ( first market-clearing-price-list )
+      set-current-plot-pen "Market-clearing success"
+      ;plotxy ticks (mean market-clearing-price-list)
+      plotxy ticks (first market-clearing-price-list)
     ]
-
-    if length equilibrium-price-list > 0 [
-      set-current-plot-pen "Equilibrium success"
-      set-plot-pen-mode 1
-      plotxy ticks (mean equilibrium-price-list)
-
-      set-current-plot-pen "Equilibrium success2"
-      set-plot-pen-mode 2
-      plotxy ticks ( first equilibrium-price-list )
-    ]
-
 
     if length random-price-list > 0 [
       set-current-plot-pen "Random success"
-      plotxy ticks (mean random-price-list)
-
-      set-current-plot-pen "Random success2"
+      ;plotxy ticks (mean random-price-list)
       plotxy ticks (first random-price-list)
     ]
 
     if length negotiation-price-list > 0 [
       set-current-plot-pen "Negotiation success"
-      plotxy ticks (mean negotiation-price-list)
-
-      set-current-plot-pen "Negotiation success2"
+      ;plotxy ticks (mean negotiation-price-list)
       plotxy ticks (first negotiation-price-list)
     ]
-
 
   ]
   [ ;if not compare all:
@@ -749,17 +778,16 @@ to update-price-plot
 
     ifelse successful-trade? [
       set-current-plot-pen "Price trade successful"
-      ;plot-pen-down
       plotxy ticks (first price-list) ;x and y, using custom function for big dots
     ]
     [
-      set-current-plot-pen "Price trade unsuccessful"
-      plotxy ticks unsuccessful-price ;x and y
+;      set-current-plot-pen "Price trade unsuccessful"
+;      plotxy ticks unsuccessful-price ;x and y
     ]
 
     ;plot mean:
-    set-current-plot-pen "Mean price successful trades"
-    if mean-price != "no price list" [plotxy ticks mean-price]
+;    set-current-plot-pen "Mean price successful trades"
+;    if mean-price != "no price list" [plotxy ticks mean-price]
 
   ]
 
@@ -797,7 +825,8 @@ end
 
 to-report my-mrs ;trader reporter
   ifelse tableware = 0 [ ;can not divide by 0!
-    report "no tableware left"
+    ;report "no tableware left"
+    report precision ( (alpha * money) / (beta * 1) ) 2 ;pretend they have one pot if they don't have any
   ]
   [
     report precision ( (alpha * money) / (beta * tableware) ) 2
@@ -807,12 +836,39 @@ end
 
 ;---LAYOUT STUFF
 
+
 to layout ;run in setup ;sets up the world/background
   ifelse price-setting = "compare all price settings" [
-    ;
+    ask patches [
+      set pcolor 9 ;light grey background
+      ;sky:
+      if pycor > 33 [set pcolor blue - 1.5] ;top
+      if pycor > (min-pycor + 45) and pycor < (min-pycor + 53) [set pcolor blue - 1.5] ;middle
+      if pycor > (min-pycor + 19) and pycor < (min-pycor + 28) [set pcolor blue - 1.5] ;bottom
+      ;lighter sky:
+      if pycor > 34 [set pcolor blue - 1] ;top
+      if pycor > (min-pycor + 46) and pycor < (min-pycor + 53) [set pcolor blue - 1] ;middle
+      if pycor > (min-pycor + 20) and pycor < (min-pycor + 28) [set pcolor blue - 1] ;bottom
+      ;lightest sky:
+      ;if pycor > 38 [set pcolor blue] ;top
+      ;if pycor > (min-pycor + 51) and pycor < (min-pycor + 53) [set pcolor blue] ;middle
+      ;if pycor > (min-pycor + 25) and pycor < (min-pycor + 28) [set pcolor blue] ;bottom
+      ;'horizon'/shadows of condition bars:
+      ;if pycor = (min-pycor + 46) [set pcolor 1]
+
+      ;bars for condition tags:
+      if pycor > (min-pycor + 52) and pycor < (min-pycor + 56) [set pcolor 7] ;market clearing
+      if pycor > (min-pycor + 25) and pycor < (min-pycor + 29) [set pcolor 7] ;random
+      if pycor < (min-pycor + 3) [set pcolor 7] ;negotiation
+      ;if pycor
+
+      ;condition tags:
+      if pxcor = 7 and pycor = (min-pycor + 54) [set plabel "market clearing" set plabel-color black]
+      if pxcor = 3 and pycor = (min-pycor + 27) [set plabel "random" set plabel-color black]
+      if pxcor = 5 and pycor = (min-pycor + 1) [set plabel "negotiation" set plabel-color black]
+    ]
   ]
-  [
-    ;patch colors
+  [ ;IF NOT COMPARE ALL:
     ask patches [
       if pycor < (max-pycor - 50) [set pcolor 9] ;ground
       if pycor = (max-pycor - 50) [set pcolor 1] ;horizon line
@@ -892,25 +948,76 @@ to update-visuals ;in visual interface
   ]
 
   ;trade or no trade label
-  ifelse deal-tableware > 0 [
-    ask trade-patch [
-      set plabel-color green - 1.5
-      set plabel (word "We trade " deal-tableware " plates. Price for each: " precision price 2 ". " )
+
+  if price-setting != "compare all price settings" [
+    ifelse deal-tableware > 0 [
+      ask trade-patch [
+        ;set plabel-color green - 1.5
+        set plabel-color white
+        let pot-or-pots ifelse-value deal-tableware = 1 ["pot"] ["pots"]
+        set plabel (word "We trade " deal-tableware " " pot-or-pots ". Price for each: " precision price 2 ". " )
+      ]
+      ask smiley-patch [
+        sprout-props 1 [  set shape "face happy" set color (green - 1) set size 4 set heading 0]
+      ]
+
     ]
-  ]
-  [
-    ask no-trade-patch [
-        set plabel-color red - 1.5
+    [ ;if no trade:
+      ask no-trade-patch [
+        set plabel-color white
+        ;set plabel-color red - 1.5
         set plabel "NO TRADE!"
+      ]
+      ask smiley-patch [
+        sprout-props 1 [  set shape "face sad" set color (red - 1) set size 4 set heading 0]
+      ]
     ]
   ]
 end
 
-to-report no-trade-patch
-  report patch 6 -17
+to update-result-label ;trader procedure! used in compare all
+  ;figure out where, based on my trading style
+  let index position trading-style ["market clearing" "random" "negotiation"]
+  let my-trade-patch item index (list patch 21 37 patch 21 9 patch 21 -17)
+  let my-no-trade-patch item index (list patch 6 37 patch 6 9 patch 6 -17)
+  let my-smiley-patch item index (list patch 0 33 patch 0 5 patch 0 -22)
+  ask (patch-set my-trade-patch my-no-trade-patch) [set plabel ""] ;clear
+  ask my-smiley-patch [ask buildings-here [die]] ;clear smileys
+
+  ifelse deal-tableware > 0 [
+    ask my-trade-patch [
+      set plabel-color [color] of active-merchant
+      set plabel-color white
+      set plabel (word "We trade " deal-tableware " pots. Price for each: " precision price 2 ". " )
+      ]
+    ask my-smiley-patch [
+      sprout-buildings 1 [set shape "face happy" set color (green - 1) set size 4 set heading 0] ;buildings so they don't get killed in update-visuals... ;)
+      ]
+
+    ]
+    [ ;if no trade:
+      ask my-no-trade-patch [
+        set plabel-color [color] of active-merchant
+        set plabel-color white
+        set plabel "NO TRADE!"
+      ]
+      ask my-smiley-patch [
+        sprout-buildings 1 [  set shape "face sad" set color (red - 1) set size 4 set heading 0]
+      ]
+    ]
+
+
+
 end
-to-report trade-patch
-  report patch 19 -17
+
+to-report no-trade-patch
+  report patch 6 4
+end
+to-report trade-patch ;not for compare all
+    report patch 21 4
+end
+to-report smiley-patch
+  report patch 0 8
 end
 
 ;to-report utility-emotion ;trader reporter
@@ -977,7 +1084,103 @@ to make-turtles [kind] ;run in setup
   ifelse kind = "compare all price settings" [
     ;if compare all:
 
-    ;@TILFØJ
+    ;MARKET CLEARING
+    create-consumers 1 [
+      set color (my-color "market clearing") + 1.5
+      setxy (min-pxcor + dist-side + 2)(min-pycor + dist-bottom + 48)
+      set shape "person"
+      set heading 270
+      set size 12
+      set alpha alpha-consumers
+      set beta precision ( 1 - alpha-consumers ) 3
+      set money money-consumers
+      set tableware pots-consumers
+      set trading-style "market clearing"
+    ]
+    create-merchants 1 [
+      set color (my-color "market clearing") - 1.5
+      setxy (max-pxcor - dist-side + 2) (min-pycor + dist-bottom + 48)
+      set trading-style "market clearing"
+      set shape "person-holding"
+      set size 12
+      set heading 90
+      set alpha alpha-merchants
+      set beta precision ( 1 - alpha-merchants ) 3
+      set money money-merchants
+      set tableware pots-merchants
+      ;pot in merchant's hand (just layout):
+      hatch-buildings 1 [
+        set shape "pot" set size 8.5 set color 35.5
+        set heading 90 fd 4.5
+        set heading 0 fd 4.5
+      ]
+    ]
+
+    ;RANDOM
+    create-consumers 1 [
+      set color (my-color "random") + 1.5
+      setxy (min-pxcor + dist-side + 2)(min-pycor + dist-bottom + 21)
+      set shape "person"
+      set heading 270
+      set size 12
+      set alpha alpha-consumers
+      set beta precision ( 1 - alpha-consumers ) 3
+      set money money-consumers
+      set tableware pots-consumers
+      set trading-style "random"
+    ]
+    create-merchants 1 [
+      set color (my-color "random") - 1.5
+      setxy (max-pxcor - dist-side + 2) (min-pycor + dist-bottom + 21)
+      set trading-style "random"
+      set shape "person-holding"
+      set size 12
+      set heading 90
+      set alpha alpha-merchants
+      set beta precision ( 1 - alpha-merchants ) 3
+      set money money-merchants
+      set tableware pots-merchants
+      ;pot in merchant's hand (just layout):
+      hatch-buildings 1 [
+        set shape "pot" set size 8.5 set color 35.5
+        set heading 90 fd 4.5
+        set heading 0 fd 4.5
+      ]
+    ]
+
+    ;NEGOTIATION
+    create-consumers 1 [
+      set color (my-color "negotiation") + 1.5
+      setxy (min-pxcor + dist-side + 2) (min-pycor + dist-bottom - 5) ;@check position
+      set shape "person"
+      set heading 270
+      set size 12
+      set alpha alpha-consumers
+      set beta precision ( 1 - alpha-consumers ) 3
+      set money money-consumers
+      set tableware pots-consumers
+      set trading-style "negotiation"
+    ]
+    create-merchants 1 [
+      set color (my-color "negotiation") - 1.5
+      setxy (max-pxcor - dist-side + 2) (min-pycor + dist-bottom - 5)
+      set trading-style "negotiation"
+      set shape "person-holding"
+      set size 12
+      set heading 90
+      set alpha alpha-merchants
+      set beta precision ( 1 - alpha-merchants ) 3
+      set money money-merchants
+      set tableware pots-merchants
+      ;pot in merchant's hand (just layout):
+      hatch-buildings 1 [
+        set shape "pot" set size 8.5 set color 35.5
+        set heading 90 fd 4.5
+        set heading 0 fd 4.5
+      ]
+    ]
+
+
 
   ]
   [ ;if not compare all:
@@ -1077,7 +1280,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "random" "negotiation" "compare all price settings"
-0
+3
 
 SLIDER
 10
@@ -1088,7 +1291,7 @@ alpha-consumers
 alpha-consumers
 0.5
 0.9
-0.5
+0.9
 0.1
 1
 NIL
@@ -1103,7 +1306,7 @@ pots-consumers
 pots-consumers
 0
 100
-5.0
+50.0
 1
 1
 NIL
@@ -1118,7 +1321,7 @@ alpha-merchants
 alpha-merchants
 0.1
 0.4
-0.4
+0.1
 0.1
 1
 NIL
@@ -1133,7 +1336,7 @@ pots-merchants
 pots-merchants
 0
 100
-95.0
+50.0
 1
 1
 NIL
@@ -1159,9 +1362,9 @@ NIL
 BUTTON
 195
 175
-375
+280
 208
-NIL
+go once
 go
 NIL
 1
@@ -1182,7 +1385,7 @@ money-merchants
 money-merchants
 1
 100
-100.0
+50.0
 1
 1
 NIL
@@ -1197,7 +1400,7 @@ money-consumers
 money-consumers
 1
 100
-100.0
+50.0
 1
 1
 NIL
@@ -1222,9 +1425,9 @@ PENS
 
 PLOT
 925
-150
+205
 1455
-390
+395
 Price plot
 Time
 Price per pot
@@ -1275,10 +1478,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-75
-470
-370
-503
+15
+400
+235
+433
 consumer-pot-breakage-per-day
 consumer-pot-breakage-per-day
 0
@@ -1289,35 +1492,38 @@ consumer-pot-breakage-per-day
 NIL
 HORIZONTAL
 
-TEXTBOX
-130
-510
-280
-526
-CHANGE NAME
-15
-13.0
-1
-
-MONITOR
-300
-345
-382
-390
-NIL
-pot-wearout
-17
-1
-11
-
-TEXTBOX
-1005
-65
-1155
-91
-PLOT: money & tableware over tid
-11
+PLOT
+925
+10
+1455
+200
+Money & pots over time
+Time
+Amount
 0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+
+BUTTON
+290
+175
+375
+208
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
