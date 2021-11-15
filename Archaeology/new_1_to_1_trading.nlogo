@@ -727,7 +727,7 @@ to initiate-price-plot ;run in setup
   [ ;if not compare all:
     create-temporary-plot-pen "Price trade successful"
     set-plot-pen-color green
-
+    plotxy -1 0
     ;@FIGURE OUT HOW TO BEST VISUALISE - LINES, DOTS, ETC !!! (change dot size???)
 
 ;    create-temporary-plot-pen "Price trade unsuccessful"
@@ -1342,7 +1342,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "random" "negotiation" "compare all price settings"
-3
+0
 
 SLIDER
 10
@@ -1368,7 +1368,7 @@ pots-consumers
 pots-consumers
 0
 100
-50.0
+39.0
 1
 1
 NIL
