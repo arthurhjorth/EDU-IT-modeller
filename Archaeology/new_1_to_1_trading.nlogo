@@ -28,6 +28,8 @@ globals [
   pot-wearout ;only for consumer
 
   show-extras? ;boolean controlling whether utility and MRS are shown in graphic interface
+  alpha-consumers
+  alpha-merchants
 ]
 
 breed [merchants merchant]
@@ -56,7 +58,10 @@ props-own [prop-type]
 to setup
   clear-all
   reset-ticks
+
   set show-extras? false
+  set alpha-consumers 0.9 set alpha-merchants 0.1
+
   make-turtles price-setting ;tager price setting som input
   layout ;make the background + props
   ask traders [ set-partner ]
@@ -1352,24 +1357,9 @@ price-setting
 
 SLIDER
 10
-65
+100
 190
-98
-alpha-consumers
-alpha-consumers
-0.5
-0.9
-0.9
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-10
-135
-190
-168
+133
 pots-consumers
 pots-consumers
 0
@@ -1382,24 +1372,9 @@ HORIZONTAL
 
 SLIDER
 195
-65
+100
 375
-98
-alpha-merchants
-alpha-merchants
-0.1
-0.4
-0.1
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-195
-135
-375
-168
+133
 pots-merchants
 pots-merchants
 0
@@ -1412,9 +1387,9 @@ HORIZONTAL
 
 BUTTON
 10
-175
+140
 190
-208
+173
 NIL
 setup
 NIL
@@ -1429,9 +1404,9 @@ NIL
 
 BUTTON
 195
-175
+140
 280
-208
+173
 go once
 go
 NIL
@@ -1446,9 +1421,9 @@ NIL
 
 SLIDER
 195
-100
+65
 375
-133
+98
 money-merchants
 money-merchants
 1
@@ -1461,9 +1436,9 @@ HORIZONTAL
 
 SLIDER
 10
-100
+65
 190
-133
+98
 money-consumers
 money-consumers
 1
@@ -1517,9 +1492,9 @@ OUTPUT
 
 SLIDER
 15
-280
+250
 320
-313
+283
 consumer-daily-earnings
 consumer-daily-earnings
 0
@@ -1532,9 +1507,9 @@ HORIZONTAL
 
 SLIDER
 15
+290
 320
-320
-353
+323
 merchant-daily-pot-production
 merchant-daily-pot-production
 0
@@ -1547,9 +1522,9 @@ HORIZONTAL
 
 SLIDER
 15
-360
+330
 320
-393
+363
 consumer-pot-breakage-per-day
 consumer-pot-breakage-per-day
 0
@@ -1579,9 +1554,9 @@ PENS
 
 BUTTON
 290
-175
+140
 375
-208
+173
 NIL
 go
 T
@@ -1596,9 +1571,9 @@ NIL
 
 TEXTBOX
 15
-230
+200
 320
-251
+221
 Dynamics
 18
 0.0
@@ -1606,9 +1581,9 @@ Dynamics
 
 TEXTBOX
 15
-255
+225
 390
-275
+245
 Try changing these parameters while the model is running.
 13
 0.0
@@ -1616,7 +1591,7 @@ Try changing these parameters while the model is running.
 
 PLOT
 15
-405
+380
 385
 585
 Utility over time
