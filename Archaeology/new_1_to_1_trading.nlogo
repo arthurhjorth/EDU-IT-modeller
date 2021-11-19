@@ -26,6 +26,8 @@ globals [
   bid-list ;for negotiation
 
   pot-wearout ;only for consumer
+
+  show-extras? ;boolean controlling whether utility and MRS are shown in graphic interface
 ]
 
 breed [merchants merchant]
@@ -54,6 +56,7 @@ props-own [prop-type]
 to setup
   clear-all
   reset-ticks
+  set show-extras? false
   make-turtles price-setting ;tager price setting som input
   layout ;make the background + props
   ask traders [ set-partner ]
@@ -979,32 +982,35 @@ to update-visuals ;in visual interface
       attach-banner precision ([money] of min-one-of traders [distance myself]) 2 ;@added precision
     ]
 
-    ;utility counter
-    sprout-props 1 [
-      set shape "u-shape" set size 5 set color blue set heading 270 fd 13 set heading 180 fd 7 set heading 0 fd 2 set prop-type "utility"
-      attach-banner precision ([my-utility] of min-one-of traders [distance myself]) 2 ;@added precision
+    if show-extras? [
+      ;utility counter
+      sprout-props 1 [
+        set shape "u-shape" set size 5 set color blue set heading 270 fd 13 set heading 180 fd 7 set heading 0 fd 2 set prop-type "utility"
+        attach-banner precision ([my-utility] of min-one-of traders [distance myself]) 2 ;@added precision
+      ]
+
+;      ;utility smileys
+;      sprout-props 1 [
+;        let emotion [utility-emotion] of min-one-of traders [distance myself]
+;        let index position emotion ["sad" "neutral" "happy"]
+;        set shape item index ["face sad" "face neutral" "face happy"]
+;        set color item index [red yellow green]
+;        set size 4
+;        set prop-type "smiley"
+;        set heading 0 fd 4.25
+;      ]
+
+      ;MRS label
+      sprout-props 1 [
+        set prop-type "mrs"
+        set size 0
+        set heading 3 fd 8
+        set label "MRS:"
+        set label-color black
+        attach-banner ([my-mrs] of min-one-of traders [distance myself])
+      ]
     ]
 
-    ;utility smileys
-;    sprout-props 1 [
-;      let emotion [utility-emotion] of min-one-of traders [distance myself]
-;      let index position emotion ["sad" "neutral" "happy"]
-;      set shape item index ["face sad" "face neutral" "face happy"]
-;      set color item index [red yellow green]
-;      set size 4
-;      set prop-type "smiley"
-;      set heading 0 fd 4.25
-;    ]
-
-    ;MRS
-    sprout-props 1 [
-      set prop-type "mrs"
-      set size 0
-      set heading 3 fd 8
-      set label "MRS:"
-      set label-color black
-      attach-banner ([my-mrs] of min-one-of traders [distance myself])
-    ]
 
 
   ]
@@ -1342,7 +1348,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "random" "negotiation" "compare all price settings"
-0
+1
 
 SLIDER
 10
@@ -1368,7 +1374,7 @@ pots-consumers
 pots-consumers
 0
 100
-39.0
+50.0
 1
 1
 NIL
