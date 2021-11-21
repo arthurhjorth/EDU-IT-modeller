@@ -30,6 +30,8 @@ globals [
   show-extras? ;boolean controlling whether utility and MRS are shown in graphic interface
   alpha-consumers
   alpha-merchants
+
+  m-pots-at-start
 ]
 
 breed [merchants merchant]
@@ -68,7 +70,7 @@ to setup
   ;ask traders [ update-mrs ]
   create-price-lists
   initiate-price-plot
-  initiate-utility-plot
+  ;initiate-utility-plot
   if price-setting != "compare all price settings" [
     initiate-goods-plot
     update-goods-plot
@@ -81,6 +83,7 @@ end
 
 to go
   every .2 [
+    set m-pots-at-start [tableware] of one-of merchants with [trading-style = "market clearing"] ;for demand/supply plot
     trade
     print-details
 
@@ -104,7 +107,7 @@ to go
 
     update-visuals
     update-price-plot
-    update-utility-plot
+    ;update-utility-plot
     if price-setting != "compare all price settings" [update-goods-plot] ;@there is code for compare all... but waaay too much - figure out what to show!
 
     tick
@@ -251,7 +254,8 @@ to plot-market-clearing
     set-current-plot "Demand and Supply Plot"
     clear-plot
     set-plot-y-range 0.1 20 ;price
-    let upper-bound ( money-merchants + money-consumers + pots-merchants + pots-consumers ) / 2
+    ;let upper-bound ( money-merchants + money-consumers + pots-merchants + pots-consumers ) / 2
+    let upper-bound (m-pots-at-start + 25) ;@
     set-plot-x-range 0 upper-bound
     ;set-plot-x-range 0 200 ;tableware
     ;plotxy price-check-list total-supply-list
@@ -378,8 +382,9 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
     check-utility-and-trade ;write out the outputs. No interesting until the deal-tableware actually pulls through
     ifelse deal-tableware > 0 [
       if price-setting = "compare all price settings" [stop]
-      output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
-      stop ] ;if the bid is accepted, exit this function
+      ;output-print ( word "Offer 1 made by " ( [ breed ] of initial-bidder ) " accepted.")
+      stop
+    ] ;if the bid is accepted, exit this function
 
 
     [
@@ -391,8 +396,9 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
       check-utility-and-trade
       ifelse deal-tableware > 0 [
         if price-setting = "compare all price settings" [stop]
-        output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
-        stop]
+        ;output-print ( word "Offer 2 made by " [ breed ] of second-bidder " accepted." )
+        stop
+      ]
 
 
       [
@@ -405,8 +411,9 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
         check-utility-and-trade
         ifelse deal-tableware > 0 [
           if price-setting = "compare all price settings" [stop]
-          output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
-          stop]
+          ;output-print ( word "Offer 3 made by " [ breed ] of initial-bidder " accepted.")
+          stop
+        ]
 
         [
           ;;;; else, start round 4:
@@ -417,8 +424,9 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
           check-utility-and-trade
           ifelse deal-tableware > 0 [
             if price-setting = "compare all price settings" [stop]
-            output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
-            stop]
+            ;output-print ( word "Offer 4 made by " [ breed ] of second-bidder " accepted." )
+            stop
+          ]
 
           [
             ;;; round 5, agent 1 with 40%
@@ -428,8 +436,9 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
             check-utility-and-trade
             ifelse deal-tableware > 0 [
               if price-setting = "compare all price settings" [stop]
-              output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
-              stop]
+              ;output-print ( word "Offer 5 made by " [ breed ] of initial-bidder " accepted." )
+              stop
+            ]
 
             [
               ; round 6, agent2 does the same
@@ -439,8 +448,9 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
               check-utility-and-trade
               ifelse deal-tableware > 0 [
                 if price-setting = "compare all price settings" [stop]
-                output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
-                stop ]
+                ;output-print ( word "Offer 6 made by " [ breed ] of second-bidder  " accepted." )
+                stop
+              ]
 
 
               [
@@ -451,10 +461,12 @@ to set-price-neg-old ;negotiation. from set-price, run in trade
                 check-utility-and-trade
                 if deal-tableware > 0
                 [if price-setting = "compare all price settings" [stop]
-                  output-print "Agents met halfway between their initial prices." ]
+                  ;output-print "Agents met halfway between their initial prices."
+                ]
                 if deal-tableware = 0
                 [ if price-setting = "compare all price settings" [stop]
-                  output-print "Agents did not agree on a trading price." ]
+                  ;output-print "Agents did not agree on a trading price."
+                  ]
 
                 ;the end
 
@@ -585,15 +597,15 @@ end
 to print-details
 
   ifelse deal-tableware > 0 [
-    output-print (word "Agreed price: " precision price 2 "." )
-    output-print (word "Amount traded: " deal-tableware "." )
+    ;output-print (word "Agreed price: " precision price 2 "." )
+    ;output-print (word "Amount traded: " deal-tableware "." )
 
-    ask traders [output-print (word "My utility (" breed "): " my-utility )]
+    ;ask traders [output-print (word "My utility (" breed "): " my-utility )]
   ]
   [
-    output-print (word "Suggested price: " precision price 2 ". Suggested amount: " suggested-quantity ".")
-    output-print (word "Utilities would have become: " item 0 [temp-utility] of consumers " (c) & " item 0 [temp-utility] of merchants " (m)")
-    ;ask traders [output-print (word "Utility would have become(" breed "): " temp-utility )]
+    ;output-print (word "Suggested price: " precision price 2 ". Suggested amount: " suggested-quantity ".")
+    ;output-print (word "Utilities would have become: " item 0 [temp-utility] of consumers " (c) & " item 0 [temp-utility] of merchants " (m)")
+    ;ask traders [;output-print (word "Utility would have become(" breed "): " temp-utility )]
     ]
 end
 
@@ -1353,7 +1365,7 @@ CHOOSER
 price-setting
 price-setting
 "market clearing" "random" "negotiation" "compare all price settings"
-1
+0
 
 SLIDER
 10
@@ -1483,13 +1495,6 @@ true
 "" ""
 PENS
 
-OUTPUT
-395
-500
-885
-585
-13
-
 SLIDER
 15
 250
@@ -1584,55 +1589,8 @@ TEXTBOX
 225
 390
 245
-Try changing these parameters while the model is running.
+Try changing these parameters while the model is running:
 13
-0.0
-1
-
-PLOT
-15
-380
-385
-585
-Utility over time
-Time
-Utility
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-
-TEXTBOX
-420
-585
-895
-625
-(text output to be deleted - unless we find it useful for something?)
-14
-0.0
-1
-
-TEXTBOX
-65
-590
-355
-616
-(does a plot of utility over time make sense???)
-13
-0.0
-1
-
-TEXTBOX
-955
-625
-1265
-676
-Demand & Supply plot: ONLY for Market Clearing
-14
 0.0
 1
 
