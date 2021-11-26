@@ -80,6 +80,22 @@ to setup
   ask (patch-set smiley-patch no-trade-patch) [set plabel "" ask props-here [die]] ;clear smiley and text when model is first set up (so no 'no trade! :(')
 end
 
+to setup-task
+  set consumer-daily-earnings 0 set merchant-daily-pot-production 0 set consumer-pot-breakage-per-day 0
+  set money-merchants 0 set pots-merchants 0 set money-consumers 0 set pots-consumers 0
+
+
+  if task = "Task 1.1" [ set pots-merchants 20 set money-consumers 20 set price-setting "market clearing" ]
+  if task = "Task 1.2" [ set pots-merchants 10 set money-consumers 20 set price-setting "market clearing" ]
+  if task = "Task 1.3" [ set pots-merchants 40 set money-consumers 20 set price-setting "market clearing" ]
+  if task = "Task 1.4" [ set pots-merchants 20 set money-merchants 20 set pots-consumers 20 set money-consumers 20 set price-setting "market clearing" ]
+  if task = "Task 2.1 & 2.2" [ set pots-merchants 20 set money-merchants 20 set pots-consumers 20 set money-consumers 20 set price-setting "compare all price settings" ]
+  if task = "Task 3.1" [ set pots-merchants 20 set money-merchants 20 set pots-consumers 20 set money-consumers 20 set price-setting "market clearing" set merchant-daily-pot-production 1]
+
+
+  setup
+end
+
 
 to go
   every .2 [
@@ -1359,9 +1375,9 @@ ticks
 
 CHOOSER
 10
-15
+110
 375
-60
+155
 price-setting
 price-setting
 "market clearing" "random" "negotiation" "compare all price settings"
@@ -1369,14 +1385,14 @@ price-setting
 
 SLIDER
 10
-100
+195
 190
-133
+228
 pots-consumers
 pots-consumers
 0
 100
-50.0
+0.0
 1
 1
 NIL
@@ -1384,14 +1400,14 @@ HORIZONTAL
 
 SLIDER
 195
-100
+195
 375
-133
+228
 pots-merchants
 pots-merchants
 0
 100
-50.0
+20.0
 1
 1
 NIL
@@ -1399,9 +1415,9 @@ HORIZONTAL
 
 BUTTON
 10
-140
+235
 190
-173
+268
 NIL
 setup
 NIL
@@ -1416,9 +1432,9 @@ NIL
 
 BUTTON
 195
-140
+235
 280
-173
+268
 go once
 go
 NIL
@@ -1433,14 +1449,14 @@ NIL
 
 SLIDER
 195
-65
+160
 375
-98
+193
 money-merchants
 money-merchants
 1
 100
-50.0
+0.0
 1
 1
 NIL
@@ -1448,14 +1464,14 @@ HORIZONTAL
 
 SLIDER
 10
-65
+160
 190
-98
+193
 money-consumers
 money-consumers
 1
 100
-50.0
+20.0
 1
 1
 NIL
@@ -1480,9 +1496,9 @@ PENS
 
 PLOT
 930
-205
+200
 1460
-395
+390
 Price plot
 Time
 Price per pot
@@ -1497,9 +1513,9 @@ PENS
 
 SLIDER
 15
-250
+345
 320
-283
+378
 consumer-daily-earnings
 consumer-daily-earnings
 0
@@ -1512,9 +1528,9 @@ HORIZONTAL
 
 SLIDER
 15
-290
+385
 320
-323
+418
 merchant-daily-pot-production
 merchant-daily-pot-production
 0
@@ -1527,9 +1543,9 @@ HORIZONTAL
 
 SLIDER
 15
-330
+425
 320
-363
+458
 consumer-pot-breakage-per-day
 consumer-pot-breakage-per-day
 0
@@ -1559,9 +1575,9 @@ PENS
 
 BUTTON
 290
-140
+235
 375
-173
+268
 NIL
 go
 T
@@ -1576,9 +1592,9 @@ NIL
 
 TEXTBOX
 15
-200
+295
 320
-221
+316
 Dynamics
 18
 0.0
@@ -1586,12 +1602,39 @@ Dynamics
 
 TEXTBOX
 15
-225
+320
 390
-245
+340
 Try changing these parameters while the model is running:
 13
 0.0
+1
+
+CHOOSER
+10
+15
+135
+60
+task
+task
+"Task 1.1" "Task 1.2" "Task 1.3" "Task 1.4" "Task 2.1 & 2.2" "Task 3.1"
+0
+
+BUTTON
+145
+15
+242
+60
+SETUP TASK
+setup-task
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
