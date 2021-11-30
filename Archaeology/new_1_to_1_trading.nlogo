@@ -81,7 +81,7 @@ to setup
 end
 
 to setup-task
-  set consumer-daily-earnings 0 set merchant-daily-pot-production 0 set consumer-pot-breakage-per-day 0
+  set consumer-daily-income 0 set merchant-daily-pot-production 0 set consumer-pot-breakage-per-day 0
   set money-merchants 0 set pots-merchants 0 set money-consumers 0 set pots-consumers 0
 
 
@@ -104,7 +104,7 @@ to go
     print-details
 
     ;earn money and produce pots:
-    ask consumers [set money (money + consumer-daily-earnings)]
+    ask consumers [set money (money + consumer-daily-income)]
     ask merchants [set tableware (tableware) + merchant-daily-pot-production]
 
     ;pot breakage (@FIX FOR COMPARE ALL?):
@@ -1516,8 +1516,8 @@ SLIDER
 345
 320
 378
-consumer-daily-earnings
-consumer-daily-earnings
+consumer-daily-income
+consumer-daily-income
 0
 20
 0.0
